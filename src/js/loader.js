@@ -2,6 +2,7 @@
 (function () {
 'use strict';
 var POS = window.POS || (window.POS = {});
+var PARAMS = POS.PARAMS;
 
 /* ---- Difficulty table (1-indexed rounds mapped to 0-indexed array) ---- */
 var DIFFICULTY_TABLE = [
@@ -47,6 +48,10 @@ function pick(arr) {
 POS.Loader = {
   catalog: [],
   npcPool: [],
+  _npcByType: null,
+  _productPool: [],
+  _nextRoundIndex: 0,
+  _lastBaseId: null,
 
   /* Main entry: fetch + parse + generate */
   load: function () {
@@ -57,15 +62,26 @@ POS.Loader = {
     ]).then(function (results) {
       self.catalog = self._parseCSV(results[0]);
       self.npcPool = results[1].npcs.map(function (raw) { return self._adaptNpc(raw); });
-      self._generateRounds();
+      self._buildNpcIndex();
+      self._resetRoundStream();
+      self._appendRounds(PARAMS.roundSeedCount || 12);
       console.log('[loader] Loaded', self.catalog.length, 'products,', self.npcPool.length, 'NPCs,', POS.ROUNDS.length, 'rounds');
     });
   },
 
   /* Re-generate rounds (for retry) without re-fetching */
   regenerate: function () {
-    this._generateRounds();
+    this._resetRoundStream();
+    this._appendRounds(PARAMS.roundSeedCount || 12);
     console.log('[loader] Regenerated', POS.ROUNDS.length, 'rounds');
+  },
+
+  /* Ensure at least targetCount rounds exist */
+  ensureRounds: function (targetCount) {
+    if (POS.ROUNDS.length >= targetCount) return;
+    var need = targetCount - POS.ROUNDS.length;
+    var chunk = Math.max(need, PARAMS.roundChunkSize || 6);
+    this._appendRounds(chunk);
   },
 
   /* ---- CSV parser ---- */
@@ -122,74 +138,103 @@ POS.Loader = {
     };
   },
 
-  /* ---- Round generation ---- */
-  _generateRounds: function () {
-    var self = this;
-
-    /* Split NPC pool by type */
+  /* ---- Round generation (endless) ---- */
+  _buildNpcIndex: function () {
     var npcByType = { kind:[], picky:[], rushed:[] };
     for (var n = 0; n < this.npcPool.length; n++) {
       var npc = this.npcPool[n];
       if (npcByType[npc.type]) npcByType[npc.type].push(npc);
     }
+    this._npcByType = npcByType;
+  },
 
-    /* Shuffle product catalog copy */
-    var pool = shuffle(this.catalog.slice());
+  _resetRoundStream: function () {
+    /* Clear existing runtime data */
+    var key;
+    for (key in POS.ITEMS) delete POS.ITEMS[key];
+    POS.NPCS.length = 0;
+    POS.ROUNDS.length = 0;
 
-    var newItems = {};
-    var newRounds = [];
-    var newNpcs = [];
-    var lastBaseId = null;
+    this._productPool = shuffle(this.catalog.slice());
+    this._nextRoundIndex = 0;
+    this._lastBaseId = null;
+  },
 
-    for (var r = 0; r < DIFFICULTY_TABLE.length; r++) {
-      var tier = DIFFICULTY_TABLE[r];
+  _appendRounds: function (count) {
+    for (var i = 0; i < count; i++) {
+      var roundIndex = this._nextRoundIndex;
+      var tier = this._getTierForRound(roundIndex);
 
       /* ---- Pick NPC ---- */
-      var candidates = npcByType[tier.npcType].filter(function (c) {
-        return c.base_id !== lastBaseId;
-      });
-      if (!candidates.length) candidates = npcByType[tier.npcType];
+      var byType = this._npcByType[tier.npcType] || this._npcByType.kind;
+      var candidates = byType.filter(function (c) { return c.base_id !== this._lastBaseId; }, this);
+      if (!candidates.length) candidates = byType;
       var chosenNpc = pick(candidates);
 
       /* Clone NPC so each round has its own instance with unique bodyColor */
       var npcInstance = JSON.parse(JSON.stringify(chosenNpc));
       var palette = BODY_COLORS[tier.npcType] || BODY_COLORS.kind;
       npcInstance.bodyColor = pick(palette);
-      lastBaseId = npcInstance.base_id;
+      this._lastBaseId = npcInstance.base_id;
+
+      /* Difficulty boost every 3 rounds after round 10 */
+      if (tier.drainRateMult) npcInstance.drainRate *= tier.drainRateMult;
+      if (tier.mistakeMult) npcInstance.mistakePenalty *= tier.mistakeMult;
 
       /* ---- Pick products ---- */
-      var picked = self._pickProducts(pool, tier);
+      var picked = this._pickProducts(this._productPool, tier);
 
       /* ---- Build items and round entry ---- */
       var roundItems = [];
       for (var p = 0; p < picked.length; p++) {
         var prod = picked[p];
         var isSale = prod._isSale;
-        var item = self._buildItem(prod.product, isSale, tier.discPair);
-        newItems[item.id] = item;
+        var item = this._buildItem(prod.product, isSale, tier.discPair, roundIndex);
+        POS.ITEMS[item.id] = item;
         roundItems.push({ id: item.id, qty: prod.qty });
       }
 
-      newNpcs.push(npcInstance);
-      newRounds.push({ npc: npcInstance, items: roundItems });
+      POS.NPCS.push(npcInstance);
+      POS.ROUNDS.push({ npc: npcInstance, items: roundItems, roundIndex: roundIndex });
+
+      this._nextRoundIndex++;
+    }
+  },
+
+  _getTierForRound: function (roundIndex) {
+    if (roundIndex < DIFFICULTY_TABLE.length) {
+      var base = DIFFICULTY_TABLE[roundIndex];
+      return {
+        npcType:   base.npcType,
+        products: base.products,
+        qtyMin:   base.qtyMin,
+        qtyMax:   base.qtyMax,
+        saleCount: base.saleCount,
+        discPair: base.discPair,
+      };
     }
 
-    /* ---- In-place fill POS.ITEMS ---- */
-    var key;
-    for (key in POS.ITEMS) delete POS.ITEMS[key];
-    for (key in newItems) POS.ITEMS[key] = newItems[key];
-
-    /* ---- In-place fill POS.NPCS ---- */
-    POS.NPCS.length = 0;
-    for (var i = 0; i < newNpcs.length; i++) POS.NPCS.push(newNpcs[i]);
-
-    /* ---- In-place fill POS.ROUNDS ---- */
-    POS.ROUNDS.length = 0;
-    for (var j = 0; j < newRounds.length; j++) POS.ROUNDS.push(newRounds[j]);
+    /* After round 10: spike difficulty every 3 rounds */
+    var block = Math.floor((roundIndex - 10) / 3) + 1;
+    var tier = {
+      npcType:   'rushed',
+      products: Math.min(8, 5 + Math.floor(block / 2)),
+      qtyMin:   6 + Math.floor(block / 2),
+      qtyMax:   7 + Math.floor((block + 1) / 2),
+      saleCount: Math.min(3, 2 + Math.floor(block / 3)),
+      discPair: [15, 20],
+      drainRateMult: 1 + block * 0.12,
+      mistakeMult:   1 + block * 0.10,
+    };
+    return tier;
   },
 
   /* ---- Product selection for a round ---- */
   _pickProducts: function (pool, tier) {
+    if (pool.length < tier.products + 2) {
+      var refill = shuffle(this.catalog.slice());
+      Array.prototype.push.apply(pool, refill);
+    }
     var needed = tier.products;
     var saleCount = tier.saleCount;
     var totalQty = randInt(tier.qtyMin, tier.qtyMax);
@@ -274,7 +319,7 @@ POS.Loader = {
   },
 
   /* ---- Build a POS.ITEMS entry ---- */
-  _buildItem: function (product, isSale, discPair) {
+  _buildItem: function (product, isSale, discPair, roundIndex) {
     var barcodes = [{ x:0.20, y:0.76, w:0.60, h:0.18, type:'normal' }];
 
     if (isSale && discPair) {
@@ -284,8 +329,12 @@ POS.Loader = {
       barcodes.push({ x:0.56, y:0.18, w:0.44, h:0.24, type:'discount', discountRate:high, label:high + '%OFF' });
     }
 
+    var suffix = '_r' + (roundIndex + 1) + (isSale ? 's' : 'n');
+    var itemId = product.id + suffix;
+    if (POS.ITEMS[itemId]) itemId = itemId + '_' + Math.floor(Math.random() * 1000);
     var item = {
-      id:       product.id,
+      id:       itemId,
+      baseId:   product.id,
       emoji:    product.emoji,
       name:     product.name_en,
       nameEn:   product.name,

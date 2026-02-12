@@ -24,6 +24,13 @@ function unlockAudio() {
   document.removeEventListener('keydown', unlockAudio);
 }
 
+/* ---- BGM register by round ---- */
+function bgmRegisterForRound(roundIdx) {
+  if (roundIdx < 3) return 'low';
+  if (roundIdx < 7) return 'mid';
+  return 'high';
+}
+
 /* ---- game loop ---- */
 var lastTime = 0;
 function loop(now) {
@@ -52,11 +59,26 @@ function boot() {
     var scanContent = document.querySelector('.scan-content');
     if (scanContent) scanner.bind(scanContent);
 
-    POS.Bus.on('startClick', function () { audio.unlock(); game.startGame(); });
-    POS.Bus.on('retryClick', function () {
-      POS.Loader.regenerate();
+    POS.Bus.on('startClick', function () {
+      audio.unlock();
+      audio.bgmStart('low');
       game.startGame();
     });
+
+    POS.Bus.on('retryClick', function () {
+      POS.Loader.regenerate();
+      audio.bgmStart('low');
+      game.startGame();
+    });
+
+    /* Escalate BGM register as rounds progress */
+    POS.Bus.on('roundStart', function (roundIdx) {
+      audio.bgmSetRegister(bgmRegisterForRound(roundIdx));
+    });
+
+    /* Stop BGM on game over / clear */
+    POS.Bus.on('gameOver',  function () { audio.bgmStop(1.0); });
+    POS.Bus.on('gameClear', function () { audio.bgmStop(1.5); });
 
     ui.showTitle();
 
@@ -64,7 +86,6 @@ function boot() {
     requestAnimationFrame(loop);
   }).catch(function (e) {
     console.error('[loader] Failed to load data:', e);
-    /* Fallback: still allow the game to start with whatever data exists */
     var scanContent = document.querySelector('.scan-content');
     if (scanContent) scanner.bind(scanContent);
 

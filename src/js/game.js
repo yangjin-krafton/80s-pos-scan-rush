@@ -33,6 +33,7 @@ Game.prototype.startGame = function () {
 
 Game.prototype.startRound = function () {
   State.resetRound();
+  if (POS.Loader && POS.Loader.ensureRounds) POS.Loader.ensureRounds(State.round + 1);
   var round = ROUNDS[State.round];
   State.currentNpc = round.npc;
   State.currentMood = 'calm';
@@ -84,26 +85,13 @@ Game.prototype.update = function (dt) {
     if (State.customerAnimTimer <= 0) {
       Bus.emit('customerGone');
       if (State.customerFeedback === 'happy') {
-        if (State.round >= ROUNDS.length - 1) {
-          State.phase = 'gameClear';
-          Bus.emit('gameClear');
-        } else {
-          State.phase = 'roundClear';
-          State.phaseTimer = PARAMS.roundClearTime;
-          Bus.emit('roundClear');
-        }
+        State.round++;
+        this.startRound();
       } else {
         State.phase = 'gameOver';
         Bus.emit('gameOver');
       }
     }
-    return;
-  }
-
-  /* roundClear → next round */
-  if (State.phase === 'roundClear') {
-    State.phaseTimer -= dt;
-    if (State.phaseTimer <= 0) { State.round++; this.startRound(); }
     return;
   }
 

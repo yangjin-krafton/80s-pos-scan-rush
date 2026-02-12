@@ -69,7 +69,7 @@ UI.prototype._listenBus = function () {
   Bus.on('posUpdated',      function ()  { self._renderPOS(); });
   Bus.on('holdProgress',    function (p) { self._updateProgress(p); });
   Bus.on('checkoutMistake', function (d) { self._onCheckoutMistake(d); });
-  Bus.on('roundClear',      function ()  { self._showOverlay('ROUND CLEAR!', '+' + PARAMS.scoreCheckout + ' pts', 'success'); });
+  Bus.on('roundClear',      function ()  { /* no full-screen clear overlay */ });
   Bus.on('gameOver',        function ()  { self._showOverlay('GAME OVER', 'SCORE: ' + State.score.toLocaleString(), 'fail'); });
   Bus.on('gameClear',       function ()  { self._showOverlay('ALL CLEAR!', 'TOTAL: ' + State.score.toLocaleString(), 'clear'); });
   Bus.on('scanFail',        function ()  { self._onScanFail(); });
@@ -97,7 +97,10 @@ UI.prototype.update = function (dt) {
 UI.prototype._updateInfoBar = function () {
   var rd = this.els.infoRound;
   var sc = this.els.infoScore;
-  if (rd) rd.textContent = pad2(State.round + 1) + '/' + pad2(ROUNDS.length);
+  if (rd) {
+    var total = PARAMS.endlessRounds ? '∞' : pad2(ROUNDS.length);
+    rd.textContent = pad2(State.round + 1) + '/' + total;
+  }
   if (sc) sc.textContent = String(State.score).padStart(6, '0');
 };
 
@@ -117,7 +120,10 @@ UI.prototype._updateCustomer = function () {
   }
   // HUD name & round
   if (this.els.hudName)  this.els.hudName.textContent = npc.name + ' #' + pad2(State.round + 1);
-  if (this.els.hudRight) this.els.hudRight.textContent = 'ROUND ' + pad2(State.round + 1) + '/' + ROUNDS.length;
+  if (this.els.hudRight) {
+    var total = PARAMS.endlessRounds ? '∞' : ROUNDS.length;
+    this.els.hudRight.textContent = 'ROUND ' + pad2(State.round + 1) + '/' + total;
+  }
 };
 
 /* ---- customer state machine UI handlers ---- */
@@ -246,7 +252,7 @@ UI.prototype._onRoundStart = function () {
   );
 
   // Queue preview with future NPC emojis
-  var remaining = ROUNDS.length - State.round - 1;
+  var remaining = PARAMS.endlessRounds ? 5 : (ROUNDS.length - State.round - 1);
   if (this.els.pxQueue) {
     var q = '';
     for (var i = 0; i < Math.min(remaining, 5); i++) {
@@ -343,10 +349,15 @@ UI.prototype._renderCart = function () {
     card.style.transform = 'rotate(' + rot + 'deg)';
     card.style.zIndex = z;
 
+    var saleBadge = '';
+    if (item.isSale) {
+      var disc = POS.getCorrectDiscount(item.id);
+      saleBadge = '<span class="sbadge">' + (disc ? disc.discountRate + '%' : '割') + '</span>';
+    }
     card.innerHTML =
       '<span>' + item.emoji + '</span>' +
       '<span class="cn">' + item.name + '</span>' +
-      (item.isSale ? '<span class="sbadge">割</span>' : '');
+      saleBadge;
 
     // Drag & click handling
     self._initCardDrag(card, desktop, item);
