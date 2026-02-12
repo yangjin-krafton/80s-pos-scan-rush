@@ -96,6 +96,11 @@ UI.prototype._listenBus = function () {
   Bus.on('customerLeave',   function (t) { self._onCustomerLeave(t); });
   Bus.on('moodChange',      function (m) { self._onMoodChange(m); });
   Bus.on('moodHint',        function (m) { self._onMoodHint(m); });
+
+  /* ---- Meta event handlers ---- */
+  Bus.on('posBlackout',     function (on) { self._onPosBlackout(on); });
+  Bus.on('midAdd',          function (items) { self._onMidAdd(items); });
+  Bus.on('midCancel',       function (items) { self._onMidCancel(items); });
 };
 
 /* ---- per-frame ---- */
@@ -516,13 +521,14 @@ UI.prototype._renderCart = function () {
   var orphans = document.querySelectorAll('.game > .cart-card');
   for (var k = 0; k < orphans.length; k++) orphans[k].remove();
 
-  // Expand items: qty copies as individual cards, then shuffle
+  // Expand items: qty copies as individual cards with damage info, then shuffle
   var cards = [];
   round.items.forEach(function (entry) {
     var item = ITEMS[entry.id];
     if (!item) return;
     for (var q = 0; q < entry.qty; q++) {
-      cards.push(item);
+      var isDamaged = entry.damagedCopies ? entry.damagedCopies[q] : false;
+      cards.push({ item: item, isDamaged: isDamaged, isAdded: !!entry.isAdded });
     }
   });
   // Fisher-Yates shuffle
@@ -548,10 +554,15 @@ UI.prototype._renderCart = function () {
   var self = this;
   self._cartTopZ = count + 1;
 
-  cards.forEach(function (item, idx) {
+  cards.forEach(function (cardData, idx) {
+    var item = cardData.item;
     var card = document.createElement('div');
-    card.className = 'cart-card' + (item.isSale ? ' is-sale' : '');
+    card.className = 'cart-card'
+      + (item.isSale ? ' is-sale' : '')
+      + (cardData.isDamaged ? ' is-damaged' : '')
+      + (cardData.isAdded ? ' is-added' : '');
     card.dataset.itemId = item.id;
+    card.dataset.isDamaged = cardData.isDamaged ? '1' : '0';
 
     var col = idx % cols;
     var row = Math.floor(idx / cols);
@@ -721,9 +732,37 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     setTimeout(function () { card.style.transition = ''; }, 260);
   }
 
+  /* -- damaged barcode overlay (no scan zones) -- */
+
+  function addDamagedOverlay() {
+    removeBarcodeZones();
+    var existing = card.querySelector('.bc-damaged');
+    if (existing) existing.remove();
+    var dmg = document.createElement('div');
+    dmg.className = 'bc-damaged';
+    dmg.innerHTML = '<span class="bc-dmg-label">DAMAGED</span>';
+    card.appendChild(dmg);
+  }
+
+  function removeDamagedOverlay() {
+    var el = card.querySelector('.bc-damaged');
+    if (el) el.remove();
+  }
+
   /* -- begin scan session: set State + scanner for hold-scan -- */
 
   function startScanSession() {
+    if (card.dataset.isDamaged === '1') {
+      /* Damaged barcode: show overlay, allow drag but no scan */
+      addDamagedOverlay();
+      State.selectedItemId = item.id;
+      State.scanPhase = 'itemSelected';
+      State.holdProgress = 0;
+      State.dragActive = true;
+      scanner.setActiveDrag(card);
+      Bus.emit('cardPickup', item.id);
+      return;
+    }
     addBarcodeZones();
     State.selectedItemId = item.id;
     State.scanPhase = 'itemSelected';
@@ -855,6 +894,141 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
   card.addEventListener('pointermove', onMove);
   card.addEventListener('pointerup',   onUp);
   card.addEventListener('pointercancel', onUp);
+};
+
+/* ---- Meta event: POS CRT Blackout ---- */
+
+UI.prototype._onPosBlackout = function (isBlackout) {
+  var posPanel = document.querySelector('.pos-panel');
+  if (!posPanel) return;
+  var self = this;
+
+  if (isBlackout) {
+    posPanel.classList.add('crt-blackout');
+    setTimeout(function () {
+      if (State.posBlackout) posPanel.classList.add('crt-reboot');
+    }, 300);
+  } else {
+    posPanel.classList.remove('crt-reboot');
+    posPanel.classList.add('crt-poweron');
+    setTimeout(function () {
+      posPanel.classList.remove('crt-blackout', 'crt-poweron');
+    }, 500);
+    self._renderPOS();
+  }
+};
+
+/* ---- Meta event: Mid-round Add ---- */
+
+UI.prototype._onMidAdd = function (newItems) {
+  var desktop = this.els.cartDesktop;
+  if (!desktop) return;
+  var self = this;
+
+  /* Show NPC dialogue */
+  var npc = State.currentNpc;
+  if (npc && this.els.pxBubble) {
+    var lines = npc.dialogue.addRequest;
+    if (lines && lines.length) {
+      this.els.pxBubble.textContent = POS.pickDialogue(lines);
+    } else {
+      this.els.pxBubble.textContent = 'あ、これも追加で！';
+    }
+  }
+
+  /* Create new cart cards */
+  var areaW = desktop.clientWidth || 340;
+  var areaH = desktop.clientHeight || 120;
+
+  for (var i = 0; i < newItems.length; i++) {
+    var entry = newItems[i];
+    var item = entry.item;
+    for (var q = 0; q < entry.qty; q++) {
+      var card = document.createElement('div');
+      card.className = 'cart-card is-added' + (item.isSale ? ' is-sale' : '');
+      card.dataset.itemId = item.id;
+      card.dataset.isDamaged = '0';
+
+      var bx = Math.random() * (areaW - 64);
+      var by = Math.random() * (areaH - 64);
+      var rot = (Math.random() - 0.5) * 20;
+
+      card.style.left = bx + 'px';
+      card.style.top = by + 'px';
+      card.style.transform = 'rotate(' + rot + 'deg) scale(0)';
+      card.style.zIndex = String((self._cartTopZ || 100) + 1);
+      self._cartTopZ = parseInt(card.style.zIndex);
+
+      var saleBadge = '';
+      if (item.isSale) {
+        var disc = POS.getCorrectDiscount(item.id);
+        saleBadge = '<span class="sbadge">' + (disc ? disc.discountRate + '%' : '割') + '</span>';
+      }
+      card.innerHTML =
+        '<span>' + item.emoji + '</span>' +
+        '<span class="cn">' + item.name + '</span>' +
+        saleBadge;
+
+      self._initCardDrag(card, desktop, item);
+      desktop.appendChild(card);
+
+      /* Pop-in animation */
+      (function (c, r) {
+        setTimeout(function () {
+          c.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+          c.style.transform = 'rotate(' + r + 'deg) scale(1)';
+          setTimeout(function () { c.style.transition = ''; }, 320);
+        }, 50 + i * 100);
+      })(card, rot);
+    }
+  }
+};
+
+/* ---- Meta event: Mid-round Cancel ---- */
+
+UI.prototype._onMidCancel = function (cancelledItems) {
+  var desktop = this.els.cartDesktop;
+  if (!desktop) return;
+
+  /* Show NPC dialogue */
+  var npc = State.currentNpc;
+  if (npc && this.els.pxBubble) {
+    var lines = npc.dialogue.cancelRequest;
+    if (lines && lines.length) {
+      this.els.pxBubble.textContent = POS.pickDialogue(lines);
+    } else {
+      this.els.pxBubble.textContent = 'やっぱりこれ、いらない。';
+    }
+  }
+
+  /* Mark cancelled cart cards */
+  for (var i = 0; i < cancelledItems.length; i++) {
+    var ci = cancelledItems[i];
+    var matchCards = desktop.querySelectorAll('.cart-card[data-item-id="' + ci.id + '"]');
+    var marked = 0;
+    for (var j = 0; j < matchCards.length; j++) {
+      if (marked >= ci.cancelQty) break;
+      if (!matchCards[j].classList.contains('is-cancelled')) {
+        matchCards[j].classList.add('is-cancelled');
+        marked++;
+      }
+    }
+
+    /* Flash POS row if item already scanned */
+    var posScroll = this.els.posScroll;
+    if (posScroll) {
+      var rows = posScroll.querySelectorAll('.pos-row');
+      for (var r = 0; r < rows.length; r++) {
+        var qb = rows[r].querySelector('.qb[data-id*="' + ci.id + '"]');
+        if (qb) {
+          rows[r].classList.add('cancel-flash');
+          (function (row) {
+            setTimeout(function () { row.classList.remove('cancel-flash'); }, 1000);
+          })(rows[r]);
+        }
+      }
+    }
+  }
 };
 
 /* ---- POS list ---- */

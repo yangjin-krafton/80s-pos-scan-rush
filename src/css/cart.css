@@ -117,3 +117,52 @@
   opacity:0;
   pointer-events:none;
 }
+
+/* ---- Meta: Damaged barcode card ---- */
+.cart-card.is-damaged{
+  border-color:#aa6060 #440000 #440000 #aa6060;
+}
+.cart-card.is-damaged::before{
+  content:"\00D7"; /* × */
+  position:absolute;bottom:1px;right:3px;
+  font-size:16px;color:#cc0000;font-weight:900;
+  font-family:'Courier New',monospace;
+  z-index:2;pointer-events:none;line-height:1;
+}
+.cart-card.is-damaged .cn{
+  text-decoration:line-through;opacity:0.6;
+}
+
+/* ---- Meta: Added item card (mid-round add) ---- */
+.cart-card.is-added{
+  border-color:#60aa60 #004400 #004400 #60aa60;
+}
+.cart-card.is-added::after{
+  content:"ADD";
+  position:absolute;top:-6px;right:-6px;
+  background:#00cc00;color:#fff;
+  font-size:7px;font-weight:900;
+  padding:1px 3px;border:1px solid #006600;
+  border-radius:2px;
+  font-family:'Courier New',monospace;
+  z-index:3;pointer-events:none;
+}
+
+/* ---- Meta: Cancelled item card (mid-round cancel) ---- */
+.cart-card.is-cancelled{
+  opacity:0.45;
+  pointer-events:none;
+  border-color:#aa0000 #440000 #440000 #aa0000;
+}
+.cart-card.is-cancelled::after{
+  content:"CANCEL";
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(-15deg);
+  background:#cc0000;color:#fff;
+  font-size:8px;font-weight:900;
+  padding:2px 6px;border:1px solid #660000;
+  border-radius:2px;
+  font-family:'Courier New',monospace;
+  z-index:10;pointer-events:none;
+  white-space:nowrap;
+}

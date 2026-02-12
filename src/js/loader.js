@@ -4,19 +4,27 @@
 var POS = window.POS || (window.POS = {});
 var PARAMS = POS.PARAMS;
 
-/* ---- Difficulty table (1-indexed rounds mapped to 0-indexed array) ---- */
+/* ---- Base difficulty table (products / qty / sale structure) ---- */
 var DIFFICULTY_TABLE = [
-  /* R1  */ { npcType:'kind',   products:2, qtyMin:4, qtyMax:6, saleCount:0, discPair:null },
-  /* R2  */ { npcType:'kind',   products:2, qtyMin:4, qtyMax:5, saleCount:0, discPair:null },
-  /* R3  */ { npcType:'kind',   products:3, qtyMin:4, qtyMax:5, saleCount:0, discPair:null },
-  /* R4  */ { npcType:'kind',   products:3, qtyMin:4, qtyMax:5, saleCount:1, discPair:[10,30] },
-  /* R5  */ { npcType:'picky',  products:3, qtyMin:4, qtyMax:5, saleCount:1, discPair:[10,30] },
-  /* R6  */ { npcType:'picky',  products:4, qtyMin:5, qtyMax:6, saleCount:1, discPair:[10,25] },
-  /* R7  */ { npcType:'rushed', products:4, qtyMin:5, qtyMax:6, saleCount:1, discPair:[10,25] },
-  /* R8  */ { npcType:'rushed', products:4, qtyMin:5, qtyMax:6, saleCount:2, discPair:[15,25] },
-  /* R9  */ { npcType:'rushed', products:5, qtyMin:6, qtyMax:7, saleCount:1, discPair:[15,20] },
-  /* R10 */ { npcType:'rushed', products:5, qtyMin:6, qtyMax:7, saleCount:2, discPair:[15,20] },
+  /* R1  */ { npcType:'kind',   products:2,  qtyMin:4,  qtyMax:6,  saleCount:0, discPair:null },
+  /* R2  */ { npcType:'kind',   products:2,  qtyMin:4,  qtyMax:5,  saleCount:0, discPair:null },
+  /* R3  */ { npcType:'kind',   products:3,  qtyMin:4,  qtyMax:5,  saleCount:0, discPair:null },
+  /* R4  */ { npcType:'kind',   products:3,  qtyMin:4,  qtyMax:5,  saleCount:1, discPair:[10,30] },
+  /* R5  */ { npcType:'picky',  products:10, qtyMin:12, qtyMax:15, saleCount:2, discPair:[10,30] },
+  /* R6  */ { npcType:'picky',  products:10, qtyMin:14, qtyMax:18, saleCount:3, discPair:[10,25] },
+  /* R7  */ { npcType:'rushed', products:10, qtyMin:14, qtyMax:18, saleCount:3, discPair:[10,25] },
+  /* R8  */ { npcType:'rushed', products:12, qtyMin:16, qtyMax:20, saleCount:5, discPair:[15,25] },
+  /* R9  */ { npcType:'rushed', products:12, qtyMin:16, qtyMax:20, saleCount:5, discPair:[15,20] },
+  /* R10 */ { npcType:'rushed', products:15, qtyMin:20, qtyMax:26, saleCount:7, discPair:[15,20] },
+  /* R11 */ { npcType:'rushed', products:15, qtyMin:22, qtyMax:28, saleCount:8, discPair:[10,20] },
+  /* R12 */ { npcType:'rushed', products:15, qtyMin:22, qtyMax:28, saleCount:8, discPair:[10,20] },
+  /* R13 */ { npcType:'rushed', products:18, qtyMin:24, qtyMax:30, saleCount:8, discPair:[10,20] },
+  /* R14 */ { npcType:'rushed', products:18, qtyMin:26, qtyMax:30, saleCount:9, discPair:[10,15] },
+  /* R15 */ { npcType:'rushed', products:20, qtyMin:28, qtyMax:35, saleCount:10, discPair:[10,15] },
 ];
+
+/* ---- Available discount pairs pool for multiDiscount meta ---- */
+var DISC_PAIRS_POOL = [[10,30],[15,25],[10,20],[15,20],[10,25],[20,30]];
 
 /* ---- Body color palettes per NPC type ---- */
 var BODY_COLORS = {
@@ -41,6 +49,74 @@ function randInt(min, max) {
 
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+/* ---- Dynamic meta computation based on diffRating ---- */
+
+function computeMetas(dr) {
+  var metas = {};
+
+  /* highQty: unlocks at dr >= 4 */
+  if (dr >= 4) {
+    metas.highQty = { qtyMax: clamp(4 + Math.floor((dr - 4) * 0.5), 4, 8) };
+  }
+
+  /* damagedBarcode: unlocks at dr >= 5 */
+  if (dr >= 5) {
+    metas.damagedBarcode = {
+      chance: clamp(0.2 + (dr - 5) * 0.06, 0.2, 0.8),
+      ratio:  clamp(0.4 + (dr - 5) * 0.03, 0.4, 0.7),
+    };
+  }
+
+  /* midAdd: unlocks at dr >= 6 */
+  if (dr >= 6) {
+    metas.midAdd = {
+      chance: clamp(0.3 + (dr - 6) * 0.05, 0.3, 0.8),
+      count:  clamp(1 + Math.floor((dr - 6) * 0.5), 1, 5),
+      delay:  [clamp(15 - Math.floor(dr * 0.5), 5, 15), clamp(22 - Math.floor(dr * 0.5), 10, 22)],
+    };
+  }
+
+  /* mixedSale: unlocks at dr >= 7 */
+  if (dr >= 7) {
+    metas.mixedSale = {
+      chance: clamp(0.3 + (dr - 7) * 0.06, 0.3, 0.8),
+      count:  clamp(1 + Math.floor((dr - 7) * 0.5), 1, 5),
+    };
+  }
+
+  /* posBlackout: unlocks at dr >= 8 */
+  if (dr >= 8) {
+    metas.posBlackout = {
+      chance:   clamp(0.2 + (dr - 8) * 0.04, 0.2, 0.6),
+      delay:    [clamp(14 - Math.floor(dr * 0.3), 6, 14), clamp(25 - Math.floor(dr * 0.5), 12, 25)],
+      duration: [2, clamp(3 + Math.floor((dr - 8) * 0.5), 3, 8)],
+    };
+  }
+
+  /* multiDiscount: unlocks at dr >= 9 */
+  if (dr >= 9) {
+    var mdCount = clamp(1 + Math.floor((dr - 9) * 0.7), 1, 8);
+    metas.multiDiscount = {
+      chance:    clamp(0.4 + (dr - 9) * 0.05, 0.4, 0.9),
+      count:     mdCount,
+      discPairs: DISC_PAIRS_POOL.slice(0, clamp(mdCount + 1, 2, DISC_PAIRS_POOL.length)),
+    };
+  }
+
+  /* midCancel: unlocks at dr >= 9 */
+  if (dr >= 9) {
+    metas.midCancel = {
+      chance: clamp(0.25 + (dr - 9) * 0.05, 0.25, 0.7),
+      count:  clamp(1 + Math.floor((dr - 9) * 0.3), 1, 3),
+      delay:  [clamp(12 - Math.floor(dr * 0.3), 6, 12), clamp(18 - Math.floor(dr * 0.3), 10, 18)],
+    };
+  }
+
+  return metas;
 }
 
 /* ---- Loader ---- */
@@ -127,15 +203,18 @@ POS.Loader = {
       drainRate:      raw.satisfactionDrainPerSec,
       mistakePenalty: raw.mistakePenalty,
       scoreMult:      raw.scoreMultiplier,
-      bodyColor:      null, /* assigned during round generation */
+      bodyColor:      null,
       dialogue: {
         greeting:        raw.greeting || [],
         scanSuccess:     raw.scanSuccess || [],
+        bagSuccess:      raw.bagSuccess || [],
         checkoutSuccess: raw.checkoutSuccess || [],
         checkoutFail:    raw.checkoutFail || [],
         timeout:         raw.timeout || [],
         mistake:         raw.mistake || { missing:[], qty:[], discount:[] },
         moodChange:      moodChange,
+        addRequest:      raw.addRequest || [],
+        cancelRequest:   raw.cancelRequest || [],
       },
     };
   },
@@ -151,7 +230,6 @@ POS.Loader = {
   },
 
   _resetRoundStream: function () {
-    /* Clear existing runtime data */
     var key;
     for (key in POS.ITEMS) delete POS.ITEMS[key];
     POS.NPCS.length = 0;
@@ -173,13 +251,11 @@ POS.Loader = {
       if (!candidates.length) candidates = byType;
       var chosenNpc = pick(candidates);
 
-      /* Clone NPC so each round has its own instance with unique bodyColor */
       var npcInstance = JSON.parse(JSON.stringify(chosenNpc));
       var palette = BODY_COLORS[tier.npcType] || BODY_COLORS.kind;
       npcInstance.bodyColor = pick(palette);
       this._lastBaseId = npcInstance.base_id;
 
-      /* Difficulty boost every 3 rounds after round 10 */
       if (tier.drainRateMult) npcInstance.drainRate *= tier.drainRateMult;
       if (tier.mistakeMult) npcInstance.mistakePenalty *= tier.mistakeMult;
 
@@ -187,83 +263,147 @@ POS.Loader = {
       var picked = this._pickProducts(this._productPool, tier);
 
       /* ---- Build items and round entry ---- */
+      var metas = tier.metas || {};
       var roundItems = [];
       for (var p = 0; p < picked.length; p++) {
         var prod = picked[p];
         var isSale = prod._isSale;
-        var item = this._buildItem(prod.product, isSale, tier.discPair, roundIndex);
+        var dp = prod._discPairOverride || tier.discPair;
+        var item = this._buildItem(prod.product, isSale, dp, roundIndex);
         POS.ITEMS[item.id] = item;
         roundItems.push({ id: item.id, qty: prod.qty });
       }
 
+      /* ---- Apply damagedBarcode meta ---- */
+      var dmgMeta = metas.damagedBarcode;
+      if (dmgMeta) {
+        for (var d = 0; d < roundItems.length; d++) {
+          var entry = roundItems[d];
+          if (entry.qty > 1 && Math.random() < dmgMeta.chance) {
+            var dmgCount = Math.floor(entry.qty * (dmgMeta.ratio || 0.5));
+            dmgCount = Math.max(0, Math.min(dmgCount, entry.qty - 1));
+            var dmgArr = [];
+            for (var dd = 0; dd < entry.qty; dd++) {
+              dmgArr.push(dd < dmgCount);
+            }
+            shuffle(dmgArr);
+            entry.damagedCopies = dmgArr;
+          }
+        }
+      }
+
       POS.NPCS.push(npcInstance);
-      POS.ROUNDS.push({ npc: npcInstance, items: roundItems, roundIndex: roundIndex });
+      POS.ROUNDS.push({ npc: npcInstance, items: roundItems, roundIndex: roundIndex, metas: metas });
 
       this._nextRoundIndex++;
     }
   },
 
   _getTierForRound: function (roundIndex) {
-    /* Rounds 0-2: fixed intro tiers (always easy start) */
-    if (roundIndex < 3) {
-      var intro = DIFFICULTY_TABLE[roundIndex];
+    /* Round 0 only: fixed intro tier (tutorial round) */
+    if (roundIndex < 1) {
+      var intro = DIFFICULTY_TABLE[0];
       return {
-        npcType:   intro.npcType,
-        products:  intro.products,
-        qtyMin:    intro.qtyMin,
-        qtyMax:    intro.qtyMax,
-        saleCount: intro.saleCount,
-        discPair:  intro.discPair,
+        npcType:  intro.npcType,
+        products: intro.products,
+        qtyMin:   intro.qtyMin,
+        qtyMax:   intro.qtyMax,
+        saleCount:intro.saleCount,
+        discPair: intro.discPair,
+        metas:    {},
       };
     }
 
-    /* Round 3+: adaptive — tier driven by State.diffRating */
+    /* Round 1+: adaptive — tier driven by State.diffRating */
     var State = POS.State;
-    var tierIdx = 3 + Math.floor(State.diffRating);
+    var dr = State.diffRating;
+    var tierIdx = 1 + Math.floor(dr);
+    var tier;
 
     if (tierIdx < DIFFICULTY_TABLE.length) {
       var base = DIFFICULTY_TABLE[tierIdx];
-      return {
-        npcType:   base.npcType,
-        products:  base.products,
-        qtyMin:    base.qtyMin,
-        qtyMax:    base.qtyMax,
-        saleCount: base.saleCount,
-        discPair:  base.discPair,
+      tier = {
+        npcType:  base.npcType,
+        products: base.products,
+        qtyMin:   base.qtyMin,
+        qtyMax:   base.qtyMax,
+        saleCount:base.saleCount,
+        discPair: base.discPair,
+      };
+    } else {
+      /* Beyond table: escalating difficulty */
+      var overflow = tierIdx - DIFFICULTY_TABLE.length;
+      var block = Math.max(1, Math.floor(overflow / 3) + 1);
+      tier = {
+        npcType:   'rushed',
+        products:  Math.min(30, 20 + Math.floor(block / 2)),
+        qtyMin:    28 + Math.floor(block / 2),
+        qtyMax:    35 + Math.floor((block + 1) / 2),
+        saleCount: Math.min(15, 10 + Math.floor(block / 2)),
+        discPair:  [10, 15],
+        drainRateMult: 1 + block * 0.12,
+        mistakeMult:   1 + block * 0.10,
       };
     }
 
-    /* Beyond table: escalating difficulty */
-    var overflow = tierIdx - DIFFICULTY_TABLE.length;
-    var block = Math.max(1, Math.floor(overflow / 3) + 1);
-    var tier = {
-      npcType:   'rushed',
-      products:  Math.min(8, 5 + Math.floor(block / 2)),
-      qtyMin:    6 + Math.floor(block / 2),
-      qtyMax:    7 + Math.floor((block + 1) / 2),
-      saleCount: Math.min(3, 2 + Math.floor(block / 3)),
-      discPair:  [15, 20],
-      drainRateMult: 1 + block * 0.12,
-      mistakeMult:   1 + block * 0.10,
-    };
+    /* Compute metas dynamically from diffRating */
+    tier.metas = computeMetas(dr);
     return tier;
   },
 
-  /* ---- Product selection for a round ---- */
+  /* ---- Product selection for a round (meta-aware) ---- */
   _pickProducts: function (pool, tier) {
-    if (pool.length < tier.products + 2) {
+    var metas = tier.metas || {};
+    var qtyMaxPerProduct = (metas.highQty && metas.highQty.qtyMax) || 3;
+
+    var safeNeeded = tier.products + 10;
+    if (pool.length < safeNeeded) {
       var refill = shuffle(this.catalog.slice());
       Array.prototype.push.apply(pool, refill);
     }
+
     var needed = tier.products;
     var saleCount = tier.saleCount;
     var totalQty = randInt(tier.qtyMin, tier.qtyMax);
     var result = [];
     var usedEmoji = {};
 
-    /* Pick sale products first (prefer price >= 200) */
+    /* ---- Step 1: Multi-discount (same product, different discount rates) ---- */
+    var mdMeta = metas.multiDiscount;
+    if (mdMeta && Math.random() < mdMeta.chance) {
+      var mdCount = Math.min(mdMeta.count || 0, Math.floor(saleCount / 2));
+      var mdPairs = mdMeta.discPairs || [];
+      for (var mi = 0; mi < mdCount && mdPairs.length >= 2; mi++) {
+        var mdProd = this._pickOneProduct(pool, usedEmoji, true);
+        if (!mdProd) break;
+        var pairA = mdPairs[mi * 2 % mdPairs.length];
+        var pairB = mdPairs[(mi * 2 + 1) % mdPairs.length];
+        if (pairA[0] === pairB[0] && pairA[1] === pairB[1] && mdPairs.length > 2) {
+          pairB = mdPairs[(mi * 2 + 2) % mdPairs.length];
+        }
+        result.push({ product: mdProd, _isSale: true, qty: 1, _discPairOverride: pairA });
+        result.push({ product: mdProd, _isSale: true, qty: 1, _discPairOverride: pairB });
+        saleCount -= 2;
+        needed -= 1;
+      }
+    }
+
+    /* ---- Step 2: Mixed sale (same product as both sale and non-sale) ---- */
+    var msMeta = metas.mixedSale;
+    if (msMeta && Math.random() < msMeta.chance) {
+      var msCount = Math.min(msMeta.count || 0, saleCount, Math.floor(needed / 2));
+      for (var ms = 0; ms < msCount; ms++) {
+        var msProd = this._pickOneProduct(pool, usedEmoji, true);
+        if (!msProd) break;
+        result.push({ product: msProd, _isSale: true,  qty: 1 });
+        result.push({ product: msProd, _isSale: false, qty: 1 });
+        saleCount -= 1;
+        needed -= 1;
+      }
+    }
+
+    /* ---- Step 3: Remaining sale products ---- */
     if (saleCount > 0) {
-      /* Sort candidates: price >= 200 first */
       var saleCandidates = [];
       var saleOther = [];
       for (var s = 0; s < pool.length; s++) {
@@ -285,7 +425,7 @@ POS.Loader = {
           var saleProd = pool.splice(idx, 1)[0];
           usedEmoji[saleProd.emoji] = true;
           result.push({ product: saleProd, _isSale: true, qty: 1 });
-          /* Re-index remaining candidate arrays after splice */
+          needed--;
           saleCandidates = [];
           saleOther = [];
           for (var rs = 0; rs < pool.length; rs++) {
@@ -297,8 +437,8 @@ POS.Loader = {
       }
     }
 
-    /* Pick normal products */
-    var normalCount = needed - result.length;
+    /* ---- Step 4: Remaining normal products ---- */
+    var normalCount = Math.max(0, needed);
     for (var nc = 0; nc < normalCount; nc++) {
       var found = false;
       for (var pi = 0; pi < pool.length; pi++) {
@@ -311,31 +451,74 @@ POS.Loader = {
         }
       }
       if (!found && pool.length > 0) {
-        /* Fallback: allow emoji overlap if necessary */
         var fb = pool.splice(0, 1)[0];
         result.push({ product: fb, _isSale: false, qty: 1 });
       }
     }
 
-    /* Distribute remaining quantity */
-    var assigned = result.length; /* each already has qty=1 */
+    /* ---- Step 5: Distribute remaining quantity ---- */
+    var assigned = 0;
+    for (var ai = 0; ai < result.length; ai++) assigned += result[ai].qty;
     var remaining = totalQty - assigned;
     while (remaining > 0 && result.length > 0) {
       var ri = Math.floor(Math.random() * result.length);
-      if (result[ri].qty < 3) {
+      if (result[ri].qty < qtyMaxPerProduct) {
         result[ri].qty++;
         remaining--;
       } else {
-        /* All at max 3? force assign anyway */
         var allMax = true;
         for (var ch = 0; ch < result.length; ch++) {
-          if (result[ch].qty < 3) { allMax = false; break; }
+          if (result[ch].qty < qtyMaxPerProduct) { allMax = false; break; }
         }
         if (allMax) break;
       }
     }
 
     return result;
+  },
+
+  _pickOneProduct: function (pool, usedEmoji, preferExpensive) {
+    if (preferExpensive) {
+      for (var i = 0; i < pool.length; i++) {
+        if (!usedEmoji[pool[i].emoji] && pool[i].price >= 200) {
+          var prod = pool.splice(i, 1)[0];
+          usedEmoji[prod.emoji] = true;
+          return prod;
+        }
+      }
+    }
+    for (var j = 0; j < pool.length; j++) {
+      if (!usedEmoji[pool[j].emoji]) {
+        var prod2 = pool.splice(j, 1)[0];
+        usedEmoji[prod2.emoji] = true;
+        return prod2;
+      }
+    }
+    if (pool.length > 0) return pool.splice(0, 1)[0];
+    return null;
+  },
+
+  /* Pick additional items for mid-round add event */
+  pickAdditionalItems: function (count, round, roundIndex) {
+    var pool = this._productPool;
+    if (pool.length < count + 2) {
+      var refill = shuffle(this.catalog.slice());
+      Array.prototype.push.apply(pool, refill);
+    }
+    var usedEmoji = {};
+    for (var i = 0; i < round.items.length; i++) {
+      var existing = POS.ITEMS[round.items[i].id];
+      if (existing) usedEmoji[existing.emoji] = true;
+    }
+
+    var newItems = [];
+    for (var c = 0; c < count; c++) {
+      var prod = this._pickOneProduct(pool, usedEmoji, false);
+      if (!prod) break;
+      var item = this._buildItem(prod, false, null, roundIndex);
+      newItems.push({ item: item, qty: 1 });
+    }
+    return newItems;
   },
 
   /* ---- Build a POS.ITEMS entry ---- */
@@ -349,7 +532,7 @@ POS.Loader = {
       barcodes.push({ x:0.56, y:0.18, w:0.44, h:0.24, type:'discount', discountRate:high, label:high + '%OFF' });
     }
 
-    var suffix = '_r' + (roundIndex + 1) + (isSale ? 's' : 'n');
+    var suffix = '_r' + (roundIndex + 1) + (isSale ? 's' + (discPair ? discPair[0] : '') : 'n');
     var itemId = product.id + suffix;
     if (POS.ITEMS[itemId]) itemId = itemId + '_' + Math.floor(Math.random() * 1000);
     var item = {

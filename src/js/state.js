@@ -56,6 +56,22 @@ POS.State = {
   /* ---- Adaptive difficulty ---- */
   diffRating: 0,
 
+  /* ---- Meta events: POS blackout ---- */
+  posBlackout: false,
+  posBlackoutTimer: 0,
+  posBlackoutScheduled: false,
+  posBlackoutScheduleTimer: 0,
+
+  /* ---- Meta events: mid-round add ---- */
+  midAddScheduled: false,
+  midAddTimer: 0,
+  midAddFired: false,
+
+  /* ---- Meta events: mid-round cancel ---- */
+  midCancelScheduled: false,
+  midCancelTimer: 0,
+  midCancelFired: false,
+
   /* ---- Served NPC history ---- */
   servedNpcs: [],
 
@@ -66,6 +82,16 @@ POS.State = {
     this.combo = 0;
     this.maxCombo = 0;
     this.diffRating = 0;
+    this.posBlackout = false;
+    this.posBlackoutTimer = 0;
+    this.posBlackoutScheduled = false;
+    this.posBlackoutScheduleTimer = 0;
+    this.midAddScheduled = false;
+    this.midAddTimer = 0;
+    this.midAddFired = false;
+    this.midCancelScheduled = false;
+    this.midCancelTimer = 0;
+    this.midCancelFired = false;
     this.servedNpcs = [];
     this.customerPhase = 'none';
     this.customerFeedback = null;
@@ -96,6 +122,17 @@ POS.State = {
     this.prevMood = 'calm';
     this.customerAnimTimer = 0;
     this.lastCheckoutReport = null;
+    /* meta events reset per round */
+    this.posBlackout = false;
+    this.posBlackoutTimer = 0;
+    this.posBlackoutScheduled = false;
+    this.posBlackoutScheduleTimer = 0;
+    this.midAddScheduled = false;
+    this.midAddTimer = 0;
+    this.midAddFired = false;
+    this.midCancelScheduled = false;
+    this.midCancelTimer = 0;
+    this.midCancelFired = false;
   },
 };
 

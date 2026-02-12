@@ -356,3 +356,106 @@
 
 /* Drop-hover highlight for scan panel */
 .scan-panel.drop-hover{box-shadow:inset 0 0 12px rgba(0,128,255,0.4)}
+
+/* ================================================================
+   META: CRT Blackout — POS power-off / reboot / power-on
+   ================================================================ */
+
+.pos-panel.crt-blackout .pos-scroll{
+  background:#000 !important;
+  animation:crt-off 0.3s ease-in forwards;
+  overflow:hidden;
+}
+.pos-panel.crt-blackout .pos-scroll *{
+  visibility:hidden;
+}
+.pos-panel.crt-blackout .pos-foot{
+  background:#000 !important;
+}
+.pos-panel.crt-blackout .pos-foot *{
+  visibility:hidden;
+}
+
+@keyframes crt-off{
+  0%  {filter:brightness(1);transform:scaleY(1)}
+  40% {filter:brightness(2);transform:scaleY(1)}
+  60% {filter:brightness(0);transform:scaleY(0.005)}
+  80% {filter:brightness(0);transform:scaleY(0.005)}
+  100%{filter:brightness(0);transform:scaleY(0)}
+}
+
+/* CRT Reboot text */
+.pos-panel.crt-reboot .pos-scroll{
+  animation:none;transform:scaleY(1);filter:none;
+}
+.pos-panel.crt-reboot .pos-scroll::before{
+  content:"C:\\POS> SYSTEM REBOOT...\APLEASE WAIT..._";
+  visibility:visible;
+  color:#00ff00;
+  font-family:'Courier New',monospace;
+  font-size:10px;
+  white-space:pre-line;
+  padding:8px;
+  display:block;
+  animation:crt-blink 0.8s step-end infinite;
+}
+@keyframes crt-blink{
+  0%,50%{opacity:1}
+  51%,100%{opacity:0}
+}
+
+/* CRT Power-on restore */
+.pos-panel.crt-poweron .pos-scroll{
+  animation:crt-on 0.5s ease-out forwards !important;
+}
+.pos-panel.crt-poweron .pos-scroll *{
+  visibility:visible !important;
+}
+.pos-panel.crt-poweron .pos-foot *{
+  visibility:visible !important;
+}
+@keyframes crt-on{
+  0%  {filter:brightness(0);transform:scaleY(0)}
+  30% {filter:brightness(2);transform:scaleY(0.01)}
+  60% {filter:brightness(1.5);transform:scaleY(1)}
+  100%{filter:brightness(1);transform:scaleY(1)}
+}
+
+/* ================================================================
+   META: Damaged barcode overlay (on drag card)
+   ================================================================ */
+
+.bc-damaged{
+  position:absolute;
+  left:10%;right:10%;bottom:8%;
+  height:28%;
+  background:repeating-linear-gradient(
+    90deg,
+    rgba(128,0,0,0.3) 0 2px,
+    rgba(255,200,200,0.3) 2px 4px
+  );
+  border:2px dashed #cc0000;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:5;
+  border-radius:2px;
+}
+.bc-dmg-label{
+  font-size:7px;font-weight:900;color:#cc0000;
+  background:rgba(255,255,255,0.85);
+  padding:0 3px;border-radius:1px;
+  font-family:'Courier New',monospace;
+  white-space:nowrap;pointer-events:none;
+}
+
+/* ================================================================
+   META: POS row cancel flash
+   ================================================================ */
+
+.pos-row.cancel-flash{
+  animation:pos-cancel-flash 1s ease-out;
+}
+@keyframes pos-cancel-flash{
+  0%,20%,40%{background:rgba(200,0,0,0.4)}
+  10%,30%{background:rgba(0,40,0,0.3)}
+  100%{background:rgba(0,40,0,0.3)}
+}

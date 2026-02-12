@@ -48,6 +48,10 @@ POS.PARAMS = {
   endlessRounds: true,
   roundSeedCount: 3,
   roundChunkSize: 2,
+  /* meta event params */
+  midAddSatBoost: 3,
+  midCancelSatDrain: 5,
+  blackoutCheckoutBlock: true,
 };
 
 POS.getCorrectDiscount = function (itemId) {

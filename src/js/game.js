@@ -10,6 +10,10 @@ var State  = POS.State;
 var Bus    = POS.Bus;
 var getCorrectDiscount = POS.getCorrectDiscount;
 
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function Game(audio, scanner) {
   this.audio   = audio;
   this.scanner = scanner;
@@ -40,7 +44,35 @@ Game.prototype.startRound = function () {
   State.prevMood = 'calm';
   State.phase = 'roundIntro';
   State.phaseTimer = PARAMS.roundIntroTime;
+
+  /* ---- Schedule meta events from round.metas ---- */
+  var metas = round.metas || {};
+  this._scheduleMetaEvents(metas);
+
   Bus.emit('roundStart', State.round);
+};
+
+/* ---- Schedule independent meta event timers ---- */
+
+Game.prototype._scheduleMetaEvents = function (metas) {
+  /* POS Blackout */
+  if (metas.posBlackout && Math.random() < metas.posBlackout.chance) {
+    var bDelay = metas.posBlackout.delay || [12, 25];
+    State.posBlackoutScheduled = true;
+    State.posBlackoutScheduleTimer = randInt(bDelay[0], bDelay[1]);
+  }
+  /* Mid-round Add */
+  if (metas.midAdd && Math.random() < metas.midAdd.chance) {
+    var aDelay = metas.midAdd.delay || [8, 15];
+    State.midAddScheduled = true;
+    State.midAddTimer = randInt(aDelay[0], aDelay[1]);
+  }
+  /* Mid-round Cancel */
+  if (metas.midCancel && Math.random() < metas.midCancel.chance) {
+    var cDelay = metas.midCancel.delay || [10, 18];
+    State.midCancelScheduled = true;
+    State.midCancelTimer = randInt(cDelay[0], cDelay[1]);
+  }
 };
 
 /* ---- frame update ---- */
@@ -113,6 +145,9 @@ Game.prototype.update = function (dt) {
 
   if (State.satisfaction <= 0) { State.satisfaction = 0; this._gameOver(); return; }
 
+  /* ---- Meta event timers (all independent) ---- */
+  this._updateMetaEvents(dt);
+
   /* scan hold */
   if (State.scanPhase === 'itemSelected' || State.scanPhase === 'scanning') {
     var hit = State.dragActive ? this.scanner.checkOverlap() : null;
@@ -143,6 +178,113 @@ Game.prototype.update = function (dt) {
   }
 };
 
+/* ---- Meta event update (called every frame during playing phase) ---- */
+
+Game.prototype._updateMetaEvents = function (dt) {
+  /* Skip all mid-events if satisfaction too low */
+  var satOk = State.satisfaction >= 20;
+
+  /* POS Blackout scheduling */
+  if (State.posBlackoutScheduled && !State.posBlackout) {
+    State.posBlackoutScheduleTimer -= dt;
+    if (State.posBlackoutScheduleTimer <= 0) {
+      State.posBlackout = true;
+      var round = ROUNDS[State.round];
+      var metas = (round && round.metas) || {};
+      var dur = (metas.posBlackout && metas.posBlackout.duration) || [2, 4];
+      State.posBlackoutTimer = randInt(dur[0], dur[1]);
+      State.posBlackoutScheduled = false;
+      Bus.emit('posBlackout', true);
+    }
+  }
+  /* POS Blackout recovery */
+  if (State.posBlackout) {
+    State.posBlackoutTimer -= dt;
+    if (State.posBlackoutTimer <= 0) {
+      State.posBlackout = false;
+      Bus.emit('posBlackout', false);
+    }
+  }
+
+  /* Mid-round Add */
+  if (State.midAddScheduled && !State.midAddFired && satOk) {
+    State.midAddTimer -= dt;
+    if (State.midAddTimer <= 0) {
+      State.midAddFired = true;
+      this._fireMidAdd();
+    }
+  }
+
+  /* Mid-round Cancel */
+  if (State.midCancelScheduled && !State.midCancelFired && satOk) {
+    State.midCancelTimer -= dt;
+    if (State.midCancelTimer <= 0) {
+      State.midCancelFired = true;
+      this._fireMidCancel();
+    }
+  }
+};
+
+/* ---- Mid-round Add event ---- */
+
+Game.prototype._fireMidAdd = function () {
+  var round = ROUNDS[State.round];
+  var metas = (round && round.metas) || {};
+  var count = (metas.midAdd && metas.midAdd.count) || 1;
+
+  var newItems = POS.Loader.pickAdditionalItems(count, round, round.roundIndex);
+  if (!newItems || !newItems.length) return;
+
+  for (var i = 0; i < newItems.length; i++) {
+    var entry = newItems[i];
+    POS.ITEMS[entry.item.id] = entry.item;
+    round.items.push({ id: entry.item.id, qty: entry.qty, isAdded: true });
+  }
+
+  /* Small satisfaction boost to compensate for extra work */
+  State.satisfaction = Math.min(PARAMS.maxSatisfaction, State.satisfaction + (PARAMS.midAddSatBoost || 3));
+
+  Bus.emit('midAdd', newItems);
+};
+
+/* ---- Mid-round Cancel event ---- */
+
+Game.prototype._fireMidCancel = function () {
+  var round = ROUNDS[State.round];
+  var metas = (round && round.metas) || {};
+  var count = (metas.midCancel && metas.midCancel.count) || 1;
+
+  /* Pick cancellation targets (exclude isAdded items, keep at least 1 item) */
+  var candidates = [];
+  for (var i = 0; i < round.items.length; i++) {
+    var ri = round.items[i];
+    if (!ri.isAdded && !ri.isCancelled && ri.qty > 0) candidates.push(ri);
+  }
+  if (candidates.length <= 1) return; /* never cancel everything */
+
+  /* Shuffle and pick up to count */
+  for (var s = candidates.length - 1; s > 0; s--) {
+    var j = Math.floor(Math.random() * (s + 1));
+    var tmp = candidates[s]; candidates[s] = candidates[j]; candidates[j] = tmp;
+  }
+
+  var cancelled = [];
+  var maxCancel = Math.min(count, candidates.length - 1);
+  for (var c = 0; c < maxCancel; c++) {
+    var target = candidates[c];
+    var cancelQty = Math.min(target.qty, 1); /* cancel 1 unit */
+    target.qty -= cancelQty;
+    target.isCancelled = true;
+    target.cancelQty = cancelQty;
+    cancelled.push({ id: target.id, cancelQty: cancelQty, remainQty: target.qty });
+  }
+
+  /* Remove fully cancelled items from round.items */
+  round.items = round.items.filter(function (ri) { return ri.qty > 0 || ri.isCancelled; });
+
+  Bus.emit('midCancel', cancelled);
+};
+
 /* ---- add item to POS with discount validation ---- */
 
 Game.prototype.addToPOS = function (itemId) {
@@ -156,7 +298,6 @@ Game.prototype.addToPOS = function (itemId) {
 
   /* validate discount setting vs item */
   if (discRate > 0) {
-    /* discount set — item must be sale with a matching discount barcode */
     if (!item.isSale) { this._scanReject(); return; }
     var hasMatch = false;
     for (var j = 0; j < item.barcodes.length; j++) {
@@ -166,13 +307,11 @@ Game.prototype.addToPOS = function (itemId) {
     }
     if (!hasMatch) { this._scanReject(); return; }
   } else {
-    /* no discount — sale items must be scanned with discount */
     if (item.isSale) { this._scanReject(); return; }
   }
 
   var barcodeType = discRate > 0 ? 'discount' : 'normal';
 
-  /* find existing POS entry with same itemId AND same discountRate */
   var existing = null;
   for (var i = 0; i < State.posItems.length; i++) {
     if (State.posItems[i].itemId === itemId && State.posItems[i].discountRate === discRate) {
@@ -217,11 +356,9 @@ Game.prototype.selectItem = function (itemId) {
 Game.prototype._completeScan = function (barcode) {
   State.holdProgress = 0;
 
-  /* validate discount setting via addToPOS */
   this.addToPOS(State.selectedItemId);
 
   if (!State.lastScanOk) {
-    /* wrong discount — red flash already fired via _scanReject, let user retry */
     State.scanPhase = 'itemSelected';
     return;
   }
@@ -238,7 +375,6 @@ Game.prototype._completeScan = function (barcode) {
   this.audio.play('scan_beep');
   if (State.combo >= 3) this.audio.play('combo_up', 0.5);
 
-  /* TTS: read Japanese product name */
   var scannedItem = ITEMS[State.selectedItemId];
   if (scannedItem) this.audio.speakJa(scannedItem.name);
 
@@ -249,7 +385,6 @@ Game.prototype._completeScan = function (barcode) {
 /* ---- POS qty ---- */
 
 Game.prototype.changeQty = function (key, delta) {
-  /* key = "itemId_discountRate" */
   var sep = key.lastIndexOf('_');
   var itemId   = key.substring(0, sep);
   var discRate = parseFloat(key.substring(sep + 1));
@@ -276,47 +411,46 @@ Game.prototype.changeQty = function (key, delta) {
 Game.prototype.attemptCheckout = function () {
   if (State.phase !== 'playing') return;
   if (State.scanPhase !== 'idle') return;
+  /* Block checkout during POS blackout */
+  if (State.posBlackout && PARAMS.blackoutCheckoutBlock) return;
 
   var round    = ROUNDS[State.round];
   var required = round.items;
   var i, req;
 
-  /* build total qty per itemId across all discount entries */
   var posQty = {};
   for (i = 0; i < State.posItems.length; i++) {
     var p = State.posItems[i];
     posQty[p.itemId] = (posQty[p.itemId] || 0) + p.qty;
   }
 
-  /* all required items present? */
   for (i = 0; i < required.length; i++) {
     req = required[i];
+    if (req.qty <= 0) continue; /* fully cancelled items */
     if (!posQty[req.id]) return this._checkoutFail('missing', '상품이 부족해!');
   }
 
-  /* no excess items? */
   for (var id in posQty) {
     var found = false;
     for (i = 0; i < required.length; i++) {
-      if (required[i].id === id) { found = true; break; }
+      if (required[i].id === id && required[i].qty > 0) { found = true; break; }
     }
     if (!found) return this._checkoutFail('excess', '상품이 너무 많아!');
   }
 
-  /* quantities match? */
   for (i = 0; i < required.length; i++) {
     req = required[i];
+    if (req.qty <= 0) continue;
     if ((posQty[req.id] || 0) !== req.qty) return this._checkoutFail('quantity', '수량이 안 맞아!');
   }
 
-  /* sale items have correct discount? */
   for (i = 0; i < required.length; i++) {
     req = required[i];
+    if (req.qty <= 0) continue;
     var item = ITEMS[req.id];
     if (!item.isSale) continue;
     var correct = getCorrectDiscount(req.id);
     if (!correct) continue;
-    /* all entries of this sale item must have the correct discount */
     for (var j = 0; j < State.posItems.length; j++) {
       var entry = State.posItems[j];
       if (entry.itemId !== req.id) continue;
@@ -349,14 +483,13 @@ Game.prototype._checkoutSuccess = function () {
   State.score += PARAMS.scoreCheckout + timeBonus;
 
   /* ---- Adaptive difficulty: update rating based on performance ---- */
-  if (State.round >= 3) {
+  if (State.round >= 1) {
     var satFactor = State.satisfaction / PARAMS.maxSatisfaction;
     var mistakeFactor = Math.max(0, 1 - State.mistakeCount * 0.3);
     var perf = satFactor * 0.6 + mistakeFactor * 0.4;
     State.diffRating += 0.5 + perf * 1.2;
   }
 
-  /* Record successfully served NPC */
   var npc = State.currentNpc;
   if (npc) {
     State.servedNpcs.push({ emoji: npc.emoji, name: npc.name });
@@ -385,7 +518,7 @@ Game.prototype._buildCheckoutReport = function (reason, message) {
   var required = round ? round.items : [];
   var reqMap = {};
   for (var i = 0; i < required.length; i++) {
-    reqMap[required[i].id] = required[i].qty;
+    if (required[i].qty > 0) reqMap[required[i].id] = required[i].qty;
   }
 
   var posQty = {};
@@ -397,6 +530,7 @@ Game.prototype._buildCheckoutReport = function (reason, message) {
   var lines = [];
   for (i = 0; i < required.length; i++) {
     var req = required[i];
+    if (req.qty <= 0) continue;
     var item = ITEMS[req.id];
     var name = item ? (item.nameEn || item.name || req.id) : req.id;
     var actual = posQty[req.id] || 0;
