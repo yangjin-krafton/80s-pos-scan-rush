@@ -93,6 +93,23 @@
   font-family:"MS Gothic","Arial Black",sans-serif;
 }
 
+/* Card in .game (cross-zone drag / waiting in scan zone) */
+.game > .cart-card{
+  z-index:500;
+}
+
+/* Name → barcode when dragged out of cart */
+.cart-card.in-game .cn{
+  font-size:0 !important;color:transparent;
+  width:48px;height:12px;max-width:none;
+  background:repeating-linear-gradient(90deg,#000 0 1.5px,#fff 1.5px 3px);
+  border:1px solid #808080;border-radius:1px;
+}
+.cart-card.in-game.is-sale .cn{
+  background:repeating-linear-gradient(90deg,#800 0 1.5px,#fcc 1.5px 3px);
+  border-color:#c00;
+}
+
 /* Fly-to-POS animation for card drag mode */
 .cart-card.fly-to-pos{
   transition:left 0.3s ease-in, top 0.3s ease-in,

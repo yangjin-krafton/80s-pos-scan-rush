@@ -33,6 +33,7 @@ POS.State = {
   currentBarcodeHit: null,
 
   scanDiscountRate: 0,
+  lastScanOk: false,
   cardDragActive: false,
   dragActive: false,
   dragOffsetX: 0,
@@ -60,6 +61,7 @@ POS.State = {
     this.holdProgress = 0;
     this.currentBarcodeHit = null;
     this.scanDiscountRate = 0;
+    this.lastScanOk = false;
     this.cardDragActive = false;
     this.dragActive = false;
     this.autoBagTimer = 0;

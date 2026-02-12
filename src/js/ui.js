@@ -167,6 +167,10 @@ UI.prototype._renderCart = function () {
   var round = ROUNDS[State.round];
   desktop.innerHTML = '';
 
+  /* clean up cards that were reparented to .game from previous round */
+  var orphans = document.querySelectorAll('.game > .cart-card');
+  for (var k = 0; k < orphans.length; k++) orphans[k].remove();
+
   // Expand items: qty copies as individual cards, then shuffle
   var cards = [];
   round.items.forEach(function (entry) {
@@ -201,7 +205,7 @@ UI.prototype._renderCart = function () {
 
   cards.forEach(function (item, idx) {
     var card = document.createElement('div');
-    card.className = 'cart-card';
+    card.className = 'cart-card' + (item.isSale ? ' is-sale' : '');
     card.dataset.itemId = item.id;
 
     var col = idx % cols;
@@ -230,90 +234,228 @@ UI.prototype._renderCart = function () {
   });
 };
 
-/* ---- cart card drag + click-to-add ---- */
+/* ---- cart card drag → cross-zone → hold-scan ---- */
 
 UI.prototype._initCardDrag = function (card, desktop, item) {
   var self = this;
+  var gameEl = document.querySelector('.game');
+  var scanner = POS.scanner;
   var dragging = false;
   var startX = 0, startY = 0;
-  var origLeft = 0, origTop = 0;
   var moved = false;
-  var DRAG_THRESHOLD = 5;
+  var inGame = false;
+  var activePointerId = null;
+  var DRAG_THRESHOLD = 6;
 
-  function getScale() {
-    var gameEl = document.querySelector('.game');
-    if (!gameEl) return 1;
+  function gameCoords(e) {
     var gr = gameEl.getBoundingClientRect();
-    return gr.width / 360;
+    var s = gr.width / 360;
+    return { x: (e.clientX - gr.left) / s, y: (e.clientY - gr.top) / s, s: s };
   }
 
-  function onPointerDown(e) {
+  function isOver(e, el) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return e.clientX >= r.left && e.clientX <= r.right &&
+           e.clientY >= r.top  && e.clientY <= r.bottom;
+  }
+
+  /* -- barcode zones for scanner overlap detection -- */
+
+  function addBarcodeZones() {
+    removeBarcodeZones();
+    item.barcodes.forEach(function (bc, i) {
+      var z = document.createElement('div');
+      z.className = bc.type === 'discount' ? 'bc-zone discount' : 'bc-zone';
+      z.style.cssText = 'left:' + (bc.x * 100) + '%;top:' + (bc.y * 100)
+        + '%;width:' + (bc.w * 100) + '%;height:' + (bc.h * 100) + '%';
+      z.dataset.idx = i;
+      z.dataset.type = bc.type;
+      z.dataset.rate = bc.discountRate || 0;
+      if (bc.label) z.innerHTML = '<span class="bc-label">' + bc.label + '</span>';
+      card.appendChild(z);
+    });
+  }
+
+  function removeBarcodeZones() {
+    var zones = card.querySelectorAll('.bc-zone');
+    for (var k = 0; k < zones.length; k++) zones[k].remove();
+  }
+
+  /* -- reparent helpers -- */
+
+  function reparentToGame(gc) {
+    if (inGame) return;
+    var cw = card.offsetWidth || 64;
+    var ch = card.offsetHeight || 64;
+    inGame = true;
+    card.remove();
+    card.classList.add('in-game');
+    card.style.left = (gc.x - cw / 2) + 'px';
+    card.style.top  = (gc.y - ch / 2) + 'px';
+    card.style.zIndex = '500';
+    gameEl.appendChild(card);
+  }
+
+  function reparentToCart() {
+    if (!inGame) return;
+    inGame = false;
+    removeBarcodeZones();
+    card.classList.remove('in-game');
+    card.style.transition = 'none';
+    card.remove();
+    var areaW = desktop.clientWidth || 340;
+    var areaH = desktop.clientHeight || 120;
+    card.style.left = (Math.random() * Math.max(areaW - 70, 10) + 5) + 'px';
+    card.style.top  = (Math.random() * Math.max(areaH - 70, 10) + 5) + 'px';
+    card.style.transform = 'rotate(' + ((Math.random() - 0.5) * 30) + 'deg)';
+    card.style.zIndex = String((self._cartTopZ || 100) + 1);
+    self._cartTopZ = parseInt(card.style.zIndex);
+    card.style.boxShadow = '';
+    desktop.appendChild(card);
+  }
+
+  function flyToScanWait() {
+    removeBarcodeZones();
+    var sc = self.els.scanContent;
+    if (!sc) return;
+    var scRect = sc.getBoundingClientRect();
+    var gr = gameEl.getBoundingClientRect();
+    var s = gr.width / 360;
+    var waiting = gameEl.querySelectorAll('.cart-card');
+    var n = 0;
+    for (var k = 0; k < waiting.length; k++) {
+      if (waiting[k] !== card) n++;
+    }
+    var offX = ((n % 3) - 1) * 18;
+    var offY = Math.floor(n / 3) * 14;
+    var tx = (scRect.left + scRect.width / 2 - gr.left) / s - 32 + offX;
+    var ty = (scRect.top + scRect.height * 0.35 - gr.top) / s - 32 + offY;
+    card.style.transition = 'left 0.25s ease-out, top 0.25s ease-out, transform 0.25s ease-out';
+    card.style.left = tx + 'px';
+    card.style.top  = ty + 'px';
+    card.style.transform = 'rotate(0deg) scale(1)';
+    card.style.boxShadow = '';
+    card.style.cursor = 'pointer';
+    setTimeout(function () { card.style.transition = ''; }, 260);
+  }
+
+  /* -- begin scan session: set State + scanner for hold-scan -- */
+
+  function startScanSession() {
+    addBarcodeZones();
+    State.selectedItemId = item.id;
+    State.scanPhase = 'itemSelected';
+    State.holdProgress = 0;
+    State.dragActive = true;
+    scanner.setActiveDrag(card);
+  }
+
+  /* -- listen for scan completion (from game.update hold-scan) -- */
+
+  Bus.on('scanComplete', function (data) {
+    if (scanner.activeDragEl !== card) return;
+    /* scan succeeded — fly card to wait area */
+    dragging = false;
+    State.dragActive = false;
+    if (activePointerId !== null) {
+      try { card.releasePointerCapture(activePointerId); } catch (ex) { /* ok */ }
+      activePointerId = null;
+    }
+    scanner.clearActiveDrag();
+    flyToScanWait();
+  });
+
+  /* --- pointer handlers --- */
+
+  function onDown(e) {
+    if (State.phase !== 'playing') return;
     e.preventDefault();
     dragging = true;
     moved = false;
+    activePointerId = e.pointerId;
     card.setPointerCapture(e.pointerId);
-
-    self._cartTopZ = (self._cartTopZ || 100) + 1;
-    card.style.zIndex = self._cartTopZ;
-
     startX = e.clientX;
     startY = e.clientY;
-    origLeft = parseFloat(card.style.left) || 0;
-    origTop  = parseFloat(card.style.top)  || 0;
-
     card.style.transition = 'none';
     card.style.cursor = 'grabbing';
+
+    if (inGame) {
+      /* re-grab from scan wait area */
+      moved = true;
+      card.style.zIndex = '500';
+      card.style.transform = 'rotate(0deg) scale(1.08)';
+      card.style.boxShadow = '4px 4px 12px rgba(0,0,0,0.4), inset 1px 1px 0 #fff, inset -1px -1px 0 #808080';
+      startScanSession();
+    } else {
+      self._cartTopZ = (self._cartTopZ || 100) + 1;
+      card.style.zIndex = self._cartTopZ;
+    }
   }
 
-  function onPointerMove(e) {
+  function onMove(e) {
     if (!dragging) return;
-    var dx = e.clientX - startX;
-    var dy = e.clientY - startY;
 
-    if (!moved && Math.abs(dx) + Math.abs(dy) > DRAG_THRESHOLD) {
-      moved = true;
-      card.style.transform = 'rotate(0deg) scale(1.05)';
-      card.style.boxShadow = '4px 4px 12px rgba(0,0,0,0.4), inset 1px 1px 0 #fff, inset -1px -1px 0 #808080';
+    if (!inGame) {
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      if (!moved && Math.abs(dx) + Math.abs(dy) > DRAG_THRESHOLD) {
+        moved = true;
+        reparentToGame(gameCoords(e));
+        startX = e.clientX;
+        startY = e.clientY;
+        startScanSession();
+        card.style.transform = 'rotate(0deg) scale(1.08)';
+        card.style.boxShadow = '4px 4px 12px rgba(0,0,0,0.4), inset 1px 1px 0 #fff, inset -1px -1px 0 #808080';
+      }
+      if (!moved) return;
     }
-    if (!moved) return;
 
-    var scale = getScale();
-    var sdx = dx / scale;
-    var sdy = dy / scale;
-    var cardW = 64, cardH = 64, pad = 2;
-    var areaW = desktop.clientWidth;
-    var areaH = desktop.clientHeight;
-
-    var nx = Math.max(pad, Math.min(origLeft + sdx, areaW - cardW - pad));
-    var ny = Math.max(pad, Math.min(origTop  + sdy, areaH - cardH - pad));
+    var gc = gameCoords(e);
+    var nx = Math.max(0, Math.min(gc.x - 32, 360 - 64));
+    var ny = Math.max(0, Math.min(gc.y - 32, 640 - 64));
     card.style.left = nx + 'px';
     card.style.top  = ny + 'px';
+
+    var sp = document.querySelector('.scan-panel');
+    if (sp) sp.classList.toggle('drop-hover', isOver(e, sp));
   }
 
-  function onPointerUp(e) {
+  function onUp(e) {
     if (!dragging) return;
     dragging = false;
-    try { card.releasePointerCapture(e.pointerId); } catch (ex) { /* ignore */ }
+    activePointerId = null;
+    State.dragActive = false;
+    try { card.releasePointerCapture(e.pointerId); } catch (ex) { /* ok */ }
     card.style.cursor = 'pointer';
-    card.style.transition = 'transform 0.15s, box-shadow 0.15s, border-color 0.15s';
     card.style.boxShadow = '';
 
+    var sp = document.querySelector('.scan-panel');
+    if (sp) sp.classList.remove('drop-hover');
+
     if (!moved) {
-      // Click → add item to POS
       card.style.transform = '';
-      Bus.emit('cartItemClick', item.id);
-      card.classList.add('active');
-      setTimeout(function () { card.classList.remove('active'); }, 300);
+      return;
+    }
+
+    var cartZone = document.querySelector('.cart-zone');
+    if (isOver(e, cartZone)) {
+      /* return to cart — cancel scan */
+      State.scanPhase = 'idle';
+      State.selectedItemId = null;
+      State.holdProgress = 0;
+      scanner.clearActiveDrag();
+      reparentToCart();
     } else {
-      var rot = (Math.random() - 0.5) * 10;
-      card.style.transform = 'rotate(' + rot + 'deg)';
+      /* stay in .game — card rests at drop position */
+      card.style.transform = 'rotate(0deg)';
     }
   }
 
-  card.addEventListener('pointerdown', onPointerDown);
-  card.addEventListener('pointermove', onPointerMove);
-  card.addEventListener('pointerup',   onPointerUp);
-  card.addEventListener('pointercancel', onPointerUp);
+  card.addEventListener('pointerdown', onDown);
+  card.addEventListener('pointermove', onMove);
+  card.addEventListener('pointerup',   onUp);
+  card.addEventListener('pointercancel', onUp);
 };
 
 /* ---- POS list ---- */
@@ -324,7 +466,7 @@ UI.prototype._renderPOS = function () {
   scroll.innerHTML = '';
 
   if (State.posItems.length === 0) {
-    scroll.innerHTML = '<div style="color:#006600;font-size:11px;text-align:center;padding:12px 4px">C:\\POS> 카트에서 상품을<br/>클릭해 추가..._</div>';
+    scroll.innerHTML = '<div style="color:#006600;font-size:11px;text-align:center;padding:12px 4px">C:\\POS> 카트에서 상품을<br/>드래그해서 스캔..._</div>';
   }
 
   var total = 0;
@@ -372,6 +514,9 @@ UI.prototype._renderPOS = function () {
 /* ---- scan zone ---- */
 
 UI.prototype._renderScanItem = function (itemId) {
+  /* skip legacy drag-item when card-based drag is active */
+  if (POS.scanner && POS.scanner.activeDragEl) return;
+
   var item = ITEMS[itemId];
   if (!item) return;
   var content = this.els.scanContent;
@@ -417,7 +562,7 @@ UI.prototype._clearScanItem = function () {
   if (!content) return;
   var old = content.querySelector('.drag-item');
   if (old) old.remove();
-  if (this.els.scanMsg) this.els.scanMsg.innerHTML = '할인 설정 후<br/>카트 상품 클릭!';
+  if (this.els.scanMsg) this.els.scanMsg.innerHTML = '할인 설정 후<br/>바코드를 스캐너에!';
   this._updateProgress(0);
   if (this.els.cartDesktop) {
     this.els.cartDesktop.querySelectorAll('.cart-card').forEach(function (c) { c.classList.remove('active'); });
@@ -461,11 +606,14 @@ UI.prototype._updateScanMsg = function () {
   var content = this.els.scanContent;
   if (!content) return;
 
-  var zones = content.querySelectorAll('.bc-zone');
+  /* bc-zones may live on the active drag card (in .game), not inside scan-content */
+  var activeDrag = POS.scanner ? POS.scanner.activeDragEl : null;
+  var zones = activeDrag ? activeDrag.querySelectorAll('.bc-zone')
+                         : content.querySelectorAll('.bc-zone');
   for (var i = 0; i < zones.length; i++) zones[i].classList.remove('active');
 
-  var scanner = content.querySelector('.scanner-drop');
-  if (scanner) scanner.classList.toggle('detecting', State.scanPhase === 'scanning');
+  var scannerDrop = content.querySelector('.scanner-drop');
+  if (scannerDrop) scannerDrop.classList.toggle('detecting', State.scanPhase === 'scanning');
 
   if (State.currentBarcodeHit && State.scanPhase === 'scanning') {
     var item = ITEMS[State.selectedItemId];

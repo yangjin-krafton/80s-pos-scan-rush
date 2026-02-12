@@ -17,7 +17,6 @@ function Game(audio, scanner) {
 
 Game.prototype.init = function () {
   var self = this;
-  Bus.on('cartItemClick', function (id) { self.addToPOS(id); });
   Bus.on('checkoutClick', function ()   { self.attemptCheckout(); });
   Bus.on('qtyPlus',       function (id) { self.changeQty(id, +1); });
   Bus.on('qtyMinus',      function (id) { self.changeQty(id, -1); });
@@ -93,6 +92,7 @@ Game.prototype.update = function (dt) {
 /* ---- add item to POS with discount validation ---- */
 
 Game.prototype.addToPOS = function (itemId) {
+  State.lastScanOk = false;
   if (State.phase !== 'playing') return;
 
   var item = ITEMS[itemId];
@@ -137,8 +137,7 @@ Game.prototype.addToPOS = function (itemId) {
     });
   }
 
-  this.audio.play('item_pickup');
-  Bus.emit('posUpdated');
+  State.lastScanOk = true;
 };
 
 Game.prototype._scanReject = function () {
@@ -162,26 +161,19 @@ Game.prototype.selectItem = function (itemId) {
 /* ---- scan complete ---- */
 
 Game.prototype._completeScan = function (barcode) {
-  State.scanPhase = 'scanned';
   State.holdProgress = 0;
-  State.autoBagTimer = PARAMS.autoBagDelay;
 
-  var existing = null;
-  for (var i = 0; i < State.posItems.length; i++) {
-    if (State.posItems[i].itemId === State.selectedItemId) { existing = State.posItems[i]; break; }
+  /* validate discount setting via addToPOS */
+  this.addToPOS(State.selectedItemId);
+
+  if (!State.lastScanOk) {
+    /* wrong discount — red flash already fired via _scanReject, let user retry */
+    State.scanPhase = 'itemSelected';
+    return;
   }
-  if (existing) {
-    existing.qty++;
-    existing.barcodeType  = barcode.type;
-    existing.discountRate = barcode.discountRate || 0;
-  } else {
-    State.posItems.push({
-      itemId:       State.selectedItemId,
-      qty:          1,
-      barcodeType:  barcode.type,
-      discountRate: barcode.discountRate || 0,
-    });
-  }
+
+  State.scanPhase = 'scanned';
+  State.autoBagTimer = PARAMS.autoBagDelay;
 
   State.combo++;
   if (State.combo > State.maxCombo) State.maxCombo = State.combo;
