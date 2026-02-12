@@ -43,6 +43,133 @@
   font-size:14px;color:#ccc;
   margin-bottom:16px;
 }
+
+/* ================================================================
+   TITLE SCREEN — 90s 유학생 아르바이트 감성
+   ================================================================ */
+
+.title-screen{
+  max-width:340px;
+  padding:16px 20px;
+  text-align:center;
+  font-family:'MS Gothic','MS PGothic','Courier New',monospace;
+  animation:title-fade-in 1s ease-out;
+}
+@keyframes title-fade-in{
+  0%{opacity:0;transform:translateY(16px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+
+.title-logo{
+  font-size:26px;font-weight:900;
+  color:#ffe040;
+  text-shadow:
+    2px 2px 0 #000,
+    0 0 12px rgba(255,224,64,0.7),
+    0 0 40px rgba(255,224,64,0.3);
+  letter-spacing:3px;
+  margin-bottom:4px;
+  animation:title-glow 2s ease-in-out infinite alternate;
+}
+@keyframes title-glow{
+  0%{text-shadow:2px 2px 0 #000,0 0 12px rgba(255,224,64,0.5),0 0 30px rgba(255,224,64,0.2)}
+  100%{text-shadow:2px 2px 0 #000,0 0 20px rgba(255,224,64,0.9),0 0 50px rgba(255,224,64,0.5)}
+}
+.title-icon{
+  font-size:22px;
+  vertical-align:middle;
+}
+
+.title-divider{
+  color:#406050;
+  font-size:8px;
+  letter-spacing:2px;
+  margin:8px 0;
+  opacity:0.6;
+}
+
+.title-story{
+  margin:6px 0 10px;
+}
+.title-setting{
+  font-size:15px;
+  color:#ff9ecf;
+  text-shadow:0 0 8px rgba(255,158,207,0.5);
+  margin-bottom:8px;
+  letter-spacing:1px;
+}
+.title-narrative{
+  font-size:12px;
+  color:#b0e0c8;
+  line-height:1.8;
+  margin-bottom:8px;
+}
+.title-quote{
+  font-size:11px;
+  color:#a0a0a0;
+  line-height:1.8;
+  font-style:italic;
+}
+.title-japanese{
+  color:#ffe040;
+  font-style:normal;
+  font-weight:bold;
+  font-size:14px;
+  text-shadow:0 0 6px rgba(255,224,64,0.4);
+}
+
+.title-howto{
+  margin:6px 0 8px;
+}
+.title-howto-title{
+  font-size:13px;
+  color:#00e080;
+  font-weight:900;
+  letter-spacing:2px;
+  margin-bottom:8px;
+  text-shadow:0 0 8px rgba(0,224,128,0.4);
+}
+.title-step{
+  font-size:11px;
+  color:#ccc;
+  line-height:2;
+}
+.title-step em{
+  color:#fff;
+  font-style:normal;
+  font-weight:bold;
+  text-shadow:0 0 4px rgba(255,255,255,0.3);
+}
+.title-challenge{
+  font-size:11px;
+  color:#ffaa40;
+  margin-top:6px;
+  text-shadow:0 0 6px rgba(255,170,64,0.3);
+}
+
+.title-start{
+  margin:10px 0 8px;
+}
+.title-blink{
+  font-size:14px;
+  font-weight:bold;
+  color:#00e080;
+  text-shadow:0 0 10px rgba(0,224,128,0.6);
+  animation:title-blink-anim 1.2s ease-in-out infinite;
+  cursor:pointer;
+  letter-spacing:1px;
+}
+@keyframes title-blink-anim{
+  0%,100%{opacity:1}
+  50%{opacity:0.3}
+}
+
+.title-footer{
+  font-size:9px;
+  color:#606060;
+  letter-spacing:1px;
+  margin-top:4px;
+}
 .overlay-btn{
   font-family:'Courier New',monospace;
   font-size:14px;font-weight:bold;

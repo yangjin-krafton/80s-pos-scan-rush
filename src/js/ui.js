@@ -1061,15 +1061,58 @@ UI.prototype._hideOverlay = function () {
 };
 
 UI.prototype.showTitle = function () {
-  this._showOverlay('POS SCAN RUSH', 'Click to Start!', 'title');
-  var ov = this.els.overlay;
-  if (ov) {
-    var handler = function () {
-      ov.removeEventListener('click', handler);
-      Bus.emit('startClick');
-    };
-    ov.addEventListener('click', handler);
-  }
+  var ov    = this.els.overlay;
+  var inner = this.els.overlayInner;
+  if (!ov || !inner) return;
+
+  inner.innerHTML =
+    '<div class="title-screen">' +
+      '<div class="title-logo">' +
+        '<span class="title-icon">🏪</span> POS SCAN RUSH <span class="title-icon">🏪</span>' +
+      '</div>' +
+      '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
+
+      '<div class="title-story">' +
+        '<div class="title-setting">🌸 1995年、東京 ── 어느 봄날 🗼</div>' +
+        '<div class="title-narrative">' +
+          '한국에서 온 유학생,<br>' +
+          '낯선 편의점 계산대 앞에 서다.' +
+        '</div>' +
+        '<div class="title-quote">' +
+          '알바 첫날, 긴장되는 마음을 안고...<br>' +
+          '<span class="title-japanese">"いらっしゃいませ！"</span>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
+
+      '<div class="title-howto">' +
+        '<div class="title-howto-title">🎮 HOW TO PLAY</div>' +
+        '<div class="title-step">📦 손님의 상품을 바코드로 <em>스캔</em>!</div>' +
+        '<div class="title-step">💻 POS에 정확한 상품을 <em>입력</em>!</div>' +
+        '<div class="title-step">💴 틀리지 않게 <em>계산 완료</em>!</div>' +
+        '<div class="title-challenge">⚡ 빠르고 정확하게, 손님을 웃게 하세요!</div>' +
+      '</div>' +
+
+      '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
+
+      '<div class="title-start">' +
+        '<span class="title-blink">▶ 화면을 클릭하여 시작</span>' +
+      '</div>' +
+
+      '<div class="title-footer">' +
+        '🇰🇷 유학생 아르바이트 서바이벌 🇯🇵' +
+      '</div>' +
+    '</div>';
+
+  ov.classList.remove('hidden');
+  ov.className = 'overlay title';
+
+  var handler = function () {
+    ov.removeEventListener('click', handler);
+    Bus.emit('startClick');
+  };
+  ov.addEventListener('click', handler);
 };
 
 function pad2(n) { return n < 10 ? '0' + n : '' + n; }
