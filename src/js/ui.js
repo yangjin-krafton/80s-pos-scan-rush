@@ -108,6 +108,7 @@ UI.prototype.update = function (dt) {
   this._updateInfoBar();
   this._updateCustomer();
   this._updateScanMsg();
+  this._updateCartTimer();
   if (this._checkoutFx) this._checkoutFx.update(dt);
   if (this._seasonFx) this._seasonFx.update(dt);
   this._updateEmojiParticles(dt);
@@ -304,6 +305,41 @@ UI.prototype._updateCustomer = function () {
   if (this.els.hudRight) {
     var total = PARAMS.endlessRounds ? '∞' : ROUNDS.length;
     this.els.hudRight.textContent = 'ROUND ' + pad2(State.round + 1) + '/' + total;
+  }
+};
+
+/* ---- cart cooldown timer (RPG skill-cooldown style overlay) ---- */
+
+UI.prototype._updateCartTimer = function () {
+  var desktop = this.els.cartDesktop;
+  if (!desktop) return;
+
+  if (State.phase !== 'playing') {
+    desktop.classList.remove('cd-warn', 'cd-danger');
+    desktop.style.setProperty('--sat-deg', '0');
+    return;
+  }
+
+  var npc = State.currentNpc;
+  if (!npc || npc.drainRate <= 0) return;
+
+  var sat = State.satisfaction;
+  var pct = sat / PARAMS.maxSatisfaction;
+  var secsLeft = sat / npc.drainRate;
+
+  /* Dark wedge angle: 0 at 100% sat → 360 at 0% sat (clockwise from 12 o'clock) */
+  var deg = ((1 - pct) * 360).toFixed(1);
+  desktop.style.setProperty('--sat-deg', deg);
+
+  /* Warning states */
+  if (secsLeft <= 3) {
+    desktop.classList.remove('cd-warn');
+    desktop.classList.add('cd-danger');
+  } else if (secsLeft <= 10) {
+    desktop.classList.remove('cd-danger');
+    desktop.classList.add('cd-warn');
+  } else {
+    desktop.classList.remove('cd-warn', 'cd-danger');
   }
 };
 

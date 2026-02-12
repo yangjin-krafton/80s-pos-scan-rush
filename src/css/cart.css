@@ -41,6 +41,59 @@
     linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.04) 75%);
   background-size:12px 12px;
   background-position:0 0, 0 6px, 6px -6px, -6px 0;
+  --sat-deg:0;
+}
+
+/* ================================================================
+   Skill Cooldown Timer Overlay (conic sweep from 12 o'clock)
+   ================================================================ */
+.cart-desktop::after{
+  content:"";
+  position:absolute;inset:0;
+  pointer-events:none;
+  z-index:0;
+  border-radius:inherit;
+  /* Dark wedge sweeps clockwise from 12 o'clock as satisfaction drains */
+  background:conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(0,0,0,0.38) 0deg,
+    rgba(0,0,0,0.38) calc(var(--sat-deg) * 1deg),
+    transparent       calc(var(--sat-deg) * 1deg),
+    transparent       360deg
+  );
+  transition:background 0.2s linear;
+}
+
+/* ---- 10s warning: orange-tinted cooldown ---- */
+.cart-desktop.cd-warn::after{
+  background:conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(180,100,0,0.40) 0deg,
+    rgba(180,100,0,0.40) calc(var(--sat-deg) * 1deg),
+    transparent           calc(var(--sat-deg) * 1deg),
+    transparent           360deg
+  );
+  animation:cd-pulse-warn 0.8s ease-in-out infinite;
+}
+@keyframes cd-pulse-warn{
+  0%,100%{opacity:1}
+  50%    {opacity:0.6}
+}
+
+/* ---- 3s danger: red-tinted cooldown + fast pulse ---- */
+.cart-desktop.cd-danger::after{
+  background:conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(200,0,0,0.45) 0deg,
+    rgba(200,0,0,0.45) calc(var(--sat-deg) * 1deg),
+    transparent         calc(var(--sat-deg) * 1deg),
+    transparent         360deg
+  );
+  animation:cd-pulse-danger 0.4s ease-in-out infinite;
+}
+@keyframes cd-pulse-danger{
+  0%,100%{opacity:1}
+  50%    {opacity:0.5}
 }
 
 /* Scattered card */
@@ -118,19 +171,69 @@
   pointer-events:none;
 }
 
-/* ---- Meta: Damaged barcode card ---- */
+/* ---- Meta: Damaged barcode card (Win95 corrupt file style) ---- */
 .cart-card.is-damaged{
   border-color:#aa6060 #440000 #440000 #aa6060;
+  /* Win95 corrupt bitmap: dithered noise + diagonal glitch stripes */
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 3px,
+      rgba(180,0,0,0.12) 3px 4px,
+      transparent 4px 7px,
+      rgba(0,0,0,0.06) 7px 8px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(192,192,192,1) 0 2px,
+      rgba(180,170,170,1) 2px 4px,
+      rgba(200,190,190,1) 4px 6px,
+      rgba(170,160,160,1) 6px 8px
+    );
+  background-color:#c0b0b0;
 }
+/* Corrupt file icon overlay — always visible even under finger */
 .cart-card.is-damaged::before{
-  content:"\00D7"; /* × */
-  position:absolute;bottom:1px;right:3px;
-  font-size:16px;color:#cc0000;font-weight:900;
+  content:"";
+  position:absolute;inset:0;
+  background:
+    /* horizontal glitch bands */
+    linear-gradient(180deg,
+      transparent 0 15%,
+      rgba(255,0,0,0.08) 15% 18%,
+      transparent 18% 45%,
+      rgba(0,0,0,0.06) 45% 48%,
+      transparent 48% 70%,
+      rgba(255,0,0,0.10) 70% 74%,
+      transparent 74% 100%
+    ),
+    /* pixel-shift effect */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 1px,
+      rgba(0,0,0,0.03) 1px 2px
+    );
+  z-index:1;pointer-events:none;
+  border-radius:inherit;
+}
+/* Red X mark in corner */
+.cart-card.is-damaged::after{
+  content:"\00D7";
+  position:absolute;bottom:0;right:2px;
+  font-size:18px;color:#cc0000;font-weight:900;
   font-family:'Courier New',monospace;
-  z-index:2;pointer-events:none;line-height:1;
+  z-index:3;pointer-events:none;line-height:1;
+  text-shadow:0 0 2px #fff, 1px 1px 0 rgba(0,0,0,0.3);
 }
 .cart-card.is-damaged .cn{
-  text-decoration:line-through;opacity:0.6;
+  text-decoration:line-through;
+  opacity:0.5;
+  color:#660000;
+}
+/* Emoji gets slightly glitched look */
+.cart-card.is-damaged > span:first-child{
+  opacity:0.7;
+  filter:contrast(0.8) saturate(0.5);
 }
 
 /* ---- Meta: Added item card (mid-round add) ---- */
@@ -155,7 +258,7 @@
   border-color:#aa0000 #440000 #440000 #aa0000;
 }
 .cart-card.is-cancelled::after{
-  content:"CANCEL";
+  content:"CANCEL" !important;
   position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%) rotate(-15deg);
   background:#cc0000;color:#fff;
@@ -165,4 +268,6 @@
   font-family:'Courier New',monospace;
   z-index:10;pointer-events:none;
   white-space:nowrap;
+  /* override damaged ::after */
+  bottom:auto;right:auto;text-shadow:none;
 }
