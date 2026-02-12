@@ -238,6 +238,10 @@ Game.prototype._completeScan = function (barcode) {
   this.audio.play('scan_beep');
   if (State.combo >= 3) this.audio.play('combo_up', 0.5);
 
+  /* TTS: read Japanese product name */
+  var scannedItem = ITEMS[State.selectedItemId];
+  if (scannedItem) this.audio.speakJa(scannedItem.name);
+
   Bus.emit('scanComplete', { itemId: State.selectedItemId, barcode: barcode, combo: State.combo });
   Bus.emit('posUpdated');
 };

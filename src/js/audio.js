@@ -232,5 +232,25 @@ AudioManager.prototype.bgmSetRegister = function (register) {
   console.log('[bgm] register:', register, mix);
 };
 
+/* ================================================================
+   TTS — Japanese product name readout (Web Speech API)
+   ================================================================ */
+
+AudioManager.prototype.speakJa = function (text) {
+  if (this.muted || !text) return;
+  var synth = window.speechSynthesis;
+  if (!synth) return;
+
+  /* Cancel any ongoing speech so they don't stack */
+  synth.cancel();
+
+  var utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ja-JP';
+  utter.rate = 1.1;
+  utter.pitch = 1.05;
+  utter.volume = 0.8;
+  synth.speak(utter);
+};
+
 POS.AudioManager = AudioManager;
 })();
