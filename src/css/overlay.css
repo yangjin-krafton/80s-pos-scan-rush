@@ -1,0 +1,78 @@
+/* ================================================================
+   OVERLAY (title / round intro / game over / game clear)
+   ================================================================ */
+
+.overlay{
+  position:absolute;inset:0;z-index:100;
+  background:rgba(0,0,0,0.75);
+  display:flex;align-items:center;justify-content:center;
+  animation:overlay-in 0.3s ease-out;
+}
+.overlay.hidden{display:none}
+@keyframes overlay-in{0%{opacity:0}100%{opacity:1}}
+.overlay-inner{
+  text-align:center;
+  padding:20px;
+}
+.overlay-title{
+  font-family:'Courier New',monospace;
+  font-size:28px;font-weight:900;
+  color:#fff;
+  text-shadow:2px 2px 0 #000,0 0 10px rgba(0,255,0,0.5);
+  letter-spacing:0.1em;
+  margin-bottom:8px;
+}
+.overlay-title.title{
+  color:#ffe040;
+  text-shadow:2px 2px 0 #000,0 0 20px rgba(255,224,64,0.6);
+  font-size:32px;
+}
+.overlay-title.success{color:#0f0}
+.overlay-title.fail{color:#f44;text-shadow:2px 2px 0 #000,0 0 10px rgba(255,0,0,0.5)}
+.overlay-title.clear{
+  color:#ffe040;
+  text-shadow:2px 2px 0 #000,0 0 20px rgba(255,224,64,0.8);
+  animation:clear-glow 1s ease-in-out infinite alternate;
+}
+@keyframes clear-glow{
+  0%{text-shadow:2px 2px 0 #000,0 0 10px rgba(255,224,64,0.5)}
+  100%{text-shadow:2px 2px 0 #000,0 0 30px rgba(255,224,64,1)}
+}
+.overlay-sub{
+  font-family:'Courier New',monospace;
+  font-size:14px;color:#ccc;
+  margin-bottom:16px;
+}
+.overlay-btn{
+  font-family:'Courier New',monospace;
+  font-size:14px;font-weight:bold;
+  color:#000;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  padding:8px 24px;cursor:pointer;
+  letter-spacing:0.08em;
+}
+.overlay-btn:active{
+  border-color:#000 #dfdfdf #dfdfdf #000;
+  box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff;
+}
+
+/* ================================================================
+   COMBO POPUP
+   ================================================================ */
+
+.combo-popup{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-family:'Courier New',monospace;
+  font-size:20px;font-weight:900;
+  color:#ffe040;
+  text-shadow:2px 2px 0 #000,0 0 8px rgba(255,224,64,0.6);
+  z-index:50;pointer-events:none;
+  animation:combo-float 0.8s ease-out forwards;
+}
+@keyframes combo-float{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}
+  100%{opacity:0;transform:translate(-50%,-120%) scale(0.8)}
+}

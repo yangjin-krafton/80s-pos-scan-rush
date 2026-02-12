@@ -1,0 +1,77 @@
+/* ================================================================
+   POS SCAN RUSH — Base / Reset / CRT Effects
+   ================================================================ */
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;overflow:hidden;
+  touch-action:none;
+  overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+}
+body{
+  font-family:Tahoma,'Segoe UI',sans-serif;
+  font-size:16px;
+  color:#000;
+  background:#008080;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* === CRT phosphor glow overlay === */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(180deg,
+    transparent 0px,transparent 2px,
+    rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:radial-gradient(ellipse at 50% 50%,
+    rgba(180,255,200,0.03) 0%,
+    transparent 50%,
+    rgba(0,0,0,0.18) 100%);
+}
+
+/* === Tiled desktop pattern === */
+body{
+  background-color:#008080;
+  background-image:
+    linear-gradient(45deg, rgba(0,0,0,0.03) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(0,0,0,0.03) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.03) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.03) 75%);
+  background-size:20px 20px;
+  background-position:0 0, 0 10px, 10px -10px, -10px 0;
+}
+
+/* === GAME SHELL (CRT Monitor frame) === */
+.game{
+  width:360px;
+  height:640px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:
+    auto          /* [1] info bar */
+    auto          /* [2] customer scene */
+    1fr           /* [3] MID SPLIT: POS | SCAN */
+    auto          /* [4] cart carousel */
+    auto          /* [5] action buttons */
+  ;
+  transform-origin:center center;
+  background:#008080;
+  position:relative;
+  border-radius:12px;
+  box-shadow:
+    inset 0 0 60px rgba(0,0,0,0.15),
+    inset 0 0 120px rgba(0,0,0,0.05),
+    0 0 0 3px #333,
+    0 0 0 6px #555,
+    0 0 0 8px #222;
+  overflow:hidden;
+}
+
+/* Selection */
+::selection{background:#000080;color:#fff}
