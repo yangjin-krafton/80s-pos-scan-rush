@@ -233,6 +233,7 @@ Game.prototype._completeScan = function (barcode) {
   if (State.combo > State.maxCombo) State.maxCombo = State.combo;
   State.score += PARAMS.scorePerScan + PARAMS.scoreComboBonus * State.combo;
   State.satisfaction = Math.min(PARAMS.maxSatisfaction, State.satisfaction + PARAMS.scanRecovery);
+  Bus.emit('moodHint', 'calm');
 
   this.audio.play('scan_beep');
   if (State.combo >= 3) this.audio.play('combo_up', 0.5);
@@ -324,6 +325,7 @@ Game.prototype.attemptCheckout = function () {
 };
 
 Game.prototype._checkoutFail = function (reason, message) {
+  State.lastCheckoutReport = this._buildCheckoutReport(reason, message);
   State.mistakeCount++;
   var npc = State.currentNpc;
   var penalty = npc.mistakePenalty + PARAMS.mistakeEscalation * (State.mistakeCount - 1);
@@ -358,6 +360,70 @@ Game.prototype._gameOver = function () {
   State.customerFeedback = 'angry';
   State.customerAnimTimer = 0.8;
   Bus.emit('customerFeedback', 'angry');
+};
+
+Game.prototype._buildCheckoutReport = function (reason, message) {
+  var round = ROUNDS[State.round];
+  var required = round ? round.items : [];
+  var reqMap = {};
+  for (var i = 0; i < required.length; i++) {
+    reqMap[required[i].id] = required[i].qty;
+  }
+
+  var posQty = {};
+  for (var j = 0; j < State.posItems.length; j++) {
+    var entry = State.posItems[j];
+    posQty[entry.itemId] = (posQty[entry.itemId] || 0) + entry.qty;
+  }
+
+  var lines = [];
+  for (i = 0; i < required.length; i++) {
+    var req = required[i];
+    var item = ITEMS[req.id];
+    var name = item ? (item.nameEn || item.name || req.id) : req.id;
+    var actual = posQty[req.id] || 0;
+    var status = 'ok';
+    if (actual === 0) status = 'missing';
+    else if (actual !== req.qty) status = 'qty';
+    else if (item && item.isSale) {
+      var correct = getCorrectDiscount(req.id);
+      if (correct) {
+        for (var k = 0; k < State.posItems.length; k++) {
+          var e = State.posItems[k];
+          if (e.itemId !== req.id) continue;
+          if (e.barcodeType !== 'discount' || e.discountRate !== correct.discountRate) {
+            status = 'discount'; break;
+          }
+        }
+      }
+    }
+    lines.push({
+      id: req.id,
+      name: name,
+      expected: req.qty,
+      actual: actual,
+      status: status,
+    });
+  }
+
+  for (var id in posQty) {
+    if (reqMap[id]) continue;
+    var extraItem = ITEMS[id];
+    var extraName = extraItem ? (extraItem.nameEn || extraItem.name || id) : id;
+    lines.push({
+      id: id,
+      name: extraName,
+      expected: 0,
+      actual: posQty[id],
+      status: 'excess',
+    });
+  }
+
+  return {
+    reason: reason,
+    message: message,
+    lines: lines,
+  };
 };
 
 POS.Game = Game;

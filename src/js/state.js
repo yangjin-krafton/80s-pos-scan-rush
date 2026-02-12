@@ -51,6 +51,7 @@ POS.State = {
   currentMood: 'calm',
   prevMood: 'calm',
   customerAnimTimer: 0,
+  lastCheckoutReport: null,
 
   resetGame: function () {
     this.phase = 'title';
@@ -64,6 +65,7 @@ POS.State = {
     this.currentMood = 'calm';
     this.prevMood = 'calm';
     this.customerAnimTimer = 0;
+    this.lastCheckoutReport = null;
   },
 
   resetRound: function () {
@@ -85,6 +87,7 @@ POS.State = {
     this.currentMood = 'calm';
     this.prevMood = 'calm';
     this.customerAnimTimer = 0;
+    this.lastCheckoutReport = null;
   },
 };
 

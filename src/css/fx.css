@@ -11,3 +11,15 @@
   z-index:6;
   image-rendering:pixelated;
 }
+
+/* ================================================================
+   EMOJI PARTY (checkout success celebration)
+   ================================================================ */
+
+.emoji-pop{
+  position:absolute;
+  left:0;top:0;
+  pointer-events:none;
+  z-index:55;
+  will-change:transform,opacity;
+}

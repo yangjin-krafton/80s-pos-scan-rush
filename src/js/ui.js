@@ -78,7 +78,7 @@ UI.prototype._listenBus = function () {
   Bus.on('checkoutMistake', function (d) { self._onCheckoutMistake(d); });
   Bus.on('checkoutMistake', function ()  { self._playCheckoutFx('fail'); });
   Bus.on('checkoutMistake', function ()  { self._flashCheckoutFail(); });
-  Bus.on('checkoutSuccess', function ()  { self._playCheckoutFx('success'); });
+  Bus.on('checkoutSuccess', function ()  { self._playCheckoutFx('success'); self._spawnEmojiParty(); });
   Bus.on('roundClear',      function ()  { /* no full-screen clear overlay */ });
   Bus.on('gameOver',        function ()  { self._showOverlay('GAME OVER', 'SCORE: ' + State.score.toLocaleString(), 'fail'); });
   Bus.on('gameClear',       function ()  { self._showOverlay('ALL CLEAR!', 'TOTAL: ' + State.score.toLocaleString(), 'clear'); });
@@ -90,6 +90,7 @@ UI.prototype._listenBus = function () {
   Bus.on('customerFeedback',function (t) { self._onCustomerFeedback(t); });
   Bus.on('customerLeave',   function (t) { self._onCustomerLeave(t); });
   Bus.on('moodChange',      function (m) { self._onMoodChange(m); });
+  Bus.on('moodHint',        function (m) { self._onMoodHint(m); });
 };
 
 /* ---- per-frame ---- */
@@ -98,6 +99,7 @@ UI.prototype.update = function (dt) {
   this._updateCustomer();
   this._updateScanMsg();
   if (this._checkoutFx) this._checkoutFx.update(dt);
+  this._updateEmojiParticles(dt);
   if (this._moodFxTimer > 0) {
     this._moodFxTimer -= dt;
     if (this._moodFxTimer <= 0 && this.els.pxFeedback) {
@@ -146,6 +148,64 @@ UI.prototype._playCheckoutFx = function (type) {
   var x = (cx - gameRect.left) * (this._checkoutFx.canvas.width / gameRect.width);
   var y = (cy - gameRect.top) * (this._checkoutFx.canvas.height / gameRect.height);
   this._checkoutFx.spawn(x, y, type);
+};
+
+/* ---- emoji party (checkout success) — JS physics ---- */
+
+UI.prototype._spawnEmojiParty = function () {
+  var game = this.els.game;
+  if (!game) return;
+  if (!this._emojiParts) this._emojiParts = [];
+  var pool = ['\uD83C\uDF89','\uD83C\uDF8A','\uD83E\uDD73','\uD83C\uDF88','\uD83C\uDF86','\u2728','\uD83C\uDF1F','\uD83D\uDCAB','\uD83C\uDFB6','\uD83D\uDC96','\uD83E\uDE99','\uD83C\uDF80'];
+  var count = 28;
+  for (var i = 0; i < count; i++) {
+    var el = document.createElement('span');
+    el.className = 'emoji-pop';
+    el.textContent = pool[Math.floor(Math.random() * pool.length)];
+    el.style.fontSize = (16 + Math.random() * 12) + 'px';
+    game.appendChild(el);
+    var angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
+    var speed = 420 + Math.random() * 320;
+    this._emojiParts.push({
+      el: el,
+      x: 60 + Math.random() * 240,
+      y: 640,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      rot: 0,
+      vr: (Math.random() - 0.5) * 500,
+      sc: 0.8 + Math.random() * 0.4,
+      life: 2.2 + Math.random() * 1.0,
+      ttl: 0,
+    });
+    this._emojiParts[this._emojiParts.length - 1].ttl =
+      this._emojiParts[this._emojiParts.length - 1].life;
+  }
+};
+
+UI.prototype._updateEmojiParticles = function (dt) {
+  var parts = this._emojiParts;
+  if (!parts || !parts.length) return;
+  var GRAVITY = 850;
+  var FADE = 0.45;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var p = parts[i];
+    p.life -= dt;
+    if (p.life <= 0 || p.y > 700) {
+      p.el.remove();
+      parts.splice(i, 1);
+      continue;
+    }
+    p.vy += GRAVITY * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.rot += p.vr * dt;
+    var t = p.life / p.ttl;
+    var a = p.life < FADE ? p.life / FADE : 1;
+    var s = p.sc * (0.35 + t * 0.65);
+    p.el.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px) rotate(' + p.rot.toFixed(0) + 'deg) scale(' + s.toFixed(2) + ')';
+    p.el.style.opacity = a.toFixed(2);
+  }
 };
 
 /* ---- info bar ---- */
@@ -282,6 +342,10 @@ UI.prototype._onMoodChange = function (mood) {
     if (mood === 'angry') this.els.game.classList.add('danger');
     else this.els.game.classList.remove('danger');
   }
+};
+
+UI.prototype._onMoodHint = function (mood) {
+  if (mood === 'calm') this._setMood('calm');
 };
 
 UI.prototype._setMood = function (mood) {
@@ -952,10 +1016,38 @@ UI.prototype._showOverlay = function (title, subtitle, type) {
     ? '<button class="overlay-btn" id="overlay-retry">RETRY</button>'
     : '';
 
-  inner.innerHTML =
-    '<div class="overlay-title ' + type + '">' + title + '</div>' +
-    '<div class="overlay-sub">' + subtitle + '</div>' +
-    btnHtml;
+  if (type === 'fail') {
+    var report = State.lastCheckoutReport;
+    var reason = report && report.reason ? report.reason.toUpperCase() : 'UNKNOWN';
+    var msg = report && report.message ? report.message : subtitle;
+    var linesHtml = '';
+    if (report && report.lines && report.lines.length) {
+      for (var i = 0; i < report.lines.length; i++) {
+        var ln = report.lines[i];
+        var bad = ln.status !== 'ok';
+        linesHtml += '<div class="receipt-item' + (bad ? ' bad' : '') + '">' +
+          '<span class="ri-name">' + ln.name + '</span>' +
+          '<span class="ri-qty">x' + ln.actual + ' / x' + ln.expected + '</span>' +
+          '</div>';
+      }
+    } else {
+      linesHtml = '<div class="receipt-item bad">NO RECEIPT LOG</div>';
+    }
+    inner.innerHTML =
+      '<div class="receipt">' +
+        '<div class="receipt-head">WRONG RECEIPT</div>' +
+        '<div class="receipt-sub">' + msg + '</div>' +
+        '<div class="receipt-meta">REASON: ' + reason + '</div>' +
+        '<div class="receipt-items">' + linesHtml + '</div>' +
+        '<div class="receipt-total">SCORE: ' + State.score.toLocaleString() + '</div>' +
+        btnHtml +
+      '</div>';
+  } else {
+    inner.innerHTML =
+      '<div class="overlay-title ' + type + '">' + title + '</div>' +
+      '<div class="overlay-sub">' + subtitle + '</div>' +
+      btnHtml;
+  }
 
   ov.classList.remove('hidden');
   ov.className = 'overlay ' + type;
