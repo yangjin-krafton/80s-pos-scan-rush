@@ -343,6 +343,7 @@ Game.prototype._checkoutSuccess = function () {
   State.score += PARAMS.scoreCheckout + timeBonus;
 
   this.audio.play('checkout_success');
+  Bus.emit('checkoutSuccess');
 
   State.phase = 'customerFeedback';
   State.customerFeedback = 'happy';

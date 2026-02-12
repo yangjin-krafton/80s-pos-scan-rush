@@ -1,0 +1,67 @@
+/* src/css/tutorial.css — First-time tooltip tutorial styles */
+
+/* ---- Tooltip bubble ---- */
+.tut-tip {
+  position: absolute;
+  z-index: 900;
+  padding: 5px 10px;
+  background: #000080;
+  color: #ffff00;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  border: 2px outset #c0c0c0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.tut-tip.visible {
+  opacity: 1;
+}
+
+/* Position transforms */
+.tut-tip.pos-top    { transform: translate(-50%, -100%); }
+.tut-tip.pos-bottom { transform: translate(-50%, 0); }
+.tut-tip.pos-left   { transform: translate(-100%, -50%); }
+.tut-tip.pos-right  { transform: translate(0, -50%); }
+.tut-tip.pos-center { transform: translate(-50%, -50%); }
+
+/* Arrow indicators */
+.tut-tip::after {
+  content: '';
+  position: absolute;
+  border: 5px solid transparent;
+}
+.tut-tip.pos-top::after {
+  top: 100%; left: 50%; transform: translateX(-50%);
+  border-top-color: #000080;
+}
+.tut-tip.pos-bottom::after {
+  bottom: 100%; left: 50%; transform: translateX(-50%);
+  border-bottom-color: #000080;
+}
+.tut-tip.pos-left::after {
+  left: 100%; top: 50%; transform: translateY(-50%);
+  border-left-color: #000080;
+}
+.tut-tip.pos-right::after {
+  right: 100%; top: 50%; transform: translateY(-50%);
+  border-right-color: #000080;
+}
+.tut-tip.pos-center::after {
+  display: none;
+}
+
+/* ---- Target highlight glow ---- */
+.tut-glow {
+  animation: tut-pulse 1.2s ease-in-out infinite !important;
+}
+
+@keyframes tut-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px #ffff00, 0 0 8px rgba(255,255,0,0.4); }
+  50%      { box-shadow: 0 0 0 4px #ffff00, 0 0 16px rgba(255,255,0,0.6); }
+}

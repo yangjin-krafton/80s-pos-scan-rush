@@ -164,6 +164,24 @@
 }
 .px-feedback.active{opacity:1;}
 
+/* Mood change badge */
+.fb-mood{
+  font-family:'Courier New',monospace;font-size:12px;font-weight:bold;
+  padding:2px 4px;border:2px solid #000;background:#fff;
+  image-rendering:pixelated;
+  animation:mood-pop 0.6s ease-out forwards;
+  box-shadow:2px 2px 0 #000;
+}
+.fb-mood.calm{background:#dff7ff;color:#1060a0}
+.fb-mood.impatient{background:#fff3b0;color:#9a6a00}
+.fb-mood.annoyed{background:#ffd0a8;color:#b04000}
+.fb-mood.angry{background:#ffb0b0;color:#b00000}
+@keyframes mood-pop{
+  0%{opacity:0;transform:translateY(6px) scale(0.7)}
+  40%{opacity:1;transform:translateY(0) scale(1.1)}
+  100%{opacity:0;transform:translateY(-6px) scale(0.9)}
+}
+
 /* Heart effect */
 .fb-heart{
   position:absolute;font-size:12px;

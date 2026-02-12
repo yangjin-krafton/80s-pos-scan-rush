@@ -3,10 +3,11 @@
 'use strict';
 var POS = window.POS;
 
-var audio   = new POS.AudioManager();
-var scanner = new POS.Scanner();
-var game    = new POS.Game(audio, scanner);
-var ui      = new POS.UI();
+var audio    = new POS.AudioManager();
+var scanner  = new POS.Scanner();
+var game     = new POS.Game(audio, scanner);
+var ui       = new POS.UI();
+var tutorial = new POS.Tutorial();
 POS.scanner = scanner;
 
 /* ---- viewport ---- */
@@ -53,6 +54,7 @@ function boot() {
 
   ui.init();
   game.init();
+  tutorial.init();
 
   /* Async data load → then start game */
   POS.Loader.load().then(function () {

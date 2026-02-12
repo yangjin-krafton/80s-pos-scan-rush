@@ -15,11 +15,15 @@ var MISTAKE_KEY_MAP = { missing:'missing', excess:'missing', quantity:'qty', dis
 function UI() {
   this.els = {};
   this._feedbackTimer = 0;
+  this._checkoutFx = null;
+  this._moodFxTimer = 0;
+  this._checkoutFailTimer = 0;
 }
 
 /* ---- init ---- */
 UI.prototype.init = function () {
   this._cache();
+  this._initCheckoutFx();
   this._bindButtons();
   this._listenBus();
 };
@@ -27,6 +31,7 @@ UI.prototype.init = function () {
 UI.prototype._cache = function () {
   var q = function (s) { return document.querySelector(s); };
   this.els = {
+    game:         q('.game'),
     infoRound:    q('#info-round'),
     infoScore:    q('#info-score'),
     hudName:      q('.hud-name'),
@@ -38,6 +43,7 @@ UI.prototype._cache = function () {
     pxQueue:      q('.px-queue'),
     posScroll:    q('.pos-scroll'),
     posFoot:      q('.pos-foot .tv'),
+    checkoutBtn:  q('.pos-foot .checkout'),
     scanContent:  q('.scan-content'),
     scanProg:     q('.scan-prog-fill'),
     scanMsg:      q('.scan-msg'),
@@ -69,6 +75,9 @@ UI.prototype._listenBus = function () {
   Bus.on('posUpdated',      function ()  { self._renderPOS(); });
   Bus.on('holdProgress',    function (p) { self._updateProgress(p); });
   Bus.on('checkoutMistake', function (d) { self._onCheckoutMistake(d); });
+  Bus.on('checkoutMistake', function ()  { self._playCheckoutFx('fail'); });
+  Bus.on('checkoutMistake', function ()  { self._flashCheckoutFail(); });
+  Bus.on('checkoutSuccess', function ()  { self._playCheckoutFx('success'); });
   Bus.on('roundClear',      function ()  { /* no full-screen clear overlay */ });
   Bus.on('gameOver',        function ()  { self._showOverlay('GAME OVER', 'SCORE: ' + State.score.toLocaleString(), 'fail'); });
   Bus.on('gameClear',       function ()  { self._showOverlay('ALL CLEAR!', 'TOTAL: ' + State.score.toLocaleString(), 'clear'); });
@@ -87,10 +96,55 @@ UI.prototype.update = function (dt) {
   this._updateInfoBar();
   this._updateCustomer();
   this._updateScanMsg();
+  if (this._checkoutFx) this._checkoutFx.update(dt);
+  if (this._moodFxTimer > 0) {
+    this._moodFxTimer -= dt;
+    if (this._moodFxTimer <= 0 && this.els.pxFeedback) {
+      this.els.pxFeedback.classList.remove('active');
+      this.els.pxFeedback.innerHTML = '';
+    }
+  }
+  if (this._checkoutFailTimer > 0) {
+    this._checkoutFailTimer -= dt;
+    if (this._checkoutFailTimer <= 0 && this.els.checkoutBtn) {
+      this.els.checkoutBtn.classList.remove('is-fail');
+    }
+  }
   if (this._feedbackTimer > 0) {
     this._feedbackTimer -= dt;
     if (this._feedbackTimer <= 0) this._hideFeedback();
   }
+};
+
+/* ---- checkout FX ---- */
+
+UI.prototype._initCheckoutFx = function () {
+  if (!this.els.game) return;
+  if (!window.POS || !POS.CheckoutFX) return;
+  var canvas = document.createElement('canvas');
+  canvas.className = 'checkout-fx';
+  this.els.game.appendChild(canvas);
+  this._checkoutFx = new POS.CheckoutFX(canvas);
+  this._resizeCheckoutFx();
+  window.addEventListener('resize', this._resizeCheckoutFx.bind(this));
+};
+
+UI.prototype._resizeCheckoutFx = function () {
+  if (!this._checkoutFx || !this.els.game) return;
+  var w = this.els.game.clientWidth || 360;
+  var h = this.els.game.clientHeight || 640;
+  this._checkoutFx.resize(w, h);
+};
+
+UI.prototype._playCheckoutFx = function (type) {
+  if (!this._checkoutFx || !this.els.checkoutBtn || !this.els.game) return;
+  var btnRect = this.els.checkoutBtn.getBoundingClientRect();
+  var gameRect = this.els.game.getBoundingClientRect();
+  var cx = btnRect.left + btnRect.width / 2;
+  var cy = btnRect.top + btnRect.height / 2;
+  var x = (cx - gameRect.left) * (this._checkoutFx.canvas.width / gameRect.width);
+  var y = (cy - gameRect.top) * (this._checkoutFx.canvas.height / gameRect.height);
+  this._checkoutFx.spawn(x, y, type);
 };
 
 /* ---- info bar ---- */
@@ -134,6 +188,7 @@ UI.prototype._resetCustomerClasses = function () {
     px.classList.remove('is-moving', 'is-happy', 'is-angry', 'leave-left', 'leave-right');
     px.classList.add('offscreen-right');
   }
+  if (this.els.game) this.els.game.classList.remove('danger');
   var fb = this.els.pxFeedback;
   if (fb) {
     fb.classList.remove('active');
@@ -220,6 +275,34 @@ UI.prototype._onMoodChange = function (mood) {
       this.els.pxBubble.textContent = POS.pickDialogue(lines);
     }
   }
+  this._showMoodFx(mood);
+  if (this.els.game) {
+    if (mood === 'angry') this.els.game.classList.add('danger');
+    else this.els.game.classList.remove('danger');
+  }
+};
+
+UI.prototype._showMoodFx = function (mood) {
+  var fb = this.els.pxFeedback;
+  if (!fb) return;
+  var label = '...';
+  if (mood === 'calm') label = 'OK';
+  else if (mood === 'impatient') label = '...';
+  else if (mood === 'annoyed') label = '! ?';
+  else if (mood === 'angry') label = '!!!';
+  fb.innerHTML = '<span class=\"fb-mood ' + mood + '\">' + label + '</span>';
+  fb.classList.add('active');
+  this._moodFxTimer = 0.6;
+};
+
+UI.prototype._flashCheckoutFail = function () {
+  var btn = this.els.checkoutBtn;
+  if (!btn) return;
+  btn.classList.remove('is-fail');
+  /* reflow to restart animation */
+  btn.offsetWidth;
+  btn.classList.add('is-fail');
+  this._checkoutFailTimer = 0.4;
 };
 
 /* ---- round lifecycle ---- */
@@ -449,7 +532,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     gameEl.appendChild(card);
   }
 
-  function reparentToCart() {
+  function reparentToCart(dropEvt) {
     if (!inGame) return;
     inGame = false;
     removeBarcodeZones();
@@ -458,9 +541,19 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     card.remove();
     var areaW = desktop.clientWidth || 340;
     var areaH = desktop.clientHeight || 120;
-    card.style.left = (Math.random() * Math.max(areaW - 70, 10) + 5) + 'px';
-    card.style.top  = (Math.random() * Math.max(areaH - 70, 10) + 5) + 'px';
-    card.style.transform = 'rotate(' + ((Math.random() - 0.5) * 30) + 'deg)';
+    if (dropEvt) {
+      var dr = desktop.getBoundingClientRect();
+      var gr = cachedGR || gameEl.getBoundingClientRect();
+      var s  = cachedGR ? cachedScale : (gr.width / 360);
+      var lx = (dropEvt.clientX - dr.left) / s - 32;
+      var ly = (dropEvt.clientY - dr.top)  / s - 32;
+      card.style.left = Math.max(0, Math.min(lx, areaW - 64)) + 'px';
+      card.style.top  = Math.max(0, Math.min(ly, areaH - 64)) + 'px';
+    } else {
+      card.style.left = Math.max(0, (areaW - 64) / 2) + 'px';
+      card.style.top  = Math.max(0, (areaH - 64) / 2) + 'px';
+    }
+    card.style.transform = 'rotate(0deg)';
     card.style.zIndex = String((self._cartTopZ || 100) + 1);
     self._cartTopZ = parseInt(card.style.zIndex);
     card.style.boxShadow = '';
@@ -501,6 +594,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     State.holdProgress = 0;
     State.dragActive = true;
     scanner.setActiveDrag(card);
+    Bus.emit('cardPickup', item.id);
   }
 
   /* -- listen for scan completion (from game.update hold-scan) -- */
@@ -614,7 +708,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
       State.selectedItemId = null;
       State.holdProgress = 0;
       scanner.clearActiveDrag();
-      reparentToCart();
+      reparentToCart(e);
     } else {
       /* stay in .game — card rests at drop position */
       card.style.transform = 'rotate(0deg)';

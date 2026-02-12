@@ -72,5 +72,16 @@ body{
   overflow:hidden;
 }
 
+.game.danger::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  border:2px solid rgba(255,40,40,0.8);
+  box-shadow:0 0 12px rgba(255,0,0,0.7), inset 0 0 10px rgba(255,0,0,0.5);
+  animation:danger-pulse 0.8s steps(2) infinite;
+}
+@keyframes danger-pulse{
+  0%,100%{opacity:0.6}
+  50%{opacity:1}
+}
+
 /* Selection */
 ::selection{background:#000080;color:#fff}
