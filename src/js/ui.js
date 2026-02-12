@@ -80,7 +80,7 @@ UI.prototype._listenBus = function () {
   Bus.on('checkoutMistake', function ()  { self._flashCheckoutFail(); });
   Bus.on('checkoutSuccess', function ()  { self._playCheckoutFx('success'); self._spawnEmojiParty(); });
   Bus.on('roundClear',      function ()  { /* no full-screen clear overlay */ });
-  Bus.on('gameOver',        function ()  { self._showOverlay('GAME OVER', 'SCORE: ' + State.score.toLocaleString(), 'fail'); });
+  Bus.on('gameOver',        function ()  { self._showGameOver(); });
   Bus.on('gameClear',       function ()  { self._showOverlay('ALL CLEAR!', 'TOTAL: ' + State.score.toLocaleString(), 'clear'); });
   Bus.on('scanFail',        function ()  { self._onScanFail(); });
 
@@ -1058,6 +1058,72 @@ UI.prototype._showOverlay = function (title, subtitle, type) {
 
 UI.prototype._hideOverlay = function () {
   if (this.els.overlay) this.els.overlay.classList.add('hidden');
+};
+
+/* ---- Game Over screen with served NPCs + encouragement ---- */
+UI.prototype._showGameOver = function () {
+  var ov    = this.els.overlay;
+  var inner = this.els.overlayInner;
+  if (!ov || !inner) return;
+
+  var served = State.servedNpcs || [];
+  var enc = POS.ENCOURAGEMENTS || [];
+
+  /* Build served NPC faces row */
+  var facesHtml = '';
+  if (served.length > 0) {
+    facesHtml += '<div class="go-served">';
+    facesHtml += '<div class="go-served-title">🎉 오늘 서빙한 손님들</div>';
+    facesHtml += '<div class="go-faces">';
+    for (var i = 0; i < served.length; i++) {
+      facesHtml += '<div class="go-face" style="animation-delay:' + (i * 0.12) + 's">' +
+        '<span class="go-face-emoji">' + served[i].emoji + '</span>' +
+        '</div>';
+    }
+    facesHtml += '</div>';
+    facesHtml += '<div class="go-served-count">' + served.length + '명의 손님에게 감사받았어요!</div>';
+    facesHtml += '</div>';
+  } else {
+    facesHtml += '<div class="go-served">';
+    facesHtml += '<div class="go-served-title">😢 오늘은 아무도 못 보냈어요...</div>';
+    facesHtml += '</div>';
+  }
+
+  /* Pick random served NPC as speaker + random encouragement message */
+  var bubbleHtml = '';
+  if (served.length > 0 && enc.length > 0) {
+    var speaker = served[Math.floor(Math.random() * served.length)];
+    var msg = enc[Math.floor(Math.random() * enc.length)];
+    bubbleHtml =
+      '<div class="go-bubble-wrap">' +
+        '<div class="go-bubble">' +
+          '<span class="go-bubble-emoji">' + speaker.emoji + '</span>' +
+          '<div class="go-bubble-text">' +
+            '<div class="go-bubble-msg">"' + msg.ja + '"</div>' +
+            '<div class="go-bubble-who">— ' + speaker.name + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="go-bubble-ko">' + msg.ko + '</div>' +
+      '</div>';
+  }
+
+  inner.innerHTML =
+    '<div class="go-screen">' +
+      '<div class="go-title">GAME OVER</div>' +
+      '<div class="go-score">SCORE: ' + State.score.toLocaleString() + '</div>' +
+      '<div class="go-round">🏪 ROUND ' + (State.round + 1) + ' · COMBO x' + State.maxCombo + '</div>' +
+      '<div class="go-divider">━━━━━━━━━━━━━━━━━━━━</div>' +
+      facesHtml +
+      '<div class="go-divider">━━━━━━━━━━━━━━━━━━━━</div>' +
+      bubbleHtml +
+      '<button class="overlay-btn go-retry" id="overlay-retry">🔄 다시 도전하기</button>' +
+    '</div>';
+
+  ov.classList.remove('hidden');
+  ov.className = 'overlay gameover';
+
+  var retryBtn = inner.querySelector('#overlay-retry');
+  if (retryBtn) retryBtn.addEventListener('click', function () { Bus.emit('retryClick'); });
 };
 
 UI.prototype.showTitle = function () {

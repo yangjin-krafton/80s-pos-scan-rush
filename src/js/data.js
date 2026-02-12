@@ -7,6 +7,7 @@ var POS = window.POS || (window.POS = {});
 POS.ITEMS  = {};
 POS.NPCS   = [];
 POS.ROUNDS = [];
+POS.ENCOURAGEMENTS = [];
 
 /* ---- Mood stages ---- */
 POS.MOOD_STAGES = [

@@ -56,6 +56,9 @@ POS.State = {
   /* ---- Adaptive difficulty ---- */
   diffRating: 0,
 
+  /* ---- Served NPC history ---- */
+  servedNpcs: [],
+
   resetGame: function () {
     this.phase = 'title';
     this.round = 0;
@@ -63,6 +66,7 @@ POS.State = {
     this.combo = 0;
     this.maxCombo = 0;
     this.diffRating = 0;
+    this.servedNpcs = [];
     this.customerPhase = 'none';
     this.customerFeedback = null;
     this.currentNpc = null;

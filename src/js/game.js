@@ -356,6 +356,12 @@ Game.prototype._checkoutSuccess = function () {
     State.diffRating += 0.5 + perf * 1.2;
   }
 
+  /* Record successfully served NPC */
+  var npc = State.currentNpc;
+  if (npc) {
+    State.servedNpcs.push({ emoji: npc.emoji, name: npc.name });
+  }
+
   this.audio.play('checkout_success');
   Bus.emit('checkoutSuccess');
 

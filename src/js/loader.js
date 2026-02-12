@@ -59,13 +59,15 @@ POS.Loader = {
     return Promise.all([
       fetch('data/products.csv').then(function (r) { return r.text(); }),
       fetch('data/npcs.json').then(function (r) { return r.json(); }),
+      fetch('data/encouragements.json').then(function (r) { return r.json(); }).catch(function () { return { encouragements: [] }; }),
     ]).then(function (results) {
       self.catalog = self._parseCSV(results[0]);
       self.npcPool = results[1].npcs.map(function (raw) { return self._adaptNpc(raw); });
+      POS.ENCOURAGEMENTS = results[2].encouragements || [];
       self._buildNpcIndex();
       self._resetRoundStream();
       self._appendRounds(PARAMS.roundSeedCount || 12);
-      console.log('[loader] Loaded', self.catalog.length, 'products,', self.npcPool.length, 'NPCs,', POS.ROUNDS.length, 'rounds');
+      console.log('[loader] Loaded', self.catalog.length, 'products,', self.npcPool.length, 'NPCs,', POS.ENCOURAGEMENTS.length, 'encouragements,', POS.ROUNDS.length, 'rounds');
     });
   },
 

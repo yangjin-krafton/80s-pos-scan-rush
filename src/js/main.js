@@ -141,6 +141,7 @@ function boot() {
   loadSet(25, 'LOADING DATA...');
   loadLine('C:\\POS> load products.csv');
   loadLine('C:\\POS> load npcs.json');
+  loadLine('C:\\POS> load encouragements.json');
 
   /* Async data load → then start game */
   POS.Loader.load().then(function () {
