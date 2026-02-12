@@ -7,7 +7,7 @@ var KIND = {
   rain: 0,
   snow: 1,
   blossom: 2,
-  item: 3,
+  maple: 3,
 };
 
 function randRange(min, max) {
@@ -41,56 +41,56 @@ ParticleSystem.PRESETS = {
     spin: [0, 0],
     wind: 0,
     color: [
-      [0.55, 0.75, 1.0, 0.55],
-      [0.45, 0.65, 0.95, 0.45],
+      [0.55, 0.75, 1.0, 0.85],
+      [0.45, 0.65, 0.95, 0.65],
     ],
   },
   snow: {
     rate: 90,
     area: { x: 0, y: -80, w: 360, h: 80 },
-    size: [6, 14],
-    life: [2.6, 4.2],
-    speed: [40, 90],
+    size: [1.5, 3.5],
+    life: [3.6, 5.6],
+    speed: [10, 32],
     drift: [-35, 35],
-    gravity: 8,
-    spin: [-1.2, 1.2],
-    wind: 0,
+    gravity: 2.5,
+    spin: [-0.6, 0.6],
+    wind: 3,
     color: [
       [1.0, 1.0, 1.0, 0.9],
       [0.9, 0.95, 1.0, 0.7],
     ],
   },
   blossom: {
-    rate: 110,
+    rate: 10,
     area: { x: 0, y: -90, w: 360, h: 90 },
-    size: [8, 18],
+    size: [4, 9],
     life: [2.4, 3.4],
-    speed: [60, 140],
+    speed: [30, 70],
     drift: [-60, 60],
-    gravity: 12,
+    gravity: 5,
     spin: [-3.0, 3.0],
-    wind: 0,
+    wind: -18,
     color: [
       [1.0, 0.72, 0.86, 0.85],
       [1.0, 0.80, 0.92, 0.7],
       [0.98, 0.66, 0.82, 0.8],
     ],
   },
-  item: {
-    rate: 48,
+  maple: {
+    rate: 7,
     area: { x: 0, y: -80, w: 360, h: 80 },
-    size: [10, 18],
+    size: [6, 10],
     life: [1.8, 2.6],
-    speed: [120, 220],
+    speed: [36, 66],
     drift: [-80, 80],
-    gravity: 28,
-    spin: [-4.0, 4.0],
+    gravity: 2,
+    spin: [-7.0, 7.0],
     wind: 0,
     color: [
-      [1.0, 0.92, 0.55, 0.9],
-      [0.65, 1.0, 0.82, 0.9],
-      [0.62, 0.86, 1.0, 0.9],
-      [1.0, 0.68, 0.72, 0.9],
+      [1.0, 0.52, 0.16, 0.9],
+      [0.98, 0.72, 0.22, 0.9],
+      [0.86, 0.36, 0.12, 0.9],
+      [0.75, 0.22, 0.12, 0.9],
     ],
   },
 };
@@ -132,7 +132,7 @@ ParticleSystem.prototype._initGL = function () {
     'float lineShape(vec2 uv){',
     '  float x = abs(uv.x);',
     '  float y = abs(uv.y);',
-    '  float body = smoothstep(0.18, 0.02, x);',
+    '  float body = smoothstep(0.28, 0.06, x);',
     '  float tip = smoothstep(1.0, 0.75, y);',
     '  return body * (1.0 - tip);',
     '}',
@@ -285,7 +285,7 @@ ParticleSystem.prototype._spawnParticle = function (e) {
   var size = randRange(e.size[0], e.size[1]);
   var spin = randRange(e.spin[0], e.spin[1]);
   var col = pick(e.color);
-  this.particles.push({
+  var p = {
     x: x,
     y: y,
     vx: drift,
@@ -301,7 +301,22 @@ ParticleSystem.prototype._spawnParticle = function (e) {
     b: col[2],
     a: col[3],
     gravity: e.gravity,
-  });
+  };
+
+  if (e.kind === KIND.maple) {
+    p.zigPhase = Math.random() * Math.PI * 2;
+    p.zigAmp = randRange(10, 24);
+    p.zigFreq = randRange(2.0, 3.4);
+  }
+
+  if (e.kind === KIND.snow) {
+    p.loopPhase = Math.random() * Math.PI * 2;
+    p.loopAmpX = randRange(16, 28);
+    p.loopAmpY = randRange(10, 18);
+    p.loopFreq = randRange(1.4, 2.2);
+  }
+
+  this.particles.push(p);
 };
 
 ParticleSystem.prototype.update = function (dt) {
@@ -328,6 +343,17 @@ ParticleSystem.prototype.update = function (dt) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     p.rot += p.spin * dt;
+    if (p.kind === KIND.maple) {
+      p.zigPhase += p.zigFreq * dt;
+      p.x += Math.sin(p.zigPhase) * p.zigAmp * dt;
+      p.rot += 1.6 * dt;
+    }
+    if (p.kind === KIND.snow) {
+      p.loopPhase += p.loopFreq * dt;
+      p.x += Math.sin(p.loopPhase) * p.loopAmpX * dt;
+      p.y += Math.sin(p.loopPhase * 2.0) * p.loopAmpY * dt;
+      p.rot += 0.5 * dt;
+    }
 
     if (p.y > h + 80 || p.x < -80 || p.x > w + 80) {
       this.particles.splice(i, 1);

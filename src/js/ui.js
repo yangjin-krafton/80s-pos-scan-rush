@@ -16,6 +16,9 @@ function UI() {
   this.els = {};
   this._feedbackTimer = 0;
   this._checkoutFx = null;
+  this._seasonFx = null;
+  this._seasonFxMode = 'none';
+  this._seasonEmitters = null;
   this._moodFxTimer = 0;
   this._checkoutFailTimer = 0;
 }
@@ -24,6 +27,7 @@ function UI() {
 UI.prototype.init = function () {
   this._cache();
   this._initCheckoutFx();
+  this._initSeasonFx();
   this._bindButtons();
   this._listenBus();
 };
@@ -36,6 +40,7 @@ UI.prototype._cache = function () {
     infoScore:    q('#info-score'),
     hudName:      q('.hud-name'),
     hudRight:     q('.hud-right'),
+    customerScene: q('.customer-scene'),
     pxBubble:     q('.px-bubble'),
     pxCurrent:    q('.px-current'),
     pxHead:       q('.px-head'),
@@ -99,6 +104,7 @@ UI.prototype.update = function (dt) {
   this._updateCustomer();
   this._updateScanMsg();
   if (this._checkoutFx) this._checkoutFx.update(dt);
+  if (this._seasonFx) this._seasonFx.update(dt);
   this._updateEmojiParticles(dt);
   if (this._moodFxTimer > 0) {
     this._moodFxTimer -= dt;
@@ -148,6 +154,61 @@ UI.prototype._playCheckoutFx = function (type) {
   var x = (cx - gameRect.left) * (this._checkoutFx.canvas.width / gameRect.width);
   var y = (cy - gameRect.top) * (this._checkoutFx.canvas.height / gameRect.height);
   this._checkoutFx.spawn(x, y, type);
+};
+
+/* ---- seasonal FX (weather / items) ---- */
+
+UI.prototype._initSeasonFx = function () {
+  if (!this.els.customerScene) return;
+  if (!window.POS || !POS.ParticleSystem) return;
+  var canvas = document.createElement('canvas');
+  canvas.className = 'season-fx';
+  this.els.customerScene.appendChild(canvas);
+  this._seasonFx = new POS.ParticleSystem(canvas, { maxParticles: 2600 });
+  this._seasonEmitters = {
+    rain: this._seasonFx.addEmitter('rain', { enabled: false }),
+    snow: this._seasonFx.addEmitter('snow', { enabled: false }),
+    blossom: this._seasonFx.addEmitter('blossom', { enabled: false }),
+    maple: this._seasonFx.addEmitter('maple', { enabled: false }),
+  };
+  this._resizeSeasonFx();
+  window.addEventListener('resize', this._resizeSeasonFx.bind(this));
+};
+
+UI.prototype._resizeSeasonFx = function () {
+  if (!this._seasonFx || !this.els.customerScene) return;
+  var w = this.els.customerScene.clientWidth || 360;
+  var h = this.els.customerScene.clientHeight || 88;
+  this._seasonFx.resize(w, h);
+  if (!this._seasonEmitters) return;
+  var keys = Object.keys(this._seasonEmitters);
+  for (var i = 0; i < keys.length; i++) {
+    var e = this._seasonEmitters[keys[i]];
+    if (e && e.area) {
+      e.area.x = 0;
+      e.area.y = -90;
+      e.area.w = w;
+      e.area.h = 90;
+    }
+  }
+};
+
+UI.prototype._setSeasonFx = function (mode) {
+  this._seasonFxMode = mode || 'none';
+  if (!this._seasonFx || !this._seasonEmitters) return;
+  var keys = Object.keys(this._seasonEmitters);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    var e = this._seasonEmitters[key];
+    if (e) e.enabled = (key === this._seasonFxMode);
+  }
+  if (this._seasonFxMode === 'none') this._seasonFx.clear();
+};
+
+UI.prototype._randomizeSeasonFx = function () {
+  var pool = ['none', 'rain', 'snow', 'blossom', 'maple'];
+  var pick = pool[Math.floor(Math.random() * pool.length)];
+  this._setSeasonFx(pick);
 };
 
 /* ---- emoji party (checkout success) — JS physics ---- */
@@ -390,6 +451,7 @@ UI.prototype._onRoundStart = function () {
   this._renderPOS();
   this._clearScanItem();
   this._updateDiscountDisplay();
+  this._randomizeSeasonFx();
 
   // Apply NPC body color via CSS variable
   var px = this.els.pxCurrent;
