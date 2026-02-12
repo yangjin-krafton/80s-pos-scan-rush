@@ -395,14 +395,27 @@ POS.Loader = {
       for (var ms = 0; ms < msCount; ms++) {
         var msProd = this._pickOneProduct(pool, usedEmoji, true);
         if (!msProd) break;
-        result.push({ product: msProd, _isSale: true,  qty: 1 });
+        var msPair = DISC_PAIRS_POOL[Math.floor(Math.random() * DISC_PAIRS_POOL.length)];
+        result.push({ product: msProd, _isSale: true,  qty: 1, _discPairOverride: msPair });
         result.push({ product: msProd, _isSale: false, qty: 1 });
         saleCount -= 1;
         needed -= 1;
       }
     }
 
-    /* ---- Step 3: Remaining sale products ---- */
+    /* ---- Step 3: Remaining sale products (each gets a random discount pair) ---- */
+    /* Build available discount pairs: tier.discPair as base + pool variety */
+    var availPairs = [];
+    if (tier.discPair) availPairs.push(tier.discPair);
+    for (var ap = 0; ap < DISC_PAIRS_POOL.length; ap++) {
+      var pp = DISC_PAIRS_POOL[ap];
+      var dup = false;
+      for (var ck = 0; ck < availPairs.length; ck++) {
+        if (availPairs[ck][0] === pp[0] && availPairs[ck][1] === pp[1]) { dup = true; break; }
+      }
+      if (!dup) availPairs.push(pp);
+    }
+
     if (saleCount > 0) {
       var saleCandidates = [];
       var saleOther = [];
@@ -424,7 +437,9 @@ POS.Loader = {
         if (idx >= 0) {
           var saleProd = pool.splice(idx, 1)[0];
           usedEmoji[saleProd.emoji] = true;
-          result.push({ product: saleProd, _isSale: true, qty: 1 });
+          /* Assign a random discount pair from the available pool */
+          var pickedPair = availPairs[Math.floor(Math.random() * availPairs.length)];
+          result.push({ product: saleProd, _isSale: true, qty: 1, _discPairOverride: pickedPair });
           needed--;
           saleCandidates = [];
           saleOther = [];
