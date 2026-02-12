@@ -6,7 +6,9 @@
       "Bash(python tools/trim_resize_sprites.py:*)",
       "Bash(npx vite build:*)",
       "Bash(timeout:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nci: add GitHub Actions workflow for GitHub Pages deployment\n\nDeploys src/ folder directly to GitHub Pages on push to main.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)"
     ],
     "additionalDirectories": [
       "f:\\Workspace\\Slingshot-Rogue\\.claude",
