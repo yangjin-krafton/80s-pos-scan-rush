@@ -52,6 +52,12 @@ POS.PARAMS = {
   midAddSatBoost: 3,
   midCancelSatDrain: 5,
   blackoutCheckoutBlock: true,
+  /* time-budget balance constants */
+  timePerNormal: 1.3,
+  timePerSale:   2.2,
+  marginEasy:    2.0,
+  marginHard:    1.05,
+  marginPeak:    15,
 };
 
 POS.getCorrectDiscount = function (itemId) {

@@ -45,6 +45,20 @@ Game.prototype.startRound = function () {
   State.phase = 'roundIntro';
   State.phaseTimer = PARAMS.roundIntroTime;
 
+  /* ---- Compute drainRate from item count + difficulty margin ---- */
+  var totalQty = 0, saleQty = 0;
+  for (var i = 0; i < round.items.length; i++) {
+    var ri = round.items[i];
+    totalQty += ri.qty;
+    if (ITEMS[ri.id] && ITEMS[ri.id].isSale) saleQty += ri.qty;
+  }
+  var normalQty = totalQty - saleQty;
+  var rawTime = normalQty * PARAMS.timePerNormal + saleQty * PARAMS.timePerSale;
+  var effectiveSat = PARAMS.maxSatisfaction + totalQty * PARAMS.scanRecovery;
+  var t = Math.min(State.diffRating / PARAMS.marginPeak, 1);
+  var margin = PARAMS.marginHard + (PARAMS.marginEasy - PARAMS.marginHard) * Math.pow(1 - t, 1.5);
+  State.currentNpc.drainRate = effectiveSat / (rawTime * margin);
+
   /* ---- Schedule meta events from round.metas ---- */
   var metas = round.metas || {};
   this._scheduleMetaEvents(metas);
@@ -133,7 +147,7 @@ Game.prototype.update = function (dt) {
 
   /* satisfaction drain using NPC drainRate */
   var npc = State.currentNpc;
-  State.satisfaction -= npc.drainRate * dt;
+  if (!State.godMode) State.satisfaction -= npc.drainRate * dt;
 
   /* mood tracking */
   var newMood = POS.getMoodStage(State.satisfaction);

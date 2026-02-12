@@ -53,6 +53,9 @@ POS.State = {
   customerAnimTimer: 0,
   lastCheckoutReport: null,
 
+  /* ---- Debug ---- */
+  godMode: false,
+
   /* ---- Adaptive difficulty ---- */
   diffRating: 0,
 

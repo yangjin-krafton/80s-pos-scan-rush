@@ -1092,16 +1092,13 @@ UI.prototype._renderPOS = function () {
     var row = document.createElement('div');
     row.className = 'pos-row' + (item.isSale ? ' sale' : '');
     var posKey = pos.itemId + '_' + pos.discountRate;
-    var discLabel = pos.discountRate > 0
+    var midLabel = pos.discountRate > 0
       ? '<span class="sale-dot">' + pos.discountRate + '%OFF</span>'
-      : (item.isSale ? '<span class="sale-dot">割</span>' : '');
+      : (item.isSale ? '<span class="sale-dot">割</span>' : '<span class="nm">' + item.name + '</span>');
 
     row.innerHTML =
       '<span class="em">' + item.emoji + '</span>' +
-      '<div class="info">' +
-        '<span class="nm">' + item.name + discLabel + '</span>' +
-        '<span class="pr">¥' + price + ' × ' + pos.qty + ' = ¥' + lineTotal.toLocaleString() + '</span>' +
-      '</div>' +
+      '<span class="dc">' + midLabel + '</span>' +
       '<div class="qty-ctrl">' +
         '<span class="qb" data-action="minus" data-id="' + posKey + '">−</span>' +
         '<span class="qn">' + pos.qty + '</span>' +
