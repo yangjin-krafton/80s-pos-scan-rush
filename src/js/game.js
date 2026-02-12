@@ -321,6 +321,9 @@ Game.prototype.addToPOS = function (itemId) {
 
   if (existing) {
     existing.qty++;
+    /* Move to end so it appears at the top of the reversed POS list */
+    State.posItems.splice(i, 1);
+    State.posItems.push(existing);
   } else {
     State.posItems.push({
       itemId:       itemId,

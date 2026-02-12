@@ -1079,7 +1079,8 @@ UI.prototype._renderPOS = function () {
   }
 
   var total = 0;
-  State.posItems.forEach(function (pos) {
+  var items = State.posItems;
+  for (var pi = items.length - 1; pi >= 0; pi--) { var pos = items[pi];
     var item = ITEMS[pos.itemId];
     if (!item) return;
     var price = item.isSale && pos.barcodeType === 'discount'
@@ -1107,7 +1108,7 @@ UI.prototype._renderPOS = function () {
         '<span class="qb" data-action="plus" data-id="' + posKey + '">＋</span>' +
       '</div>';
     scroll.appendChild(row);
-  });
+  }
 
   scroll.querySelectorAll('.qb').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
