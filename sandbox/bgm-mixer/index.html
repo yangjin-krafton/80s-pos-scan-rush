@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BGM Random Mixer 테스트</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f3ea;
+        --ink: #222;
+        --accent: #d35b3f;
+        --panel: #fff7e6;
+        --border: #e3d5b8;
+      }
+      body {
+        margin: 0;
+        font-family: "Courier New", Courier, monospace;
+        background: radial-gradient(circle at 30% 20%, #fff6d9, #f0e7d1 70%);
+        color: var(--ink);
+      }
+      .wrap {
+        max-width: 880px;
+        margin: 32px auto;
+        padding: 24px;
+        background: var(--panel);
+        border: 2px solid var(--border);
+        box-shadow: 8px 8px 0 #d8c8a5;
+      }
+      h1 {
+        margin: 0 0 12px 0;
+        font-size: 24px;
+        letter-spacing: 0.5px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      button {
+        padding: 10px 14px;
+        border: 2px solid #000;
+        background: #ffe5a3;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      button:hover {
+        background: #ffd26b;
+      }
+      .panel {
+        border: 2px solid var(--border);
+        padding: 12px;
+        background: #fffaf0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+      }
+      label {
+        font-size: 12px;
+        display: block;
+        margin-bottom: 6px;
+      }
+      select,
+      input[type="range"] {
+        width: 100%;
+      }
+      .log {
+        white-space: pre-wrap;
+        font-size: 12px;
+        background: #fff;
+        border: 1px dashed var(--border);
+        padding: 8px;
+        min-height: 60px;
+      }
+      .note {
+        font-size: 12px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>BGM Random Mixer 테스트</h1>
+      <div class="row">
+        <button id="start">Start</button>
+        <button id="stop">Stop</button>
+        <button id="random">Randomize Mix</button>
+      </div>
+      <div class="grid panel">
+        <div>
+          <label for="bassSelect">Bass 트랙</label>
+          <select id="bassSelect"></select>
+          <label for="bassVol">Bass 볼륨</label>
+          <input id="bassVol" type="range" min="0" max="1" step="0.01" value="0.6" />
+        </div>
+        <div>
+          <label for="padSelect">Pad 트랙</label>
+          <select id="padSelect"></select>
+          <label for="padVol">Pad 볼륨</label>
+          <input id="padVol" type="range" min="0" max="1" step="0.01" value="0.5" />
+        </div>
+        <div>
+          <label for="leadSelect">Lead 트랙</label>
+          <select id="leadSelect"></select>
+          <label for="leadVol">Lead 볼륨</label>
+          <input id="leadVol" type="range" min="0" max="1" step="0.01" value="0.45" />
+        </div>
+      </div>
+      <p class="note">
+        이 테스트는 `src/assets/bgm`의 `.m4a`를 로드합니다. 브라우저 정책상 Start 버튼을 눌러야 재생됩니다.
+      </p>
+      <div class="log" id="log"></div>
+    </div>
+
+    <script>
+      const BASE = "../../src/assets/bgm";
+      const instruments = ["bass", "pad", "lead"];
+      const registers = ["low", "mid", "high"];
+      const variants = ["01", "02", "03"];
+
+      const tracks = {};
+      instruments.forEach((inst) => {
+        tracks[inst] = [];
+        registers.forEach((reg) => {
+          variants.forEach((v) => {
+            tracks[inst].push(`bgm_${inst}_${reg}_${v}.m4a`);
+          });
+        });
+      });
+
+      const ctxState = {
+        ctx: null,
+        sources: {},
+        gains: {},
+        buffers: {},
+      };
+
+      const logEl = document.getElementById("log");
+      const selectEls = {
+        bass: document.getElementById("bassSelect"),
+        pad: document.getElementById("padSelect"),
+        lead: document.getElementById("leadSelect"),
+      };
+      const volEls = {
+        bass: document.getElementById("bassVol"),
+        pad: document.getElementById("padVol"),
+        lead: document.getElementById("leadVol"),
+      };
+
+      function log(msg) {
+        logEl.textContent = `${new Date().toLocaleTimeString()}  ${msg}\n` + logEl.textContent;
+      }
+
+      function fillSelects() {
+        instruments.forEach((inst) => {
+          const el = selectEls[inst];
+          tracks[inst].forEach((t) => {
+            const opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t.replace(".m4a", "");
+            el.appendChild(opt);
+          });
+          el.selectedIndex = Math.floor(Math.random() * el.options.length);
+        });
+      }
+
+      async function loadBuffer(url) {
+        const res = await fetch(url);
+        const arr = await res.arrayBuffer();
+        return await ctxState.ctx.decodeAudioData(arr);
+      }
+
+      async function playTrack(inst, filename) {
+        const url = `${BASE}/${filename}`;
+        if (!ctxState.buffers[filename]) {
+          ctxState.buffers[filename] = await loadBuffer(url);
+        }
+        const source = ctxState.ctx.createBufferSource();
+        source.buffer = ctxState.buffers[filename];
+        source.loop = true;
+        const gain = ctxState.gains[inst] || ctxState.ctx.createGain();
+        gain.gain.value = parseFloat(volEls[inst].value);
+        source.connect(gain).connect(ctxState.ctx.destination);
+        source.start();
+        ctxState.sources[inst] = source;
+        ctxState.gains[inst] = gain;
+      }
+
+      async function stopTrack(inst) {
+        const s = ctxState.sources[inst];
+        if (s) {
+          try {
+            s.stop();
+          } catch (_) {}
+          ctxState.sources[inst] = null;
+        }
+      }
+
+      async function startAll() {
+        if (!ctxState.ctx) {
+          ctxState.ctx = new AudioContext();
+        }
+        if (ctxState.ctx.state !== "running") {
+          await ctxState.ctx.resume();
+        }
+        for (const inst of instruments) {
+          await stopTrack(inst);
+          await playTrack(inst, selectEls[inst].value);
+        }
+        log("재생 시작");
+      }
+
+      async function stopAll() {
+        for (const inst of instruments) {
+          await stopTrack(inst);
+        }
+        log("재생 중지");
+      }
+
+      function randomizeMix() {
+        instruments.forEach((inst) => {
+          const list = tracks[inst];
+          const pick = list[Math.floor(Math.random() * list.length)];
+          selectEls[inst].value = pick;
+        });
+        startAll();
+        log("랜덤 믹스 적용");
+      }
+
+      instruments.forEach((inst) => {
+        volEls[inst].addEventListener("input", () => {
+          const g = ctxState.gains[inst];
+          if (g) g.gain.value = parseFloat(volEls[inst].value);
+        });
+        selectEls[inst].addEventListener("change", () => startAll());
+      });
+
+      document.getElementById("start").addEventListener("click", startAll);
+      document.getElementById("stop").addEventListener("click", stopAll);
+      document.getElementById("random").addEventListener("click", randomizeMix);
+
+      fillSelects();
+      log("준비 완료");
+    </script>
+  </body>
+</html>

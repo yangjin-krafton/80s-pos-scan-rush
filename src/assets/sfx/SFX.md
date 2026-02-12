@@ -1,7 +1,7 @@
 # SFX 목록 (m4a)
 
 이 폴더의 `.m4a` 파일은 모바일 웹용 SFX 배포본입니다.
-재생성 파이프라인: `python3 src/sfx_gen.py` → `python3 src/sfx_encode.py`
+재생성 파이프라인: `python3 src/sound/sfx_gen.py` → `python3 src/sound/sfx_encode.py`
 
 ## 파일 설명
 - `ui_click.m4a`: UI 버튼 클릭 (짧고 또렷한 클릭, 상단 고음 + 하단 보강)
