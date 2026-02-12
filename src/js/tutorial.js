@@ -101,15 +101,17 @@ Tutorial.prototype.init = function () {
   this._listen();
 };
 
-Tutorial.prototype._reset = function () {
+/* Full reset: basic tutorial + all meta intros cleared.
+   Called on every new game start (first load, retry after game over). */
+Tutorial.prototype._resetAll = function () {
+  /* basic tutorial */
   if (this._timer) { clearTimeout(this._timer); this._timer = null; }
   this._hideTip();
   this._setGlow(null);
   this.active = true;
   this.step = -1;
-};
 
-Tutorial.prototype._resetSession = function () {
+  /* meta intros — clear so every meta tip shows once in the new game */
   this._seenMetas = {};
   this._hideMetaTip();
 };
@@ -149,10 +151,15 @@ Tutorial.prototype._listen = function () {
     if (self.active && self.step === 9) self._advance();
   });
 
-  /* Reset tutorial every game start (round 0), end basic tut if past round 0 */
+  /* Full reset on every new game (round 0) — basic tutorial + all meta intros */
   Bus.on('roundStart', function (idx) {
-    if (idx === 0) { self._reset(); self._resetSession(); }
+    if (idx === 0) self._resetAll();
     else if (self.active) self._complete();
+  });
+
+  /* Also reset on game over so next game gets fresh tutorials */
+  Bus.on('gameOver', function () {
+    self._resetAll();
   });
 
   /* ---- Meta first-encounter listeners ---- */
