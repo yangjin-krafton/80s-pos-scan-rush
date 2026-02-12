@@ -208,7 +208,7 @@ body{
 .info-bar .val{color:#000;font-weight:900}
 
 /* ================================================================
-   [2] CUSTOMER + GAUGE — styled as MSN Messenger / Chat window
+   [2] CUSTOMER + QUEUE — styled as MSN Messenger / Chat window
    Font: "Comic Sans MS", cursive
    ================================================================ */
 .customer-bar{
@@ -220,50 +220,42 @@ body{
   margin:3px 4px 0;
   font-family:"Comic Sans MS",cursive;
 }
-.customer-bar .win-titlebar .win-icon::before{
-  content:"";
-}
-.customer-content{
-  display:flex;align-items:center;gap:4px;
-  padding:4px 6px;
+
+/* --- Current customer row --- */
+.cust-now{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 6px 2px;
   background:#fff;
   border:2px solid;
   border-color:#808080 #dfdfdf #dfdfdf #808080;
   box-shadow:inset 1px 1px 0 #000, inset -1px -1px 0 #fff;
-  margin:3px;
-  font-family:"Comic Sans MS",cursive;
+  margin:3px 3px 0;
 }
-
-.avatar{
-  width:30px;height:30px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,#ff9ec8,#e87ab0);
-  border:2px solid #808080;
-  box-shadow:1px 1px 0 #000;
-  display:flex;align-items:center;justify-content:center;
-  font-size:10px;color:#552233;font-weight:bold;letter-spacing:1px;
-  animation:bob 2s ease-in-out infinite;
-  font-family:"Comic Sans MS",cursive;
+.cust-face{
+  font-size:28px;line-height:1;flex-shrink:0;
+  animation:face-bob 2s ease-in-out infinite;
+  filter:drop-shadow(1px 1px 0 rgba(0,0,0,0.2));
 }
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes face-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 
 .gauge-col{flex:1;min-width:0}
 .gauge-top{
   display:flex;justify-content:space-between;align-items:baseline;
-  margin-bottom:3px;
+  margin-bottom:2px;
 }
 .gauge-top .name{
-  font-size:12px;color:#000;
+  font-size:11px;color:#000;
   font-family:"Comic Sans MS",cursive;
   font-weight:bold;
 }
 .gauge-top .pct{
-  font-size:14px;font-weight:900;color:#000080;
+  font-size:12px;font-weight:900;color:#000080;
   font-family:"Comic Sans MS",cursive;
 }
 
 /* Gauge = Windows progress bar with blue chunks */
 .gauge-track{
-  height:16px;
+  height:14px;
   background:#fff;
   border:2px solid;
   border-color:#808080 #dfdfdf #dfdfdf #808080;
@@ -272,22 +264,26 @@ body{
   position:relative;
 }
 .gauge-fill{
-  height:100%;width:72%;
+  height:100%;
   background:repeating-linear-gradient(90deg,
     #000080 0px, #000080 8px,
     #c0c0c0 8px, #c0c0c0 10px);
-  position:relative;
+  transition:width 0.3s;
 }
-/* no extra pseudo — the repeating gradient IS the chunked blocks */
+/* Color states for gauge */
+.gauge-fill.warn{
+  background:repeating-linear-gradient(90deg,
+    #cc8800 0px, #cc8800 8px,
+    #c0c0c0 8px, #c0c0c0 10px);
+}
+.gauge-fill.danger{
+  background:repeating-linear-gradient(90deg,
+    #cc0000 0px, #cc0000 8px,
+    #c0c0c0 8px, #c0c0c0 10px);
+  animation:danger-flash 0.6s step-end infinite;
+}
+@keyframes danger-flash{0%,50%{opacity:1}51%,100%{opacity:0.5}}
 
-.queue-ind{
-  flex-shrink:0;font-size:11px;font-weight:900;
-  color:#000080;
-  font-family:"Comic Sans MS",cursive;
-  background:#ffffc0;
-  padding:1px 4px;
-  border:1px solid #808080;
-}
 .bubble{
   flex-shrink:0;
   background:#ffffdd;color:#443322;
@@ -297,9 +293,72 @@ body{
   border-color:#dfdfdf #000 #000 #dfdfdf;
   box-shadow:1px 1px 0 #808080;
   font-family:"Comic Sans MS",cursive;
-  animation:blink-b 2.5s step-end infinite;
+  position:relative;
+  max-width:72px;
+  text-align:center;
+  word-break:keep-all;
 }
-@keyframes blink-b{0%,75%{opacity:1}76%,100%{opacity:0}}
+/* speech bubble tail */
+.bubble::before{
+  content:"";position:absolute;left:-5px;top:50%;
+  margin-top:-4px;
+  border:4px solid transparent;
+  border-right-color:#000;
+}
+.bubble::after{
+  content:"";position:absolute;left:-3px;top:50%;
+  margin-top:-3px;
+  border:3px solid transparent;
+  border-right-color:#ffffdd;
+}
+
+/* --- Waiting queue row --- */
+.cust-queue{
+  display:flex;align-items:center;gap:3px;
+  padding:2px 6px 3px;
+  background:#fff;
+  border:2px solid;
+  border-color:#808080 #dfdfdf #dfdfdf #808080;
+  border-top:none;
+  box-shadow:inset 1px 0 0 #000, inset -1px -1px 0 #fff;
+  margin:0 3px 3px;
+  overflow:hidden;
+}
+.q-label{
+  font-size:9px;font-weight:900;
+  color:#fff;background:#000080;
+  padding:1px 4px;
+  flex-shrink:0;
+  font-family:Tahoma,sans-serif;
+  letter-spacing:0.05em;
+}
+.q-person{
+  display:flex;flex-direction:column;
+  align-items:center;gap:0;
+  flex-shrink:0;
+  width:36px;
+  transition:transform 0.2s;
+}
+.q-person:hover{transform:scale(1.1)}
+.q-face{
+  font-size:18px;line-height:1;
+  filter:drop-shadow(1px 1px 0 rgba(0,0,0,0.15));
+}
+.q-name{
+  font-size:8px;color:#808080;
+  font-family:Tahoma,sans-serif;
+  font-weight:bold;
+}
+/* fading out distant customers */
+.q-person:nth-child(n+6){opacity:0.5}
+.q-person:nth-child(n+7){opacity:0.3}
+
+/* queue separator dots */
+.q-dots{
+  font-size:10px;color:#808080;
+  flex-shrink:0;
+  letter-spacing:1px;
+}
 
 /* ================================================================
    [3] MID SPLIT — POS (left) | SCAN (right)
@@ -833,19 +892,20 @@ body{
     </div>
   </div>
 
-  <!-- [2] CUSTOMER + GAUGE — MSN Messenger chat window -->
+  <!-- [2] CUSTOMER + QUEUE — MSN Messenger chat window -->
   <div class="customer-bar">
     <div class="win-titlebar">
       <span class="win-icon">💬</span>
-      <span class="win-title-text">Customer Chat - お客様 #03</span>
+      <span class="win-title-text">Customer Queue - お客様待ち行列</span>
       <div class="win-controls">
         <span class="win-ctrl-btn">_</span>
         <span class="win-ctrl-btn">□</span>
         <span class="win-ctrl-btn">X</span>
       </div>
     </div>
-    <div class="customer-content">
-      <div class="avatar">^ ^</div>
+    <!-- Current customer -->
+    <div class="cust-now">
+      <div class="cust-face">😊</div>
       <div class="gauge-col">
         <div class="gauge-top">
           <span class="name">お客様 #03</span>
@@ -855,8 +915,17 @@ body{
           <div class="gauge-fill" style="width:72%"></div>
         </div>
       </div>
-      <span class="queue-ind">+3待ち</span>
-      <div class="bubble">早く～!</div>
+      <div class="bubble">いい感じ!</div>
+    </div>
+    <!-- Waiting queue -->
+    <div class="cust-queue">
+      <span class="q-label">NEXT▶</span>
+      <div class="q-person"><span class="q-face">😐</span><span class="q-name">#04</span></div>
+      <div class="q-person"><span class="q-face">😴</span><span class="q-name">#05</span></div>
+      <div class="q-person"><span class="q-face">🤔</span><span class="q-name">#06</span></div>
+      <div class="q-person"><span class="q-face">😊</span><span class="q-name">#07</span></div>
+      <div class="q-person"><span class="q-face">😤</span><span class="q-name">#08</span></div>
+      <span class="q-dots">...</span>
     </div>
   </div>
 
