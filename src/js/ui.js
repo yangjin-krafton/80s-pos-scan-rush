@@ -38,6 +38,7 @@ UI.prototype._cache = function () {
     scanContent:  q('.scan-content'),
     scanProg:     q('.scan-prog-fill'),
     scanMsg:      q('.scan-msg'),
+    dcVal:        q('#dc-val'),
     cartDesktop:  q('.cart-desktop'),
     overlay:      q('#overlay'),
     overlayInner: q('#overlay-inner'),
@@ -45,8 +46,14 @@ UI.prototype._cache = function () {
 };
 
 UI.prototype._bindButtons = function () {
+  var self = this;
   var chkBtn = document.querySelector('.pos-foot .checkout');
   if (chkBtn) chkBtn.addEventListener('click', function () { Bus.emit('checkoutClick'); });
+
+  var dcUp   = document.querySelector('#dc-up');
+  var dcDown = document.querySelector('#dc-down');
+  if (dcUp)   dcUp.addEventListener('click', function () { self._changeDiscount(5); });
+  if (dcDown) dcDown.addEventListener('click', function () { self._changeDiscount(-5); });
 };
 
 UI.prototype._listenBus = function () {
@@ -62,6 +69,7 @@ UI.prototype._listenBus = function () {
   Bus.on('roundClear',      function ()  { self._showOverlay('ROUND CLEAR!', '+' + PARAMS.scoreCheckout + ' pts', 'success'); });
   Bus.on('gameOver',        function ()  { self._showOverlay('GAME OVER', 'SCORE: ' + State.score.toLocaleString(), 'fail'); });
   Bus.on('gameClear',       function ()  { self._showOverlay('ALL CLEAR!', 'TOTAL: ' + State.score.toLocaleString(), 'clear'); });
+  Bus.on('scanFail',        function ()  { self._onScanFail(); });
 };
 
 /* ---- per-frame ---- */
@@ -127,6 +135,7 @@ UI.prototype._onRoundStart = function () {
   this._renderCart();
   this._renderPOS();
   this._clearScanItem();
+  this._updateDiscountDisplay();
   this._showOverlay(
     'ROUND ' + (State.round + 1),
     CUSTOMER_TYPES[ROUNDS[State.round].customer].name + ' 등장!',
@@ -330,16 +339,21 @@ UI.prototype._renderPOS = function () {
 
     var row = document.createElement('div');
     row.className = 'pos-row' + (item.isSale ? ' sale' : '');
+    var posKey = pos.itemId + '_' + pos.discountRate;
+    var discLabel = pos.discountRate > 0
+      ? '<span class="sale-dot">' + pos.discountRate + '%OFF</span>'
+      : (item.isSale ? '<span class="sale-dot">割</span>' : '');
+
     row.innerHTML =
       '<span class="em">' + item.emoji + '</span>' +
       '<div class="info">' +
-        '<span class="nm">' + item.name + (item.isSale ? '<span class="sale-dot">割</span>' : '') + '</span>' +
+        '<span class="nm">' + item.name + discLabel + '</span>' +
         '<span class="pr">¥' + price + ' × ' + pos.qty + ' = ¥' + lineTotal.toLocaleString() + '</span>' +
       '</div>' +
       '<div class="qty-ctrl">' +
-        '<span class="qb" data-action="minus" data-id="' + pos.itemId + '">−</span>' +
+        '<span class="qb" data-action="minus" data-id="' + posKey + '">−</span>' +
         '<span class="qn">' + pos.qty + '</span>' +
-        '<span class="qb" data-action="plus" data-id="' + pos.itemId + '">＋</span>' +
+        '<span class="qb" data-action="plus" data-id="' + posKey + '">＋</span>' +
       '</div>';
     scroll.appendChild(row);
   });
@@ -403,7 +417,7 @@ UI.prototype._clearScanItem = function () {
   if (!content) return;
   var old = content.querySelector('.drag-item');
   if (old) old.remove();
-  if (this.els.scanMsg) this.els.scanMsg.innerHTML = '카트 상품을 클릭 →<br/>POS에 추가!';
+  if (this.els.scanMsg) this.els.scanMsg.innerHTML = '할인 설정 후<br/>카트 상품 클릭!';
   this._updateProgress(0);
   if (this.els.cartDesktop) {
     this.els.cartDesktop.querySelectorAll('.cart-card').forEach(function (c) { c.classList.remove('active'); });
@@ -415,6 +429,32 @@ UI.prototype._updateProgress = function (pct) {
     this.els.scanProg.style.width = Math.min(pct * 100, 100) + '%';
     this.els.scanProg.style.animation = 'none';
   }
+};
+
+/* ---- discount control ---- */
+
+UI.prototype._changeDiscount = function (delta) {
+  State.scanDiscountRate = Math.max(0, Math.min(50, State.scanDiscountRate + delta));
+  this._updateDiscountDisplay();
+};
+
+UI.prototype._updateDiscountDisplay = function () {
+  if (!this.els.dcVal) return;
+  var r = State.scanDiscountRate;
+  this.els.dcVal.textContent = r > 0 ? r + '% OFF' : '할인 없음';
+  this.els.dcVal.classList.toggle('dc-active', r > 0);
+};
+
+/* ---- scan fail flash ---- */
+
+UI.prototype._onScanFail = function () {
+  var content = this.els.scanContent;
+  if (!content) return;
+  content.classList.remove('scan-fail-flash');
+  /* force reflow to restart animation */
+  void content.offsetWidth;
+  content.classList.add('scan-fail-flash');
+  setTimeout(function () { content.classList.remove('scan-fail-flash'); }, 500);
 };
 
 UI.prototype._updateScanMsg = function () {

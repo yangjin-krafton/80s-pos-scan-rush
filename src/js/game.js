@@ -90,7 +90,7 @@ Game.prototype.update = function (dt) {
   }
 };
 
-/* ---- add item directly to POS ---- */
+/* ---- add item to POS with discount validation ---- */
 
 Game.prototype.addToPOS = function (itemId) {
   if (State.phase !== 'playing') return;
@@ -98,33 +98,52 @@ Game.prototype.addToPOS = function (itemId) {
   var item = ITEMS[itemId];
   if (!item) return;
 
+  var discRate = State.scanDiscountRate;
+
+  /* validate discount setting vs item */
+  if (discRate > 0) {
+    /* discount set — item must be sale with a matching discount barcode */
+    if (!item.isSale) { this._scanReject(); return; }
+    var hasMatch = false;
+    for (var j = 0; j < item.barcodes.length; j++) {
+      if (item.barcodes[j].type === 'discount' && item.barcodes[j].discountRate === discRate) {
+        hasMatch = true; break;
+      }
+    }
+    if (!hasMatch) { this._scanReject(); return; }
+  } else {
+    /* no discount — sale items must be scanned with discount */
+    if (item.isSale) { this._scanReject(); return; }
+  }
+
+  var barcodeType = discRate > 0 ? 'discount' : 'normal';
+
+  /* find existing POS entry with same itemId AND same discountRate */
   var existing = null;
   for (var i = 0; i < State.posItems.length; i++) {
-    if (State.posItems[i].itemId === itemId) { existing = State.posItems[i]; break; }
+    if (State.posItems[i].itemId === itemId && State.posItems[i].discountRate === discRate) {
+      existing = State.posItems[i]; break;
+    }
   }
 
   if (existing) {
     existing.qty++;
   } else {
-    var barcodeType = 'normal';
-    var discountRate = 0;
-    if (item.isSale && getCorrectDiscount) {
-      var correct = getCorrectDiscount(itemId);
-      if (correct) {
-        barcodeType = 'discount';
-        discountRate = correct.discountRate;
-      }
-    }
     State.posItems.push({
       itemId:       itemId,
       qty:          1,
       barcodeType:  barcodeType,
-      discountRate: discountRate,
+      discountRate: discRate,
     });
   }
 
   this.audio.play('item_pickup');
   Bus.emit('posUpdated');
+};
+
+Game.prototype._scanReject = function () {
+  this.audio.play('checkout_fail');
+  Bus.emit('scanFail');
 };
 
 /* ---- item selection (legacy scan flow) ---- */
@@ -178,15 +197,24 @@ Game.prototype._completeScan = function (barcode) {
 
 /* ---- POS qty ---- */
 
-Game.prototype.changeQty = function (itemId, delta) {
+Game.prototype.changeQty = function (key, delta) {
+  /* key = "itemId_discountRate" */
+  var sep = key.lastIndexOf('_');
+  var itemId   = key.substring(0, sep);
+  var discRate = parseFloat(key.substring(sep + 1));
+
   var entry = null;
   for (var i = 0; i < State.posItems.length; i++) {
-    if (State.posItems[i].itemId === itemId) { entry = State.posItems[i]; break; }
+    if (State.posItems[i].itemId === itemId && State.posItems[i].discountRate === discRate) {
+      entry = State.posItems[i]; break;
+    }
   }
   if (!entry) return;
   entry.qty += delta;
   if (entry.qty <= 0) {
-    State.posItems = State.posItems.filter(function (p) { return p.itemId !== itemId; });
+    State.posItems = State.posItems.filter(function (p) {
+      return !(p.itemId === itemId && p.discountRate === discRate);
+    });
   }
   this.audio.play('ui_click');
   Bus.emit('posUpdated');
@@ -200,32 +228,50 @@ Game.prototype.attemptCheckout = function () {
 
   var round    = ROUNDS[State.round];
   var required = round.items;
-  var i, req, pos;
+  var i, req;
 
-  for (i = 0; i < required.length; i++) {
-    req = required[i];
-    pos = State.posItems.find(function (p) { return p.itemId === req.id; });
-    if (!pos) return this._checkoutFail('missing', '상품이 부족해!');
-  }
+  /* build total qty per itemId across all discount entries */
+  var posQty = {};
   for (i = 0; i < State.posItems.length; i++) {
-    pos = State.posItems[i];
-    if (!required.find(function (r) { return r.id === pos.itemId; }))
-      return this._checkoutFail('excess', '상품이 너무 많아!');
+    var p = State.posItems[i];
+    posQty[p.itemId] = (posQty[p.itemId] || 0) + p.qty;
   }
+
+  /* all required items present? */
   for (i = 0; i < required.length; i++) {
     req = required[i];
-    pos = State.posItems.find(function (p) { return p.itemId === req.id; });
-    if (pos.qty !== req.qty) return this._checkoutFail('quantity', '수량이 안 맞아!');
+    if (!posQty[req.id]) return this._checkoutFail('missing', '상품이 부족해!');
   }
+
+  /* no excess items? */
+  for (var id in posQty) {
+    var found = false;
+    for (i = 0; i < required.length; i++) {
+      if (required[i].id === id) { found = true; break; }
+    }
+    if (!found) return this._checkoutFail('excess', '상품이 너무 많아!');
+  }
+
+  /* quantities match? */
+  for (i = 0; i < required.length; i++) {
+    req = required[i];
+    if ((posQty[req.id] || 0) !== req.qty) return this._checkoutFail('quantity', '수량이 안 맞아!');
+  }
+
+  /* sale items have correct discount? */
   for (i = 0; i < required.length; i++) {
     req = required[i];
     var item = ITEMS[req.id];
     if (!item.isSale) continue;
-    pos = State.posItems.find(function (p) { return p.itemId === req.id; });
     var correct = getCorrectDiscount(req.id);
     if (!correct) continue;
-    if (pos.barcodeType !== 'discount' || pos.discountRate !== correct.discountRate)
-      return this._checkoutFail('discount', '할인 스티커가 달라!');
+    /* all entries of this sale item must have the correct discount */
+    for (var j = 0; j < State.posItems.length; j++) {
+      var entry = State.posItems[j];
+      if (entry.itemId !== req.id) continue;
+      if (entry.barcodeType !== 'discount' || entry.discountRate !== correct.discountRate)
+        return this._checkoutFail('discount', '할인 스티커가 달라!');
+    }
   }
 
   this._checkoutSuccess();
