@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(python tools/trim_resize_sprites.py:*)",
+      "Bash(npx vite build:*)"
+    ],
+    "additionalDirectories": [
+      "f:\\Workspace\\Slingshot-Rogue\\.claude",
+      "\\tmp"
+    ]
+  }
+}
