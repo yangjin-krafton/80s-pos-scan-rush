@@ -4,7 +4,7 @@
 var POS   = window.POS || (window.POS = {});
 var Bus   = POS.Bus;
 var State = POS.State;
-var STORAGE_KEY = 'pos_tutorial_done';
+
 
 var STEPS = [
   /* --- Basic scan flow --- */
@@ -33,12 +33,18 @@ function Tutorial() {
 }
 
 Tutorial.prototype.init = function () {
-  if (localStorage.getItem(STORAGE_KEY)) return;
   this._gameEl = document.querySelector('.game');
   if (!this._gameEl) return;
-  this.active = true;
   this._createTip();
   this._listen();
+};
+
+Tutorial.prototype._reset = function () {
+  if (this._timer) { clearTimeout(this._timer); this._timer = null; }
+  this._hideTip();
+  this._setGlow(null);
+  this.active = true;
+  this.step = -1;
 };
 
 Tutorial.prototype._createTip = function () {
@@ -69,9 +75,10 @@ Tutorial.prototype._listen = function () {
     if (self.active && self.step === 9) self._advance();
   });
 
-  /* Safety: end tutorial if past round 0 */
+  /* Reset tutorial every game start (round 0), end if past round 0 */
   Bus.on('roundStart', function (idx) {
-    if (self.active && idx > 0) self._complete();
+    if (idx === 0) self._reset();
+    else if (self.active) self._complete();
   });
 };
 
@@ -112,7 +119,6 @@ Tutorial.prototype._complete = function () {
   this.step = STEPS.length;
   this._hideTip();
   this._setGlow(null);
-  try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) { /* ok */ }
 };
 
 /* ---- glow highlight ---- */

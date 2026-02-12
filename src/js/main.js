@@ -42,6 +42,26 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
+/* ---- loading screen helpers ---- */
+var loadEl   = null;
+var loadFill = null;
+var loadLog  = null;
+var loadMsg  = null;
+
+function loadSet(pct, msg) {
+  if (loadFill) loadFill.style.width = pct + '%';
+  if (loadMsg)  loadMsg.textContent = msg;
+}
+function loadLine(text) {
+  if (!loadLog) return;
+  loadLog.textContent += text + '\n';
+  loadLog.scrollTop = loadLog.scrollHeight;
+}
+function loadDone() {
+  if (loadEl) loadEl.classList.add('done');
+  setTimeout(function () { if (loadEl) loadEl.style.display = 'none'; }, 700);
+}
+
 /* ---- boot ---- */
 function boot() {
   fitViewport();
@@ -50,14 +70,33 @@ function boot() {
   document.addEventListener('pointerdown', unlockAudio);
   document.addEventListener('keydown', unlockAudio);
 
+  loadEl   = document.getElementById('loading');
+  loadFill = document.getElementById('load-fill');
+  loadLog  = document.getElementById('load-log');
+  loadMsg  = document.getElementById('load-msg');
+
+  loadSet(5, 'INITIALIZING...');
+  loadLine('C:\\POS> init audio.sys');
+
   audio.init().catch(function (e) { console.warn('[audio] init failed:', e); });
+
+  loadSet(15, 'INITIALIZING...');
+  loadLine('C:\\POS> init ui.drv');
 
   ui.init();
   game.init();
   tutorial.init();
 
+  loadSet(25, 'LOADING DATA...');
+  loadLine('C:\\POS> load products.csv');
+  loadLine('C:\\POS> load npcs.json');
+
   /* Async data load → then start game */
   POS.Loader.load().then(function () {
+    loadSet(80, 'GENERATING ROUNDS...');
+    loadLine('OK - ' + POS.ROUNDS.length + ' rounds generated');
+    loadLine('OK - ' + Object.keys(POS.ITEMS).length + ' items loaded');
+
     var scanContent = document.querySelector('.scan-content');
     if (scanContent) scanner.bind(scanContent);
 
@@ -82,19 +121,31 @@ function boot() {
     POS.Bus.on('gameOver',  function () { audio.bgmStop(1.0); });
     POS.Bus.on('gameClear', function () { audio.bgmStop(1.5); });
 
-    ui.showTitle();
+    loadSet(100, 'READY!');
+    loadLine('C:\\POS> READY.');
+
+    setTimeout(function () {
+      loadDone();
+      ui.showTitle();
+    }, 500);
 
     lastTime = performance.now();
     requestAnimationFrame(loop);
   }).catch(function (e) {
     console.error('[loader] Failed to load data:', e);
+    loadLine('ERR - ' + e.message);
+    loadSet(100, 'READY (fallback)');
+
     var scanContent = document.querySelector('.scan-content');
     if (scanContent) scanner.bind(scanContent);
 
     POS.Bus.on('startClick', function () { audio.unlock(); game.startGame(); });
     POS.Bus.on('retryClick', function () { game.startGame(); });
 
-    ui.showTitle();
+    setTimeout(function () {
+      loadDone();
+      ui.showTitle();
+    }, 500);
 
     lastTime = performance.now();
     requestAnimationFrame(loop);

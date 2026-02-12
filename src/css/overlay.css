@@ -58,6 +58,79 @@
 }
 
 /* ================================================================
+   LOADING SCREEN
+   ================================================================ */
+
+.load-screen{
+  position:absolute;inset:0;z-index:200;
+  background:#0a0a18;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.6s ease;
+}
+.load-screen.done{opacity:0;pointer-events:none}
+
+.load-crt{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(0,255,100,0.03) 0px,
+    rgba(0,255,100,0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events:none;
+}
+
+.load-inner{
+  text-align:center;
+  font-family:'Courier New',monospace;
+  z-index:1;
+}
+
+.load-logo{
+  font-size:22px;font-weight:900;
+  color:#00e080;
+  text-shadow:0 0 8px rgba(0,224,128,0.6),0 0 20px rgba(0,224,128,0.2);
+  letter-spacing:3px;
+  margin-bottom:4px;
+}
+
+.load-ver{
+  font-size:9px;color:#406050;
+  letter-spacing:1px;
+  margin-bottom:20px;
+}
+
+.load-log{
+  text-align:left;
+  font-size:9px;color:#00c070;
+  line-height:1.6;
+  min-height:60px;
+  margin-bottom:12px;
+  opacity:0.8;
+}
+
+.load-bar{
+  width:200px;height:12px;
+  margin:0 auto 8px;
+  background:#0a1a10;
+  border:1px solid #1a3a20;
+  padding:1px;
+}
+
+.load-fill{
+  height:100%;width:0%;
+  background:#00e080;
+  box-shadow:0 0 6px rgba(0,224,128,0.4);
+  transition:width 0.3s ease;
+}
+
+.load-msg{
+  font-size:10px;color:#406050;
+  letter-spacing:1px;
+}
+
+/* ================================================================
    COMBO POPUP
    ================================================================ */
 

@@ -52,6 +52,27 @@
   text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;
 }
 
+/* NPC speech bubble (top) */
+.px-bubble{
+  position:absolute;left:58px;top:4px;right:6px;
+  background:#fffbe8;color:#000;
+  font-family:'Courier New',monospace;font-size:11px;font-weight:bold;
+  padding:4px 8px;border:2px solid #000;z-index:6;
+  white-space:normal;line-height:1.2;
+  box-shadow:2px 2px 0 #000, 0 0 6px rgba(0,0,0,0.25);
+  image-rendering:auto;transition:color 0.2s, background 0.2s;
+}
+.px-bubble::before{
+  content:"";position:absolute;left:18px;top:100%;
+  width:8px;height:8px;background:#fffbe8;
+  border-right:2px solid #000;border-bottom:2px solid #000;
+  transform:skewY(20deg);
+}
+.px-bubble.feedback-error{color:#c00;border-color:#c00;background:#ffe0e0}
+.px-bubble.feedback-error::before{border-color:#c00;background:#ffe0e0}
+.px-bubble.feedback-success{color:#006000;border-color:#0a0;background:#e8ffe8}
+.px-bubble.feedback-success::before{border-color:#0a0;background:#e8ffe8}
+
 /* Current pixel character */
 .px-current{
   position:absolute;left:20px;bottom:18px;

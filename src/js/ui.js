@@ -36,6 +36,7 @@ UI.prototype._cache = function () {
     infoScore:    q('#info-score'),
     hudName:      q('.hud-name'),
     hudRight:     q('.hud-right'),
+    pxBubble:     q('.px-bubble'),
     pxCurrent:    q('.px-current'),
     pxHead:       q('.px-head'),
     pxBody:       q('.px-body'),
@@ -247,7 +248,8 @@ UI.prototype._onCustomerFeedback = function (type) {
       fb.classList.add('active');
     }
     if (npc && this.els.pxBubble) {
-      this.els.pxBubble.textContent = POS.pickDialogue(npc.dialogue.timeout);
+      var msg = POS.pickDialogue(npc.dialogue.checkoutFail) || POS.pickDialogue(npc.dialogue.timeout);
+      this.els.pxBubble.textContent = msg;
       this.els.pxBubble.classList.add('feedback-error');
     }
     if (this.els.pxHead) this.els.pxHead.textContent = '🤬';
@@ -279,6 +281,14 @@ UI.prototype._onMoodChange = function (mood) {
   if (this.els.game) {
     if (mood === 'angry') this.els.game.classList.add('danger');
     else this.els.game.classList.remove('danger');
+  }
+};
+
+UI.prototype._setMood = function (mood) {
+  if (State.currentMood !== mood) {
+    State.prevMood = State.currentMood;
+    State.currentMood = mood;
+    Bus.emit('moodChange', mood);
   }
 };
 
@@ -896,8 +906,13 @@ UI.prototype._onScanComplete = function (data) {
   if (data.combo >= 2) this._showCombo(data.combo);
 
   // 30% chance to show NPC scanSuccess dialogue
-  if (Math.random() < 0.3 && State.currentNpc && this.els.pxBubble) {
-    this.els.pxBubble.textContent = POS.pickDialogue(State.currentNpc.dialogue.scanSuccess);
+  if (State.currentNpc && this.els.pxBubble) {
+    var roll = Math.random();
+    if (roll < 0.3) {
+      this.els.pxBubble.textContent = POS.pickDialogue(State.currentNpc.dialogue.scanSuccess);
+    } else if (roll < 0.5) {
+      this.els.pxBubble.textContent = POS.pickDialogue(State.currentNpc.dialogue.bagSuccess);
+    }
   }
 };
 
@@ -917,7 +932,7 @@ UI.prototype._showFeedback = function (message, type) {
     this.els.pxBubble.textContent = message;
     this.els.pxBubble.classList.add('feedback-' + type);
   }
-  this._feedbackTimer = 2.0;
+  this._feedbackTimer = 3.5;
 };
 
 UI.prototype._hideFeedback = function () {
