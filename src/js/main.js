@@ -63,6 +63,55 @@ function loadDone() {
   setTimeout(function () { if (loadEl) loadEl.style.display = 'none'; }, 700);
 }
 
+/* ---- settings panel ---- */
+function initSettings() {
+  var btn   = document.getElementById('settings-btn');
+  var panel = document.getElementById('settings-panel');
+  if (!btn || !panel) return;
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    panel.classList.toggle('hidden');
+  });
+
+  /* Close when clicking outside */
+  document.addEventListener('pointerdown', function (e) {
+    if (!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn) {
+      panel.classList.add('hidden');
+    }
+  });
+
+  var sliderBgm = document.getElementById('vol-bgm');
+  var sliderSfx = document.getElementById('vol-sfx');
+  var sliderTts = document.getElementById('vol-tts');
+  var valBgm    = document.getElementById('vol-bgm-val');
+  var valSfx    = document.getElementById('vol-sfx-val');
+  var valTts    = document.getElementById('vol-tts-val');
+
+  /* Set initial slider positions from audio defaults */
+  if (sliderBgm) { sliderBgm.value = Math.round(audio.bgmVolume * 100); valBgm.textContent = sliderBgm.value; }
+  if (sliderSfx) { sliderSfx.value = Math.round(audio.sfxVolume * 100); valSfx.textContent = sliderSfx.value; }
+  if (sliderTts) { sliderTts.value = Math.round(audio.ttsVolume * 100); valTts.textContent = sliderTts.value; }
+
+  if (sliderBgm) sliderBgm.addEventListener('input', function () {
+    var v = parseInt(this.value, 10);
+    valBgm.textContent = v;
+    audio.setBgmVolume(v / 100);
+  });
+
+  if (sliderSfx) sliderSfx.addEventListener('input', function () {
+    var v = parseInt(this.value, 10);
+    valSfx.textContent = v;
+    audio.sfxVolume = v / 100;
+  });
+
+  if (sliderTts) sliderTts.addEventListener('input', function () {
+    var v = parseInt(this.value, 10);
+    valTts.textContent = v;
+    audio.ttsVolume = v / 100;
+  });
+}
+
 /* ---- boot ---- */
 function boot() {
   fitViewport();
@@ -87,6 +136,7 @@ function boot() {
   ui.init();
   game.init();
   tutorial.init();
+  initSettings();
 
   loadSet(25, 'LOADING DATA...');
   loadLine('C:\\POS> load products.csv');

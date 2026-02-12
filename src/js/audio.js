@@ -25,6 +25,11 @@ function AudioManager() {
   this.unlocked = false;
   this.muted = false;
 
+  /* Volume levels (0-1) */
+  this.sfxVolume = 0.8;
+  this.bgmVolume = 0.5;
+  this.ttsVolume = 0.8;
+
   /* BGM state */
   this._bgmBuffers  = {};
   this._bgmSources  = {};
@@ -68,7 +73,8 @@ AudioManager.prototype.play = function (name, volume) {
   var src  = this.ctx.createBufferSource();
   var gain = this.ctx.createGain();
   src.buffer = buf;
-  gain.gain.value = (volume !== undefined) ? volume : 1.0;
+  var base = (volume !== undefined) ? volume : 1.0;
+  gain.gain.value = base * this.sfxVolume;
   src.connect(gain).connect(this.ctx.destination);
   src.start(0);
 };
@@ -154,7 +160,7 @@ AudioManager.prototype._bgmStartTracks = function (mix, fadeIn) {
 
       var gain = self.ctx.createGain();
       gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(BGM_VOLUMES[inst], t + fadeIn);
+      gain.gain.linearRampToValueAtTime(BGM_VOLUMES[inst] * self.bgmVolume, t + fadeIn);
 
       source.connect(gain).connect(self.ctx.destination);
       source.start(0);
@@ -248,8 +254,24 @@ AudioManager.prototype.speakJa = function (text) {
   utter.lang = 'ja-JP';
   utter.rate = 1.1;
   utter.pitch = 1.05;
-  utter.volume = 0.8;
+  utter.volume = this.ttsVolume;
   synth.speak(utter);
+};
+
+/** Live-update BGM gain nodes when volume slider changes */
+AudioManager.prototype.setBgmVolume = function (v) {
+  this.bgmVolume = v;
+  if (!this._bgmPlaying) return;
+  var t = this.ctx.currentTime;
+  for (var i = 0; i < BGM_INSTRUMENTS.length; i++) {
+    var inst = BGM_INSTRUMENTS[i];
+    var gain = this._bgmGains[inst];
+    if (gain) {
+      gain.gain.cancelScheduledValues(t);
+      gain.gain.setValueAtTime(gain.gain.value, t);
+      gain.gain.linearRampToValueAtTime(BGM_VOLUMES[inst] * v, t + 0.15);
+    }
+  }
 };
 
 POS.AudioManager = AudioManager;

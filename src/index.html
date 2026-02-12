@@ -25,7 +25,28 @@
     <div class="stats">
       <span><span class="lbl">RD </span><span class="val" id="info-round">01/10</span></span>
       <span><span class="lbl">SC </span><span class="val" id="info-score">000,000</span></span>
+      <button class="settings-btn" id="settings-btn">♪</button>
     </div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="settings-panel hidden" id="settings-panel">
+    <div class="settings-title">♪ SOUND</div>
+    <label class="vol-row">
+      <span class="vol-lbl">BGM</span>
+      <input type="range" class="vol-slider" id="vol-bgm" min="0" max="100" value="100"/>
+      <span class="vol-val" id="vol-bgm-val">100</span>
+    </label>
+    <label class="vol-row">
+      <span class="vol-lbl">SFX</span>
+      <input type="range" class="vol-slider" id="vol-sfx" min="0" max="100" value="100"/>
+      <span class="vol-val" id="vol-sfx-val">100</span>
+    </label>
+    <label class="vol-row">
+      <span class="vol-lbl">TTS</span>
+      <input type="range" class="vol-slider" id="vol-tts" min="0" max="100" value="100"/>
+      <span class="vol-val" id="vol-tts-val">100</span>
+    </label>
   </div>
 
   <!-- [2] CUSTOMER SCENE -->
