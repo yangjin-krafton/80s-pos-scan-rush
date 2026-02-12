@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="color-scheme" content="light"/>
+<title>POS SCAN RUSH</title>
+<link rel="stylesheet" href="css/game.css"/>
+</head>
+<body>
+
+<div class="game">
+
+  <!-- [1] INFO BAR -->
+  <div class="info-bar">
+    <span class="logo">POS SCAN RUSH</span>
+    <div class="stats">
+      <span><span class="lbl">RD </span><span class="val" id="info-round">01/10</span></span>
+      <span><span class="lbl">SC </span><span class="val" id="info-score">000,000</span></span>
+    </div>
+  </div>
+
+  <!-- [2] CUSTOMER SCENE -->
+  <div class="customer-scene">
+    <div class="scene-bg"></div>
+    <div class="scene-floor"></div>
+
+    <div class="scene-hud">
+      <div class="hud-left">
+        <span class="hud-name">やさしい客 #01</span>
+        <div class="hud-hearts"></div>
+      </div>
+      <span class="hud-right">ROUND 01/10</span>
+    </div>
+
+    <div class="px-current">
+      <div class="px-head">😊</div>
+      <div class="px-body"></div>
+      <div class="px-legs">
+        <div class="px-leg"></div>
+        <div class="px-leg"></div>
+      </div>
+    </div>
+
+    <div class="px-bubble">어서오세요!</div>
+    <div class="px-counter"></div>
+    <div class="px-queue"></div>
+  </div>
+
+  <!-- [3] MID SPLIT: POS | SCAN -->
+  <div class="mid-split">
+
+    <!-- LEFT: POS -->
+    <div class="pos-panel">
+      <div class="win-titlebar">
+        <span class="win-icon">📟</span>
+        <span class="win-title-text">C:\POS\REGISTER.EXE</span>
+        <div class="win-controls">
+          <span class="win-ctrl-btn">_</span>
+          <span class="win-ctrl-btn">□</span>
+          <span class="win-ctrl-btn">X</span>
+        </div>
+      </div>
+      <div class="pos-head">
+        <span class="pos-title">■ POS</span>
+        <div class="bag-chip"><span class="bi">👜</span>×0</div>
+      </div>
+      <div class="pos-scroll">
+        <!-- JS fills this -->
+      </div>
+      <div class="pos-foot">
+        <span class="tl">합계</span>
+        <span class="tv">¥0</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: SCAN ZONE -->
+    <div class="scan-panel">
+      <div class="win-titlebar">
+        <span class="win-icon">🔍</span>
+        <span class="win-title-text">Scanner - SCAN.HLP</span>
+        <div class="win-controls">
+          <span class="win-ctrl-btn">_</span>
+          <span class="win-ctrl-btn">□</span>
+          <span class="win-ctrl-btn">X</span>
+        </div>
+      </div>
+      <div class="scan-content">
+        <!-- drag-item inserted by JS -->
+
+        <div class="drag-arrow">&#x25BC;</div>
+
+        <div class="scanner-drop">
+          <span class="sl">SCANNER</span>
+          <span class="ss">여기에 드롭</span>
+        </div>
+
+        <div class="scan-prog"><div class="scan-prog-fill"></div></div>
+        <div class="scan-msg">카트에서 상품을<br/>골라주세요!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- [4] CART CAROUSEL -->
+  <div class="cart-zone">
+    <div class="win-titlebar">
+      <span class="win-icon">🛒</span>
+      <span class="win-title-text">Cart Player - カート.exe</span>
+      <div class="win-controls">
+        <span class="win-ctrl-btn">_</span>
+        <span class="win-ctrl-btn">□</span>
+        <span class="win-ctrl-btn">X</span>
+      </div>
+    </div>
+    <div class="cart-top">
+      <span class="cart-title">🛒 カート</span>
+      <span class="cart-hint">← 스와이프 →</span>
+    </div>
+    <div class="cart-scroll">
+      <!-- JS fills this -->
+    </div>
+  </div>
+
+  <!-- [5] ACTION BUTTONS -->
+  <div class="action-bar">
+    <div class="act-btn bag">
+      <span class="ico">👜</span>
+      <span class="lbl">봉투</span>
+    </div>
+    <div class="act-btn ret">
+      <span class="ico">↩️</span>
+      <span class="lbl">되돌리기</span>
+    </div>
+    <div class="checkout">
+      <span class="ck-main">계산 ▶</span>
+      <span class="ck-sub">CHECKOUT</span>
+    </div>
+  </div>
+
+  <!-- OVERLAY -->
+  <div id="overlay" class="overlay hidden">
+    <div id="overlay-inner" class="overlay-inner"></div>
+  </div>
+
+</div>
+
+<!-- Load order: data → state → audio → scanner → game → ui → main -->
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/scanner.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

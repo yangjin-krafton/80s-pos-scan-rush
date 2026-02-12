@@ -4,7 +4,8 @@
       "Bash(ls:*)",
       "Bash(git add:*)",
       "Bash(python tools/trim_resize_sprites.py:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(timeout:*)"
     ],
     "additionalDirectories": [
       "f:\\Workspace\\Slingshot-Rogue\\.claude",
