@@ -1,16 +1,17 @@
 
 #!/usr/bin/env python3
 """
-Generate 16-bit PCM WAV sound effects with no external dependencies.
-Outputs to src/assets/sfx_wav by default.
+Generate 16-bit PCM sound effects and encode to m4a (AAC).
+Requires ffmpeg in PATH. Outputs to src/assets/sfx by default.
 """
 from __future__ import annotations
 
 import math
-import os
 import random
+import pathlib
 import struct
-import wave
+import subprocess
+import shutil
 from dataclasses import dataclass
 from typing import Callable, Iterable, List
 
@@ -107,14 +108,35 @@ def mix(samples_a: List[float], samples_b: List[float]) -> List[float]:
     return out
 
 
-def write_wav(path: str, samples: Iterable[float]) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with wave.open(path, 'wb') as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)  # 16-bit
-        wf.setframerate(SAMPLE_RATE)
-        frames = b''.join(struct.pack('<h', int(clamp(s) * 32767)) for s in samples)
-        wf.writeframes(frames)
+def ensure_ffmpeg() -> None:
+    if shutil.which("ffmpeg") is None:
+        raise SystemExit("ffmpeg not found in PATH. Please install ffmpeg.")
+
+
+def encode_m4a(path: str, samples: Iterable[float]) -> None:
+    frames = b"".join(struct.pack("<h", int(clamp(s) * 32767)) for s in samples)
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-f",
+        "s16le",
+        "-ar",
+        str(SAMPLE_RATE),
+        "-ac",
+        "1",
+        "-i",
+        "pipe:0",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "96k",
+        "-ac",
+        "1",
+        "-ar",
+        str(SAMPLE_RATE),
+        path,
+    ]
+    subprocess.run(cmd, input=frames, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 def sfx_ui_click() -> List[float]:
@@ -178,21 +200,22 @@ def sfx_warning() -> List[float]:
 
 
 def main() -> None:
-    out_dir = os.path.join(os.path.dirname(__file__), 'assets', 'sfx_wav')
+    ensure_ffmpeg()
+    out_dir = pathlib.Path(__file__).resolve().parents[1] / "assets" / "sfx"
+    out_dir.mkdir(parents=True, exist_ok=True)
     sfx = {
-        'ui_click.wav': sfx_ui_click(),
-        'item_pickup.wav': sfx_item_pickup(),
-        'item_bag.wav': sfx_item_bag(),
-        'scan_beep.wav': sfx_scan_beep(),
-        'scan_fail.wav': sfx_scan_fail(),
-        'checkout_success.wav': sfx_checkout_success(),
-        'checkout_fail.wav': sfx_checkout_fail(),
-        'combo_up.wav': sfx_combo_up(),
-        'warning.wav': sfx_warning(),
+        'ui_click.m4a': sfx_ui_click(),
+        'item_pickup.m4a': sfx_item_pickup(),
+        'item_bag.m4a': sfx_item_bag(),
+        'scan_beep.m4a': sfx_scan_beep(),
+        'scan_fail.m4a': sfx_scan_fail(),
+        'checkout_success.m4a': sfx_checkout_success(),
+        'checkout_fail.m4a': sfx_checkout_fail(),
+        'combo_up.m4a': sfx_combo_up(),
+        'warning.m4a': sfx_warning(),
     }
     for name, samples in sfx.items():
-        path = os.path.join(out_dir, name)
-        write_wav(path, samples)
+        encode_m4a(str(out_dir / name), samples)
     print(f'Wrote {len(sfx)} files to {out_dir}')
 
 

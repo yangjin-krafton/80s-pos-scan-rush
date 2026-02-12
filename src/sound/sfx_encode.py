@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Encode WAV SFX masters to AAC (m4a) for mobile web delivery.
-Requires ffmpeg in PATH.
+Requires ffmpeg in PATH. (Legacy: current pipeline generates m4a directly.)
 """
 from __future__ import annotations
 
@@ -11,8 +11,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-SRC_DIR = Path(__file__).parent / "assets" / "sfx_wav"
-OUT_DIR = Path(__file__).parent / "assets" / "sfx"
+ROOT_DIR = Path(__file__).resolve().parents[1]
+SRC_DIR = ROOT_DIR / "assets" / "sfx_wav"
+OUT_DIR = ROOT_DIR / "assets" / "sfx"
 BITRATE = "96k"
 SAMPLE_RATE = "44100"
 

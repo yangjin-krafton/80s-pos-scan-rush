@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """
-Generate 16-bit WAV BGM stems and encode to m4a (AAC) for mobile web.
+Generate 16-bit PCM BGM stems and encode to m4a (AAC) for mobile web.
 Creates 3 variations per instrument and register (low/mid/high).
 Requires ffmpeg in PATH.
 """
 from __future__ import annotations
 
 import math
-import os
 import random
 import shutil
 import struct
 import subprocess
-import wave
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, List, Tuple
@@ -24,8 +22,7 @@ BARS = 4
 BAR_BEATS = 4
 DURATION = BARS * BAR_BEATS * BEAT_SEC
 
-ROOT_DIR = Path(__file__).parent
-WAV_DIR = ROOT_DIR / "assets" / "bgm_wav"
+ROOT_DIR = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT_DIR / "assets" / "bgm"
 
 
@@ -107,23 +104,20 @@ def render_notes(
     return [clamp(s) for s in out]
 
 
-def write_wav(path: Path, samples: Iterable[float]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(SAMPLE_RATE)
-        frames = b"".join(struct.pack("<h", int(clamp(s) * 32767)) for s in samples)
-        wf.writeframes(frames)
-
-
-def encode_m4a(src: Path, dst: Path) -> None:
+def encode_m4a(dst: Path, samples: Iterable[float]) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
+    frames = b"".join(struct.pack("<h", int(clamp(s) * 32767)) for s in samples)
     cmd = [
         "ffmpeg",
         "-y",
+        "-f",
+        "s16le",
+        "-ar",
+        str(SAMPLE_RATE),
+        "-ac",
+        "1",
         "-i",
-        str(src),
+        "pipe:0",
         "-c:a",
         "aac",
         "-b:a",
@@ -134,7 +128,7 @@ def encode_m4a(src: Path, dst: Path) -> None:
         "44100",
         str(dst),
     ]
-    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.run(cmd, input=frames, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 def ensure_ffmpeg() -> None:
@@ -205,11 +199,8 @@ def make_track(
         noise_mix=noise_mix,
         seed=seed,
     )
-    wav_path = WAV_DIR / f"{name}.wav"
     m4a_path = OUT_DIR / f"{name}.m4a"
-    write_wav(wav_path, samples)
-    encode_m4a(wav_path, m4a_path)
-    wav_path.unlink(missing_ok=True)
+    encode_m4a(m4a_path, samples)
 
 
 def main() -> None:
