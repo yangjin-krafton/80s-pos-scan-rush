@@ -1,101 +1,101 @@
 id,emoji,name,name_en,category,price
-banana,🍌,바나나,BANANA,fruit,120
-apple,🍎,사과,APPLE,fruit,150
-grapes,🍇,포도,GRAPES,fruit,280
-strawberry,🍓,딸기,STRAWBERRY,fruit,300
-lemon,🍋,레몬,LEMON,fruit,130
-watermelon,🍉,수박,WATERMELON,fruit,580
-orange,🍊,오렌지,ORANGE,fruit,160
-peach,🍑,복숭아,PEACH,fruit,220
-pear,🍐,배,PEAR,fruit,210
-pineapple,🍍,파인애플,PINEAPPLE,fruit,320
-cherries,🍒,체리,CHERRIES,fruit,260
-melon,🍈,멜론,MELON,fruit,480
-kiwi,🥝,키위,KIWI,fruit,140
-blueberries,🫐,블루베리,BLUEBERRIES,fruit,290
-mango,🥭,망고,MANGO,fruit,300
-carrot,🥕,당근,CARROT,veg,120
-corn,🌽,옥수수,CORN,veg,180
-tomato,🍅,토마토,TOMATO,veg,160
-cucumber,🥒,오이,CUCUMBER,veg,120
-lettuce,🥬,상추,LETTUCE,veg,130
-onion,🧅,양파,ONION,veg,140
-garlic,🧄,마늘,GARLIC,veg,160
-potato,🥔,감자,POTATO,veg,150
-sweetpotato,🍠,고구마,SWEET_POTATO,veg,180
-eggplant,🍆,가지,EGGPLANT,veg,150
-pepper,🌶️,고추,PEPPER,veg,120
-mushroom,🍄,버섯,MUSHROOM,veg,180
-broccoli,🥦,브로콜리,BROCCOLI,veg,170
-cauliflower,🥦,콜리플라워,CAULIFLOWER,veg,190
-cabbage,🥬,양배추,CABBAGE,veg,160
-bread,🍞,식빵,BREAD,bakery,180
-croissant,🥐,크루아상,CROISSANT,bakery,160
-bagel,🥯,베이글,BAGEL,bakery,140
-pretzel,🥨,프레첼,PRETZEL,bakery,140
-pancake,🥞,팬케이크,PANCAKE,bakery,220
-donut,🍩,도넛,DONUT,bakery,120
-cake,🍰,케이크,CAKE,bakery,350
-cookie,🍪,쿠키,COOKIE,bakery,150
-cracker,🍘,센베이,RICE_CRACKER,bakery,130
-milk,🥛,우유,MILK,dairy,200
-yogurt,🥣,요거트,YOGURT,dairy,120
-cheese,🧀,치즈,CHEESE,dairy,280
-butter,🧈,버터,BUTTER,dairy,260
-cream,🥛,생크림,CREAM,dairy,220
-icecream,🍦,아이스크림,ICE_CREAM,dairy,150
-egg,🥚,달걀,EGG,protein,180
-meat,🍖,특가 고기,MEAT,protein,480
-chicken,🍗,닭고기,CHICKEN,protein,320
-ham,🍖,햄,HAM,protein,240
-sausage,🌭,소시지,SAUSAGE,protein,230
-bacon,🥓,베이컨,BACON,protein,260
-fish,🐟,생선,FISH,protein,380
-shrimp,🍤,새우,SHRIMP,protein,360
-crab,🦀,게,CRAB,protein,420
-tofu,🫘,두부,TOFU,protein,120
-rice,🍚,쌀,RICE,staple,420
-noodles,🍜,면,NOODLES,staple,180
-udon,🍜,우동,UDON,staple,200
-soba,🍜,소바,SOBA,staple,200
-ramen,🍜,라면,RAMEN,instant,150
-onigiri,🍙,주먹밥,ONIGIRI,ready,110
-bento,🍱,도시락,BENTO,ready,450
-curry,🍛,카레,CURRY,ready,280
-miso,🍲,미소,MISO,staple,220
-soy_sauce,🥫,간장,SOY_SAUCE,staple,200
-vinegar,🥫,식초,VINEGAR,staple,160
-oil,🫙,식용유,COOKING_OIL,staple,260
-sugar,🫙,설탕,SUGAR,staple,180
-salt,🧂,소금,SALT,staple,120
-pepper_spice,🧂,후추,PEPPER_SPICE,staple,140
-mayonnaise,🥫,마요네즈,MAYO,staple,200
-ketchup,🥫,케첩,KETCHUP,staple,200
-mustard,🥫,머스터드,MUSTARD,staple,180
-pasta,🍝,파스타,PASTA,staple,220
-cola,🥤,콜라,COLA,beverage,120
-juice,🧃,주스,JUICE,beverage,130
-coffee,☕,커피,COFFEE,beverage,150
-tea,🍵,녹차,TEA,beverage,120
-water,💧,생수,WATER,beverage,100
-soda,🧃,탄산수,SODA,beverage,110
-sports_drink,🧃,스포츠음료,SPORTS_DRINK,beverage,140
-choco,🍫,초콜릿,CHOCO,snack,160
-candy,🍬,캔디,CANDY,snack,80
-chips,🍟,감자튀김,FRIES,snack,170
-nuts,🥜,땅콩,NUTS,snack,190
-popcorn,🍿,팝콘,POPCORN,snack,150
-seaweed,🧂,김,SEAWEED,snack,140
-jerky,🥩,육포,JERKY,snack,220
-soap,🧼,비누,SOAP,house,120
-shampoo,🧴,샴푸,SHAMPOO,house,280
-detergent,🧴,세제,DETERGENT,house,260
-tissue,🧻,휴지,TISSUE,house,180
-toothpaste,🪥,치약,TOOTHPASTE,house,200
-toothbrush,🪥,칫솔,TOOTHBRUSH,house,120
-trash_bag,🗑️,쓰레기봉투,TRASH_BAG,house,160
-batteries,🔋,건전지,BATTERIES,house,200
-matches,🔥,성냥,MATCHES,house,80
-lightbulb,💡,전구,LIGHTBULB,house,180
-sponge,🧽,수세미,SPONGE,house,120
-foil,🧻,알루미늄호일,ALUMINUM_FOIL,house,200
+banana,🍌,바나나,バナナ,果物,120
+apple,🍎,사과,りんご,果物,150
+grapes,🍇,포도,ぶどう,果物,280
+strawberry,🍓,딸기,いちご,果物,300
+lemon,🍋,레몬,レモン,果物,130
+watermelon,🍉,수박,スイカ,果物,580
+orange,🍊,오렌지,オレンジ,果物,160
+peach,🍑,복숭아,もも,果物,220
+pear,🍐,배,なし,果物,210
+pineapple,🍍,파인애플,パイナップル,果物,320
+cherries,🍒,체리,さくらんぼ,果物,260
+melon,🍈,멜론,メロン,果物,480
+kiwi,🥝,키위,キウイ,果物,140
+blueberries,🫐,블루베리,ブルーベリー,果物,290
+mango,🥭,망고,マンゴー,果物,300
+carrot,🥕,당근,にんじん,野菜,120
+corn,🌽,옥수수,とうもろこし,野菜,180
+tomato,🍅,토마토,トマト,野菜,160
+cucumber,🥒,오이,きゅうり,野菜,120
+lettuce,🥬,상추,レタス,野菜,130
+onion,🧅,양파,たまねぎ,野菜,140
+garlic,🧄,마늘,にんにく,野菜,160
+potato,🥔,감자,じゃがいも,野菜,150
+sweetpotato,🍠,고구마,さつまいも,野菜,180
+eggplant,🍆,가지,なす,野菜,150
+pepper,🌶️,고추,とうがらし,野菜,120
+mushroom,🍄,버섯,きのこ,野菜,180
+broccoli,🥦,브로콜리,ブロッコリー,野菜,170
+cauliflower,🥦,콜리플라워,カリフラワー,野菜,190
+cabbage,🥬,양배추,キャベツ,野菜,160
+bread,🍞,식빵,食パン,ベーカリー,180
+croissant,🥐,크루아상,クロワッサン,ベーカリー,160
+bagel,🥯,베이글,ベーグル,ベーカリー,140
+pretzel,🥨,프레첼,プレッツェル,ベーカリー,140
+pancake,🥞,팬케이크,パンケーキ,ベーカリー,220
+donut,🍩,도넛,ドーナツ,ベーカリー,120
+cake,🍰,케이크,ケーキ,ベーカリー,350
+cookie,🍪,쿠키,クッキー,ベーカリー,150
+cracker,🍘,센베이,せんべい,ベーカリー,130
+milk,🥛,우유,牛乳,乳製品,200
+yogurt,🥣,요거트,ヨーグルト,乳製品,120
+cheese,🧀,치즈,チーズ,乳製品,280
+butter,🧈,버터,バター,乳製品,260
+cream,🥛,생크림,生クリーム,乳製品,220
+icecream,🍦,아이스크림,アイスクリーム,乳製品,150
+egg,🥚,달걀,たまご,たんぱく質,180
+meat,🍖,특가 고기,特売肉,たんぱく質,480
+chicken,🍗,닭고기,鶏肉,たんぱく質,320
+ham,🍖,햄,ハム,たんぱく質,240
+sausage,🌭,소시지,ソーセージ,たんぱく質,230
+bacon,🥓,베이컨,ベーコン,たんぱく質,260
+fish,🐟,생선,魚,たんぱく質,380
+shrimp,🍤,새우,えび,たんぱく質,360
+crab,🦀,게,かに,たんぱく質,420
+tofu,🫘,두부,豆腐,たんぱく質,120
+rice,🍚,쌀,米,主食,420
+noodles,🍜,면,めん,主食,180
+udon,🍜,우동,うどん,主食,200
+soba,🍜,소바,そば,主食,200
+ramen,🍜,라면,ラーメン,インスタント,150
+onigiri,🍙,주먹밥,おにぎり,惣菜,110
+bento,🍱,도시락,弁当,惣菜,450
+curry,🍛,카레,カレー,惣菜,280
+miso,🍲,미소,みそ,主食,220
+soy_sauce,🥫,간장,しょうゆ,主食,200
+vinegar,🥫,식초,酢,主食,160
+oil,🫙,식용유,食用油,主食,260
+sugar,🫙,설탕,砂糖,主食,180
+salt,🧂,소금,塩,主食,120
+pepper_spice,🧂,후추,こしょう,主食,140
+mayonnaise,🥫,마요네즈,マヨネーズ,主食,200
+ketchup,🥫,케첩,ケチャップ,主食,200
+mustard,🥫,머스터드,マスタード,主食,180
+pasta,🍝,파스타,パスタ,主食,220
+cola,🥤,콜라,コーラ,飲料,120
+juice,🧃,주스,ジュース,飲料,130
+coffee,☕,커피,コーヒー,飲料,150
+tea,🍵,녹차,緑茶,飲料,120
+water,💧,생수,水,飲料,100
+soda,🧃,탄산수,炭酸水,飲料,110
+sports_drink,🧃,스포츠음료,スポーツドリンク,飲料,140
+choco,🍫,초콜릿,チョコ,お菓子,160
+candy,🍬,캔디,キャンディ,お菓子,80
+chips,🍟,감자튀김,フライドポテト,お菓子,170
+nuts,🥜,땅콩,ピーナッツ,お菓子,190
+popcorn,🍿,팝콘,ポップコーン,お菓子,150
+seaweed,🧂,김,のり,お菓子,140
+jerky,🥩,육포,ジャーキー,お菓子,220
+soap,🧼,비누,石けん,日用品,120
+shampoo,🧴,샴푸,シャンプー,日用品,280
+detergent,🧴,세제,洗剤,日用品,260
+tissue,🧻,휴지,ティッシュ,日用品,180
+toothpaste,🪥,치약,歯磨き粉,日用品,200
+toothbrush,🪥,칫솔,歯ブラシ,日用品,120
+trash_bag,🗑️,쓰레기봉투,ゴミ袋,日用品,160
+batteries,🔋,건전지,電池,日用品,200
+matches,🔥,성냥,マッチ,日用品,80
+lightbulb,💡,전구,電球,日用品,180
+sponge,🧽,수세미,スポンジ,日用品,120
+foil,🧻,알루미늄호일,アルミホイル,日用品,200

@@ -17,10 +17,8 @@ function Game(audio, scanner) {
 
 Game.prototype.init = function () {
   var self = this;
-  Bus.on('cartItemClick', function (id) { self.selectItem(id); });
+  Bus.on('cartItemClick', function (id) { self.addToPOS(id); });
   Bus.on('checkoutClick', function ()   { self.attemptCheckout(); });
-  Bus.on('bagClick',      function ()   { self.bagItem(); });
-  Bus.on('returnClick',   function ()   { self.returnItem(); });
   Bus.on('qtyPlus',       function (id) { self.changeQty(id, +1); });
   Bus.on('qtyMinus',      function (id) { self.changeQty(id, -1); });
 };
@@ -80,14 +78,56 @@ Game.prototype.update = function (dt) {
     Bus.emit('holdProgress', State.holdProgress / PARAMS.scanThreshold);
   }
 
-  /* auto-bag */
+  /* auto-ready: after scan, return to idle automatically */
   if (State.scanPhase === 'scanned') {
     State.autoBagTimer -= dt;
-    if (State.autoBagTimer <= 0) this.bagItem();
+    if (State.autoBagTimer <= 0) {
+      State.scanPhase = 'idle';
+      State.selectedItemId = null;
+      State.dragActive = false;
+      Bus.emit('itemBagged');
+    }
   }
 };
 
-/* ---- item selection ---- */
+/* ---- add item directly to POS ---- */
+
+Game.prototype.addToPOS = function (itemId) {
+  if (State.phase !== 'playing') return;
+
+  var item = ITEMS[itemId];
+  if (!item) return;
+
+  var existing = null;
+  for (var i = 0; i < State.posItems.length; i++) {
+    if (State.posItems[i].itemId === itemId) { existing = State.posItems[i]; break; }
+  }
+
+  if (existing) {
+    existing.qty++;
+  } else {
+    var barcodeType = 'normal';
+    var discountRate = 0;
+    if (item.isSale && getCorrectDiscount) {
+      var correct = getCorrectDiscount(itemId);
+      if (correct) {
+        barcodeType = 'discount';
+        discountRate = correct.discountRate;
+      }
+    }
+    State.posItems.push({
+      itemId:       itemId,
+      qty:          1,
+      barcodeType:  barcodeType,
+      discountRate: discountRate,
+    });
+  }
+
+  this.audio.play('item_pickup');
+  Bus.emit('posUpdated');
+};
+
+/* ---- item selection (legacy scan flow) ---- */
 
 Game.prototype.selectItem = function (itemId) {
   if (State.phase !== 'playing') return;
@@ -134,28 +174,6 @@ Game.prototype._completeScan = function (barcode) {
 
   Bus.emit('scanComplete', { itemId: State.selectedItemId, barcode: barcode, combo: State.combo });
   Bus.emit('posUpdated');
-};
-
-/* ---- bagging ---- */
-
-Game.prototype.bagItem = function () {
-  if (State.scanPhase !== 'scanned') return;
-  State.bagCount++;
-  State.satisfaction = Math.min(PARAMS.maxSatisfaction, State.satisfaction + PARAMS.bagRecovery);
-  State.scanPhase = 'idle';
-  State.selectedItemId = null;
-  State.dragActive = false;
-  this.audio.play('item_bag');
-  Bus.emit('itemBagged');
-};
-
-Game.prototype.returnItem = function () {
-  if (State.scanPhase !== 'itemSelected' && State.scanPhase !== 'scanning') return;
-  State.scanPhase = 'idle';
-  State.selectedItemId = null;
-  State.holdProgress = 0;
-  State.dragActive = false;
-  Bus.emit('itemReturned');
 };
 
 /* ---- POS qty ---- */

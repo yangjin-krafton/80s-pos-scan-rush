@@ -9,10 +9,14 @@ var Bus    = POS.Bus;
 function Scanner() {
   this.scanContent = null;
   this.scannerDrop = null;
+  this.activeDragEl = null;
   this._onDown = this._onDown.bind(this);
   this._onMove = this._onMove.bind(this);
   this._onUp   = this._onUp.bind(this);
 }
+
+Scanner.prototype.setActiveDrag = function (el) { this.activeDragEl = el; };
+Scanner.prototype.clearActiveDrag = function () { this.activeDragEl = null; };
 
 Scanner.prototype.bind = function (scanContentEl) {
   this.scanContent = scanContentEl;
@@ -79,9 +83,8 @@ Scanner.prototype._onUp = function () {
 Scanner.prototype.checkOverlap = function () {
   if (State.scanPhase !== 'itemSelected' && State.scanPhase !== 'scanning') return null;
 
-  var dragItem = this.scanContent
-    ? this.scanContent.querySelector('.drag-item')
-    : null;
+  var dragItem = this.activeDragEl
+    || (this.scanContent ? this.scanContent.querySelector('.drag-item') : null);
   if (!dragItem || !this.scannerDrop) return null;
 
   var sr = this.scannerDrop.getBoundingClientRect();

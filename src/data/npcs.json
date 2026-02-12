@@ -1,353 +1,2776 @@
 {
   "moodStages": [
-    {"id": "calm", "minSatisfaction": 70, "label": "차분"},
-    {"id": "impatient", "minSatisfaction": 40, "label": "조급"},
-    {"id": "annoyed", "minSatisfaction": 15, "label": "짜증"},
-    {"id": "angry", "minSatisfaction": 0, "label": "폭발"}
+    {
+      "id": "calm",
+      "minSatisfaction": 70,
+      "label": "落ち着き"
+    },
+    {
+      "id": "impatient",
+      "minSatisfaction": 40,
+      "label": "せっかち"
+    },
+    {
+      "id": "annoyed",
+      "minSatisfaction": 15,
+      "label": "いらいら"
+    },
+    {
+      "id": "angry",
+      "minSatisfaction": 0,
+      "label": "怒り爆発"
+    }
   ],
   "npcs": [
     {
-      "id": "office_clerk",
-      "name": "정장 회사원",
+      "base_id": "office_clerk",
+      "name": "会社員 01",
       "emoji": "😤",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.8,
       "mistakePenalty": 8,
       "scoreMultiplier": 1.2,
       "greeting": [
-        "빨리 좀 부탁드립니다. 회의 시간이 촉박해서요.",
-        "오늘은 일찍 들어가야 해서요."
+        "こんにちは。きっちりお願いします。",
+        "こんにちは。急ぎでお願いします。"
       ],
       "scanSuccess": [
-        "네, 그걸로 됐습니다.",
-        "좋습니다."
+        "数字は大事です。",
+        "はい、それで合ってます。"
       ],
       "bagSuccess": [
-        "봉투는 한 장이면 됩니다.",
-        "봉투는 가볍게요."
+        "重い物は下で。",
+        "袋は一枚で。"
       ],
       "mistake": {
-        "missing": ["빠진 물건 있습니다.", "그건 아직 안 찍혔네요."],
-        "qty": ["수량이 맞지 않습니다.", "그건 하나가 더 있어요."],
-        "discount": ["할인 스티커가 다른데요?"]
+        "missing": [
+          "それ、まだスキャンされていません。",
+          "商品が一つ抜けています。"
+        ],
+        "qty": [
+          "数量が違います。",
+          "もう一つあります。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
       },
       "moodChange": {
-        "impatient": ["시간이 없습니다.", "서두르겠습니다."],
-        "annoyed": ["이러다 늦습니다.", "정확히 해주세요."],
-        "angry": ["더는 못 기다립니다.", "그만하시죠."]
+        "impatient": [
+          "正確さ重視で。"
+        ],
+        "annoyed": [
+          "計算は合ってますか？"
+        ],
+        "angry": [
+          "ミスは困ります。"
+        ]
       },
-      "checkoutSuccess": ["정확하네요. 수고하셨습니다."],
-      "checkoutFail": ["계산이 틀렸습니다. 다시 확인해주세요."],
-      "timeout": ["오늘은 그냥 나가겠습니다."]
+      "checkoutSuccess": [
+        "きれいな計算でした。"
+      ],
+      "checkoutFail": [
+        "合計が合いません。"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "office_clerk_01"
     },
     {
-      "id": "housewife",
-      "name": "동네 주부",
+      "base_id": "housewife",
+      "name": "主婦 02",
       "emoji": "😊",
       "type": "kind",
       "satisfactionDrainPerSec": 2.2,
       "mistakePenalty": 12,
       "scoreMultiplier": 0.9,
       "greeting": [
-        "오늘 전단지 특가 있죠?",
-        "시장보다 싸면 여기서 다 사요."
+        "こんにちは。ゆっくりで大丈夫です。",
+        "すみません、サクッとお願いします。"
       ],
-      "scanSuccess": ["네, 잘 됐네요.", "고마워요."],
-      "bagSuccess": ["봉투는 두 겹이면 좋겠어요.", "깨지는 건 따로요."],
+      "scanSuccess": [
+        "のんびりでOKです。",
+        "OKです。"
+      ],
+      "bagSuccess": [
+        "袋は適当に。",
+        "軽めにお願いします。"
+      ],
       "mistake": {
-        "missing": ["이거 하나 더 있어요.", "빠진 거 있어요."],
-        "qty": ["그건 두 개예요.", "수량이 틀렸네요."],
-        "discount": ["그 스티커 말고요, 싼 거요."]
+        "missing": [
+          "商品が一つ抜けています。",
+          "あ、これ入ってないです。"
+        ],
+        "qty": [
+          "もう一つあります。",
+          "一つ減らしてください。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
       },
       "moodChange": {
-        "impatient": ["줄이 길어서 마음이 급하네요."],
-        "annoyed": ["아이 참, 다시 한번만요."],
-        "angry": ["오늘 장사는 여기까지네요."]
+        "impatient": [
+          "大丈夫、大丈夫。"
+        ],
+        "annoyed": [
+          "まぁまぁ、落ち着いて。"
+        ],
+        "angry": [
+          "今日はやめときます。"
+        ]
       },
-      "checkoutSuccess": ["잘 봐주셨네요. 수고하세요."],
-      "checkoutFail": ["계산이 안 맞아요. 다시 봐주세요."],
-      "timeout": ["다음에 올게요."]
+      "checkoutSuccess": [
+        "助かりました。"
+      ],
+      "checkoutFail": [
+        "あれ、違いました？"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "housewife_02"
     },
     {
-      "id": "highschooler",
-      "name": "교복 학생",
+      "base_id": "highschooler",
+      "name": "高校生 03",
       "emoji": "😅",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.5,
       "mistakePenalty": 10,
       "scoreMultiplier": 1.1,
       "greeting": [
-        "버스 시간 얼마 안 남았어요.",
-        "빨리 결제 좀요."
+        "こんにちは！今日は寒いですね。",
+        "こんにちは。今日は静かに買い物したいです。"
       ],
-      "scanSuccess": ["오케이요.", "네, 그거 맞아요."],
-      "bagSuccess": ["봉투는 작은 걸로요.", "가볍게 부탁해요."],
+      "scanSuccess": [
+        "レジの音、いいですね。",
+        "いいですね。"
+      ],
+      "bagSuccess": [
+        "袋、かわいいやつあります？",
+        "割れ物は別で。"
+      ],
       "mistake": {
-        "missing": ["그거 아직 안 찍혔어요."],
-        "qty": ["하나는 빼야 해요."],
-        "discount": ["할인 붙은 거 맞죠?"]
+        "missing": [
+          "あ、これ入ってないです。",
+          "まだ通ってないですよ。"
+        ],
+        "qty": [
+          "一つ減らしてください。",
+          "二つのはずです。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
       },
       "moodChange": {
-        "impatient": ["버스 놓치겠어요."],
-        "annoyed": ["아, 늦어요."],
-        "angry": ["그냥 나갈게요."]
+        "impatient": [
+          "おしゃべりしすぎたかな。"
+        ],
+        "annoyed": [
+          "あれ、話が途切れた。"
+        ],
+        "angry": [
+          "今日は話す気分じゃないです。"
+        ]
       },
-      "checkoutSuccess": ["감사합니다."
+      "checkoutSuccess": [
+        "楽しかったです、ありがとう。"
       ],
-      "checkoutFail": ["계산이 틀렸대요."],
-      "timeout": ["지각하겠어요."]
+      "checkoutFail": [
+        "え、計算違い？"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "highschooler_03"
     },
     {
-      "id": "grandpa",
-      "name": "동네 어르신",
+      "base_id": "grandpa",
+      "name": "おじいさん 04",
       "emoji": "🙂",
       "type": "picky",
       "satisfactionDrainPerSec": 2.0,
       "mistakePenalty": 18,
       "scoreMultiplier": 1.0,
       "greeting": [
-        "예전엔 주판으로도 했지.",
-        "이 기계가 참 신기하구먼."
+        "…お願いします。",
+        "やあ、レジの音って落ち着くね。"
       ],
-      "scanSuccess": ["그래, 잘 됐구먼.", "응, 맞다."],
-      "bagSuccess": ["종이 봉투로 부탁하네.", "무거운 건 밑에."],
+      "scanSuccess": [
+        "はい。",
+        "そのままで。"
+      ],
+      "bagSuccess": [
+        "袋だけ。",
+        "小さめの袋で。"
+      ],
       "mistake": {
-        "missing": ["아직 하나가 남았네."],
-        "qty": ["그건 두 개라네."],
-        "discount": ["싼 스티커가 맞나?"]
+        "missing": [
+          "まだ通ってないですよ。",
+          "それ、まだスキャンされていません。"
+        ],
+        "qty": [
+          "二つのはずです。",
+          "数量が違います。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
       },
       "moodChange": {
-        "impatient": ["허허, 오래 걸리는구먼."],
-        "annoyed": ["다시 한번 살펴보게."],
-        "angry": ["그만 두세."]
+        "impatient": [
+          "早く。"
+        ],
+        "annoyed": [
+          "まだ？"
+        ],
+        "angry": [
+          "もういい。"
+        ]
       },
-      "checkoutSuccess": ["수고했네."],
-      "checkoutFail": ["계산이 안 맞네. 다시 보게."],
-      "timeout": ["다음에 오지."]
+      "checkoutSuccess": [
+        "…ありがとう。"
+      ],
+      "checkoutFail": [
+        "違う。"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "grandpa_04"
     },
     {
-      "id": "young_mom",
-      "name": "아이 동반 손님",
+      "base_id": "young_mom",
+      "name": "子連れのお母さん 05",
       "emoji": "😣",
       "type": "picky",
       "satisfactionDrainPerSec": 2.6,
       "mistakePenalty": 16,
       "scoreMultiplier": 1.0,
       "greeting": [
-        "아이가 보채서 빨리 해야 해요.",
-        "깨지는 건 따로 부탁해요."
+        "こんにちは！今日の運勢はレジ運！",
+        "こんにちは。丁寧にお願いします。"
       ],
-      "scanSuccess": ["네, 좋아요."],
-      "bagSuccess": ["유리병은 따로요.", "봉투는 두 개로요."],
+      "scanSuccess": [
+        "ピッ！いい音。",
+        "ありがとうございます。"
+      ],
+      "bagSuccess": [
+        "袋、魔法みたいに入れて。",
+        "袋はいりません。"
+      ],
       "mistake": {
-        "missing": ["그게 하나 빠졌어요."],
-        "qty": ["그건 한 개만요."],
-        "discount": ["할인 붙은 거 맞죠?"]
+        "missing": [
+          "それ、まだスキャンされていません。",
+          "商品が一つ抜けています。"
+        ],
+        "qty": [
+          "数量が違います。",
+          "もう一つあります。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
       },
       "moodChange": {
-        "impatient": ["아이가 울어요."],
-        "annoyed": ["조금만 더 빨리요."],
-        "angry": ["오늘은 여기까지요."]
+        "impatient": [
+          "ピッピッが足りない。"
+        ],
+        "annoyed": [
+          "スキャンのリズムが崩れた。"
+        ],
+        "angry": [
+          "今日はレジ運がない。"
+        ]
       },
-      "checkoutSuccess": ["수고하셨어요."],
-      "checkoutFail": ["다시 확인 부탁해요."],
-      "timeout": ["그냥 나갈게요."]
+      "checkoutSuccess": [
+        "完璧！レジ神！"
+      ],
+      "checkoutFail": [
+        "えー、バグった？"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "young_mom_05"
     },
     {
-      "id": "taxi_driver",
-      "name": "택시 기사",
+      "base_id": "taxi_driver",
+      "name": "タクシー運転手 06",
       "emoji": "😠",
       "type": "rushed",
       "satisfactionDrainPerSec": 4.0,
       "mistakePenalty": 9,
       "scoreMultiplier": 1.2,
       "greeting": [
-        "손님 기다려서요, 빨리 부탁해요.",
-        "시동 걸어놨습니다."
+        "こんにちは…眠いです。",
+        "どうも。袋は少なめで。"
       ],
-      "scanSuccess": ["네, 그걸로요."],
-      "bagSuccess": ["봉투는 작은 걸로요."],
+      "scanSuccess": [
+        "ぼーっとしてました。",
+        "問題ないです。"
+      ],
+      "bagSuccess": [
+        "袋…お願いします。",
+        "紙袋があれば。"
+      ],
       "mistake": {
-        "missing": ["그거 하나 빠졌어요."],
-        "qty": ["하나는 빼야 합니다."],
-        "discount": ["할인 스티커 다른 것 같은데요."]
+        "missing": [
+          "商品が一つ抜けています。",
+          "あ、これ入ってないです。"
+        ],
+        "qty": [
+          "もう一つあります。",
+          "一つ減らしてください。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
       },
       "moodChange": {
-        "impatient": ["시간이 돈입니다."],
-        "annoyed": ["이러다 손님 놓칩니다."],
-        "angry": ["이만 나가겠습니다."]
+        "impatient": [
+          "眠気が限界です。"
+        ],
+        "annoyed": [
+          "頭が回りません。"
+        ],
+        "angry": [
+          "今日は帰ります…"
+        ]
       },
-      "checkoutSuccess": ["수고하세요."],
-      "checkoutFail": ["계산 다시 봐주세요."],
-      "timeout": ["다음에 올게요."]
+      "checkoutSuccess": [
+        "助かりました…"
+      ],
+      "checkoutFail": [
+        "すみません、違う…？"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "taxi_driver_06"
     },
     {
-      "id": "factory_worker",
-      "name": "작업복 손님",
+      "base_id": "factory_worker",
+      "name": "作業服の客 07",
       "emoji": "🙂",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
       "scoreMultiplier": 0.9,
       "greeting": [
-        "야근이라 간단히만 사요.",
-        "땀 좀 닦고 바로 나가야 해요."
+        "こんにちは。特売が命です。",
+        "こんにちは。今日、特売ありますか？"
       ],
-      "scanSuccess": ["네, 고맙습니다."],
-      "bagSuccess": ["봉투 하나면 됩니다."],
+      "scanSuccess": [
+        "割引、ちゃんとお願いします。",
+        "はい、それで合ってます。"
+      ],
+      "bagSuccess": [
+        "袋は節約で。",
+        "袋は一枚で。"
+      ],
       "mistake": {
-        "missing": ["그거 빠졌어요."],
-        "qty": ["한 개만요."],
-        "discount": ["할인표는 이거 아닌가요?"]
+        "missing": [
+          "あ、これ入ってないです。",
+          "まだ通ってないですよ。"
+        ],
+        "qty": [
+          "一つ減らしてください。",
+          "二つのはずです。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
       },
       "moodChange": {
-        "impatient": ["시간이 없네요."],
-        "annoyed": ["빨리 부탁해요."],
-        "angry": ["그만할게요."]
+        "impatient": [
+          "特売の時間が…"
+        ],
+        "annoyed": [
+          "割引、忘れてませんか？"
+        ],
+        "angry": [
+          "割引なきゃ帰ります。"
+        ]
       },
-      "checkoutSuccess": ["수고하셨어요."],
-      "checkoutFail": ["계산이 다르네요."],
-      "timeout": ["다음에 살게요."]
+      "checkoutSuccess": [
+        "安く済みました。"
+      ],
+      "checkoutFail": [
+        "値段が高いです。"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "factory_worker_07"
     },
     {
-      "id": "college_couple",
-      "name": "캠퍼스 커플",
+      "base_id": "college_couple",
+      "name": "大学生カップル 08",
       "emoji": "😁",
       "type": "kind",
       "satisfactionDrainPerSec": 2.3,
       "mistakePenalty": 12,
       "scoreMultiplier": 0.9,
       "greeting": [
-        "오늘은 데이트라 간단히만요.",
-        "이거 두 개, 저거 하나요."
+        "こんにちは。新商品チェックです。",
+        "すみません、時間なくて。"
       ],
-      "scanSuccess": ["맞아요.", "네네."],
-      "bagSuccess": ["봉투는 하나만요."],
+      "scanSuccess": [
+        "このバーコード、美しい。",
+        "OKです。"
+      ],
+      "bagSuccess": [
+        "袋、綺麗にお願いします。",
+        "軽めにお願いします。"
+      ],
       "mistake": {
-        "missing": ["하나 빠졌어요."],
-        "qty": ["수량 하나 줄여주세요."],
-        "discount": ["할인 스티커가 다른데요?"]
+        "missing": [
+          "まだ通ってないですよ。",
+          "それ、まだスキャンされていません。"
+        ],
+        "qty": [
+          "二つのはずです。",
+          "数量が違います。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
       },
       "moodChange": {
-        "impatient": ["줄이 길네요."],
-        "annoyed": ["조금만 빨리요."],
-        "angry": ["다른 데 갈게요."]
+        "impatient": [
+          "新作の棚が気になる。"
+        ],
+        "annoyed": [
+          "箱が潰れると困る。"
+        ],
+        "angry": [
+          "コレクションに傷が…。"
+        ]
       },
-      "checkoutSuccess": ["고마워요."],
-      "checkoutFail": ["계산이 틀렸어요."],
-      "timeout": ["나중에 올게요."]
+      "checkoutSuccess": [
+        "保存状態完璧。"
+      ],
+      "checkoutFail": [
+        "計算も気になります。"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "college_couple_08"
     },
     {
-      "id": "night_vendor",
-      "name": "야식 손님",
+      "base_id": "night_vendor",
+      "name": "夜勤帰り 09",
       "emoji": "😫",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.6,
       "mistakePenalty": 10,
       "scoreMultiplier": 1.1,
       "greeting": [
-        "야근 끝나서 배고파요.",
-        "라면 빨리 먹고 싶어요."
+        "こんにちは。きっちりお願いします。",
+        "こんにちは。ここ、いつも助かります。"
       ],
-      "scanSuccess": ["네, 그거 맞아요."],
-      "bagSuccess": ["봉투는 튼튼하게요."],
+      "scanSuccess": [
+        "数字は大事です。",
+        "いいですね。"
+      ],
+      "bagSuccess": [
+        "重い物は下で。",
+        "割れ物は別で。"
+      ],
       "mistake": {
-        "missing": ["그건 아직 안 찍혔어요."],
-        "qty": ["수량 하나 줄여주세요."],
-        "discount": ["할인 맞아요?"]
+        "missing": [
+          "それ、まだスキャンされていません。",
+          "商品が一つ抜けています。"
+        ],
+        "qty": [
+          "数量が違います。",
+          "もう一つあります。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
       },
       "moodChange": {
-        "impatient": ["배고파서 힘드네요."],
-        "annoyed": ["빨리 좀요."],
-        "angry": ["그냥 나갈게요."]
+        "impatient": [
+          "正確さ重視で。"
+        ],
+        "annoyed": [
+          "計算は合ってますか？"
+        ],
+        "angry": [
+          "ミスは困ります。"
+        ]
       },
-      "checkoutSuccess": ["수고하세요."],
-      "checkoutFail": ["계산이 잘못됐네요."],
-      "timeout": ["다음에 살게요."]
+      "checkoutSuccess": [
+        "きれいな計算でした。"
+      ],
+      "checkoutFail": [
+        "合計が合いません。"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "night_vendor_09"
     },
     {
-      "id": "fashionista",
-      "name": "꾸민 손님",
+      "base_id": "fashionista",
+      "name": "おしゃれ客 10",
       "emoji": "😏",
       "type": "picky",
       "satisfactionDrainPerSec": 2.1,
       "mistakePenalty": 18,
       "scoreMultiplier": 1.0,
       "greeting": [
-        "봉투는 깨끗한 걸로 부탁해요.",
-        "이거 흠집 없죠?"
+        "こんにちは。ゆっくりで大丈夫です。",
+        "失礼します、手早くお願いします。"
       ],
-      "scanSuccess": ["괜찮네요."],
-      "bagSuccess": ["예쁘게 담아주세요."],
+      "scanSuccess": [
+        "のんびりでOKです。",
+        "そのままで。"
+      ],
+      "bagSuccess": [
+        "袋は適当に。",
+        "小さめの袋で。"
+      ],
       "mistake": {
-        "missing": ["그거 하나 더 있어요."],
-        "qty": ["수량이 다르네요."],
-        "discount": ["할인 표기가 다릅니다."]
+        "missing": [
+          "商品が一つ抜けています。",
+          "あ、これ入ってないです。"
+        ],
+        "qty": [
+          "もう一つあります。",
+          "一つ減らしてください。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
       },
       "moodChange": {
-        "impatient": ["기다리는 게 싫네요."],
-        "annoyed": ["정확히 부탁해요."],
-        "angry": ["다른 데 가죠."]
+        "impatient": [
+          "大丈夫、大丈夫。"
+        ],
+        "annoyed": [
+          "まぁまぁ、落ち着いて。"
+        ],
+        "angry": [
+          "今日はやめときます。"
+        ]
       },
-      "checkoutSuccess": ["정확하네요."],
-      "checkoutFail": ["계산이 틀렸어요."],
-      "timeout": ["시간이 없네요."]
+      "checkoutSuccess": [
+        "助かりました。"
+      ],
+      "checkoutFail": [
+        "あれ、違いました？"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "fashionista_10"
     },
     {
-      "id": "small_owner",
-      "name": "가게 사장",
+      "base_id": "small_owner",
+      "name": "小さな店の店主 11",
       "emoji": "🧐",
       "type": "picky",
       "satisfactionDrainPerSec": 2.0,
       "mistakePenalty": 18,
       "scoreMultiplier": 1.0,
       "greeting": [
-        "가게에 쓸 물건 좀 사요.",
-        "계산 정확히 부탁드립니다."
+        "こんにちは！今日は寒いですね。",
+        "こんにちは。急ぎでお願いします。"
       ],
-      "scanSuccess": ["좋습니다."],
-      "bagSuccess": ["박스 있으면 박스로요."],
+      "scanSuccess": [
+        "レジの音、いいですね。",
+        "ありがとうございます。"
+      ],
+      "bagSuccess": [
+        "袋、かわいいやつあります？",
+        "袋はいりません。"
+      ],
       "mistake": {
-        "missing": ["그거 하나 빠졌습니다."],
-        "qty": ["수량이 맞지 않네요."],
-        "discount": ["할인 바코드가 다릅니다."]
+        "missing": [
+          "あ、これ入ってないです。",
+          "まだ通ってないですよ。"
+        ],
+        "qty": [
+          "一つ減らしてください。",
+          "二つのはずです。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
       },
       "moodChange": {
-        "impatient": ["시간이 없어요."],
-        "annoyed": ["다시 확인해주시죠."],
-        "angry": ["다음엔 다른 곳 이용합니다."]
+        "impatient": [
+          "おしゃべりしすぎたかな。"
+        ],
+        "annoyed": [
+          "あれ、話が途切れた。"
+        ],
+        "angry": [
+          "今日は話す気分じゃないです。"
+        ]
       },
-      "checkoutSuccess": ["정확하네요. 감사합니다."],
-      "checkoutFail": ["계산이 틀렸습니다."],
-      "timeout": ["오늘은 그냥 나가겠습니다."]
+      "checkoutSuccess": [
+        "楽しかったです、ありがとう。"
+      ],
+      "checkoutFail": [
+        "え、計算違い？"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "small_owner_11"
     },
     {
-      "id": "kid_with_parent",
-      "name": "아이와 보호자",
+      "base_id": "kid_with_parent",
+      "name": "親子 12",
       "emoji": "🙂",
       "type": "kind",
       "satisfactionDrainPerSec": 2.5,
       "mistakePenalty": 12,
       "scoreMultiplier": 0.9,
       "greeting": [
-        "아이가 과자만 보고 있어요.",
-        "빨리 끝내고 가야 해요."
+        "…お願いします。",
+        "すみません、サクッとお願いします。"
       ],
-      "scanSuccess": ["네, 맞아요."],
-      "bagSuccess": ["과자는 위에 올려주세요."],
+      "scanSuccess": [
+        "はい。",
+        "問題ないです。"
+      ],
+      "bagSuccess": [
+        "袋だけ。",
+        "紙袋があれば。"
+      ],
       "mistake": {
-        "missing": ["그게 빠졌어요."],
-        "qty": ["하나는 빼주세요."],
-        "discount": ["할인 표가 다른데요?"]
+        "missing": [
+          "まだ通ってないですよ。",
+          "それ、まだスキャンされていません。"
+        ],
+        "qty": [
+          "二つのはずです。",
+          "数量が違います。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
       },
       "moodChange": {
-        "impatient": ["아이가 보채네요."],
-        "annoyed": ["조금만 빨리요."],
-        "angry": ["오늘은 그만할게요."]
+        "impatient": [
+          "早く。"
+        ],
+        "annoyed": [
+          "まだ？"
+        ],
+        "angry": [
+          "もういい。"
+        ]
       },
-      "checkoutSuccess": ["고마워요."],
-      "checkoutFail": ["계산이 틀렸어요."],
-      "timeout": ["다음에 올게요."]
+      "checkoutSuccess": [
+        "…ありがとう。"
+      ],
+      "checkoutFail": [
+        "違う。"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "kid_with_parent_12"
+    },
+    {
+      "base_id": "office_clerk",
+      "name": "会社員 13",
+      "emoji": "😤",
+      "type": "rushed",
+      "satisfactionDrainPerSec": 3.8,
+      "mistakePenalty": 8,
+      "scoreMultiplier": 1.2,
+      "greeting": [
+        "こんにちは！今日の運勢はレジ運！",
+        "こんにちは。今日は静かに買い物したいです。"
+      ],
+      "scanSuccess": [
+        "ピッ！いい音。",
+        "はい、それで合ってます。"
+      ],
+      "bagSuccess": [
+        "袋、魔法みたいに入れて。",
+        "袋は一枚で。"
+      ],
+      "mistake": {
+        "missing": [
+          "それ、まだスキャンされていません。",
+          "商品が一つ抜けています。"
+        ],
+        "qty": [
+          "数量が違います。",
+          "もう一つあります。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "ピッピッが足りない。"
+        ],
+        "annoyed": [
+          "スキャンのリズムが崩れた。"
+        ],
+        "angry": [
+          "今日はレジ運がない。"
+        ]
+      },
+      "checkoutSuccess": [
+        "完璧！レジ神！"
+      ],
+      "checkoutFail": [
+        "えー、バグった？"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "office_clerk_13"
+    },
+    {
+      "base_id": "housewife",
+      "name": "主婦 14",
+      "emoji": "😊",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.2,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.9,
+      "greeting": [
+        "こんにちは…眠いです。",
+        "やあ、レジの音って落ち着くね。"
+      ],
+      "scanSuccess": [
+        "ぼーっとしてました。",
+        "OKです。"
+      ],
+      "bagSuccess": [
+        "袋…お願いします。",
+        "軽めにお願いします。"
+      ],
+      "mistake": {
+        "missing": [
+          "商品が一つ抜けています。",
+          "あ、これ入ってないです。"
+        ],
+        "qty": [
+          "もう一つあります。",
+          "一つ減らしてください。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "眠気が限界です。"
+        ],
+        "annoyed": [
+          "頭が回りません。"
+        ],
+        "angry": [
+          "今日は帰ります…"
+        ]
+      },
+      "checkoutSuccess": [
+        "助かりました…"
+      ],
+      "checkoutFail": [
+        "すみません、違う…？"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "housewife_14"
+    },
+    {
+      "base_id": "highschooler",
+      "name": "高校生 15",
+      "emoji": "😅",
+      "type": "rushed",
+      "satisfactionDrainPerSec": 3.5,
+      "mistakePenalty": 10,
+      "scoreMultiplier": 1.1,
+      "greeting": [
+        "こんにちは。特売が命です。",
+        "こんにちは。丁寧にお願いします。"
+      ],
+      "scanSuccess": [
+        "割引、ちゃんとお願いします。",
+        "いいですね。"
+      ],
+      "bagSuccess": [
+        "袋は節約で。",
+        "割れ物は別で。"
+      ],
+      "mistake": {
+        "missing": [
+          "あ、これ入ってないです。",
+          "まだ通ってないですよ。"
+        ],
+        "qty": [
+          "一つ減らしてください。",
+          "二つのはずです。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "特売の時間が…"
+        ],
+        "annoyed": [
+          "割引、忘れてませんか？"
+        ],
+        "angry": [
+          "割引なきゃ帰ります。"
+        ]
+      },
+      "checkoutSuccess": [
+        "安く済みました。"
+      ],
+      "checkoutFail": [
+        "値段が高いです。"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "highschooler_15"
+    },
+    {
+      "base_id": "grandpa",
+      "name": "おじいさん 16",
+      "emoji": "🙂",
+      "type": "picky",
+      "satisfactionDrainPerSec": 2.0,
+      "mistakePenalty": 18,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "こんにちは。新商品チェックです。",
+        "どうも。袋は少なめで。"
+      ],
+      "scanSuccess": [
+        "このバーコード、美しい。",
+        "そのままで。"
+      ],
+      "bagSuccess": [
+        "袋、綺麗にお願いします。",
+        "小さめの袋で。"
+      ],
+      "mistake": {
+        "missing": [
+          "まだ通ってないですよ。",
+          "それ、まだスキャンされていません。"
+        ],
+        "qty": [
+          "二つのはずです。",
+          "数量が違います。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "新作の棚が気になる。"
+        ],
+        "annoyed": [
+          "箱が潰れると困る。"
+        ],
+        "angry": [
+          "コレクションに傷が…。"
+        ]
+      },
+      "checkoutSuccess": [
+        "保存状態完璧。"
+      ],
+      "checkoutFail": [
+        "計算も気になります。"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "grandpa_16"
+    },
+    {
+      "base_id": "young_mom",
+      "name": "子連れのお母さん 17",
+      "emoji": "😣",
+      "type": "picky",
+      "satisfactionDrainPerSec": 2.6,
+      "mistakePenalty": 16,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "こんにちは。きっちりお願いします。",
+        "こんにちは。今日、特売ありますか？"
+      ],
+      "scanSuccess": [
+        "数字は大事です。",
+        "ありがとうございます。"
+      ],
+      "bagSuccess": [
+        "重い物は下で。",
+        "袋はいりません。"
+      ],
+      "mistake": {
+        "missing": [
+          "それ、まだスキャンされていません。",
+          "商品が一つ抜けています。"
+        ],
+        "qty": [
+          "数量が違います。",
+          "もう一つあります。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "正確さ重視で。"
+        ],
+        "annoyed": [
+          "計算は合ってますか？"
+        ],
+        "angry": [
+          "ミスは困ります。"
+        ]
+      },
+      "checkoutSuccess": [
+        "きれいな計算でした。"
+      ],
+      "checkoutFail": [
+        "合計が合いません。"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "young_mom_17"
+    },
+    {
+      "base_id": "taxi_driver",
+      "name": "タクシー運転手 18",
+      "emoji": "😠",
+      "type": "rushed",
+      "satisfactionDrainPerSec": 4.0,
+      "mistakePenalty": 9,
+      "scoreMultiplier": 1.2,
+      "greeting": [
+        "こんにちは。ゆっくりで大丈夫です。",
+        "すみません、時間なくて。"
+      ],
+      "scanSuccess": [
+        "のんびりでOKです。",
+        "問題ないです。"
+      ],
+      "bagSuccess": [
+        "袋は適当に。",
+        "紙袋があれば。"
+      ],
+      "mistake": {
+        "missing": [
+          "商品が一つ抜けています。",
+          "あ、これ入ってないです。"
+        ],
+        "qty": [
+          "もう一つあります。",
+          "一つ減らしてください。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "大丈夫、大丈夫。"
+        ],
+        "annoyed": [
+          "まぁまぁ、落ち着いて。"
+        ],
+        "angry": [
+          "今日はやめときます。"
+        ]
+      },
+      "checkoutSuccess": [
+        "助かりました。"
+      ],
+      "checkoutFail": [
+        "あれ、違いました？"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "taxi_driver_18"
+    },
+    {
+      "base_id": "factory_worker",
+      "name": "作業服の客 19",
+      "emoji": "🙂",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.9,
+      "greeting": [
+        "こんにちは！今日は寒いですね。",
+        "こんにちは。ここ、いつも助かります。"
+      ],
+      "scanSuccess": [
+        "レジの音、いいですね。",
+        "はい、それで合ってます。"
+      ],
+      "bagSuccess": [
+        "袋、かわいいやつあります？",
+        "袋は一枚で。"
+      ],
+      "mistake": {
+        "missing": [
+          "あ、これ入ってないです。",
+          "まだ通ってないですよ。"
+        ],
+        "qty": [
+          "一つ減らしてください。",
+          "二つのはずです。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "おしゃべりしすぎたかな。"
+        ],
+        "annoyed": [
+          "あれ、話が途切れた。"
+        ],
+        "angry": [
+          "今日は話す気分じゃないです。"
+        ]
+      },
+      "checkoutSuccess": [
+        "楽しかったです、ありがとう。"
+      ],
+      "checkoutFail": [
+        "え、計算違い？"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "factory_worker_19"
+    },
+    {
+      "base_id": "college_couple",
+      "name": "大学生カップル 20",
+      "emoji": "😁",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.3,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.9,
+      "greeting": [
+        "…お願いします。",
+        "失礼します、手早くお願いします。"
+      ],
+      "scanSuccess": [
+        "はい。",
+        "OKです。"
+      ],
+      "bagSuccess": [
+        "袋だけ。",
+        "軽めにお願いします。"
+      ],
+      "mistake": {
+        "missing": [
+          "まだ通ってないですよ。",
+          "それ、まだスキャンされていません。"
+        ],
+        "qty": [
+          "二つのはずです。",
+          "数量が違います。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "早く。"
+        ],
+        "annoyed": [
+          "まだ？"
+        ],
+        "angry": [
+          "もういい。"
+        ]
+      },
+      "checkoutSuccess": [
+        "…ありがとう。"
+      ],
+      "checkoutFail": [
+        "違う。"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "college_couple_20"
+    },
+    {
+      "base_id": "night_vendor",
+      "name": "夜勤帰り 21",
+      "emoji": "😫",
+      "type": "rushed",
+      "satisfactionDrainPerSec": 3.6,
+      "mistakePenalty": 10,
+      "scoreMultiplier": 1.1,
+      "greeting": [
+        "こんにちは！今日の運勢はレジ運！",
+        "こんにちは。急ぎでお願いします。"
+      ],
+      "scanSuccess": [
+        "ピッ！いい音。",
+        "いいですね。"
+      ],
+      "bagSuccess": [
+        "袋、魔法みたいに入れて。",
+        "割れ物は別で。"
+      ],
+      "mistake": {
+        "missing": [
+          "それ、まだスキャンされていません。",
+          "商品が一つ抜けています。"
+        ],
+        "qty": [
+          "数量が違います。",
+          "もう一つあります。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "ピッピッが足りない。"
+        ],
+        "annoyed": [
+          "スキャンのリズムが崩れた。"
+        ],
+        "angry": [
+          "今日はレジ運がない。"
+        ]
+      },
+      "checkoutSuccess": [
+        "完璧！レジ神！"
+      ],
+      "checkoutFail": [
+        "えー、バグった？"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "night_vendor_21"
+    },
+    {
+      "base_id": "fashionista",
+      "name": "おしゃれ客 22",
+      "emoji": "😏",
+      "type": "picky",
+      "satisfactionDrainPerSec": 2.1,
+      "mistakePenalty": 18,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "こんにちは…眠いです。",
+        "すみません、サクッとお願いします。"
+      ],
+      "scanSuccess": [
+        "ぼーっとしてました。",
+        "そのままで。"
+      ],
+      "bagSuccess": [
+        "袋…お願いします。",
+        "小さめの袋で。"
+      ],
+      "mistake": {
+        "missing": [
+          "商品が一つ抜けています。",
+          "あ、これ入ってないです。"
+        ],
+        "qty": [
+          "もう一つあります。",
+          "一つ減らしてください。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "眠気が限界です。"
+        ],
+        "annoyed": [
+          "頭が回りません。"
+        ],
+        "angry": [
+          "今日は帰ります…"
+        ]
+      },
+      "checkoutSuccess": [
+        "助かりました…"
+      ],
+      "checkoutFail": [
+        "すみません、違う…？"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "fashionista_22"
+    },
+    {
+      "base_id": "small_owner",
+      "name": "小さな店の店主 23",
+      "emoji": "🧐",
+      "type": "picky",
+      "satisfactionDrainPerSec": 2.0,
+      "mistakePenalty": 18,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "こんにちは。特売が命です。",
+        "こんにちは。今日は静かに買い物したいです。"
+      ],
+      "scanSuccess": [
+        "割引、ちゃんとお願いします。",
+        "ありがとうございます。"
+      ],
+      "bagSuccess": [
+        "袋は節約で。",
+        "袋はいりません。"
+      ],
+      "mistake": {
+        "missing": [
+          "あ、これ入ってないです。",
+          "まだ通ってないですよ。"
+        ],
+        "qty": [
+          "一つ減らしてください。",
+          "二つのはずです。"
+        ],
+        "discount": [
+          "割引ついてますよね？"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "特売の時間が…"
+        ],
+        "annoyed": [
+          "割引、忘れてませんか？"
+        ],
+        "angry": [
+          "割引なきゃ帰ります。"
+        ]
+      },
+      "checkoutSuccess": [
+        "安く済みました。"
+      ],
+      "checkoutFail": [
+        "値段が高いです。"
+      ],
+      "timeout": [
+        "今日は出ます。"
+      ],
+      "id": "small_owner_23"
+    },
+    {
+      "base_id": "kid_with_parent",
+      "name": "親子 24",
+      "emoji": "🙂",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.5,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.9,
+      "greeting": [
+        "こんにちは。新商品チェックです。",
+        "やあ、レジの音って落ち着くね。"
+      ],
+      "scanSuccess": [
+        "このバーコード、美しい。",
+        "問題ないです。"
+      ],
+      "bagSuccess": [
+        "袋、綺麗にお願いします。",
+        "紙袋があれば。"
+      ],
+      "mistake": {
+        "missing": [
+          "まだ通ってないですよ。",
+          "それ、まだスキャンされていません。"
+        ],
+        "qty": [
+          "二つのはずです。",
+          "数量が違います。"
+        ],
+        "discount": [
+          "その割引、別のですよね。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "新作の棚が気になる。"
+        ],
+        "annoyed": [
+          "箱が潰れると困る。"
+        ],
+        "angry": [
+          "コレクションに傷が…。"
+        ]
+      },
+      "checkoutSuccess": [
+        "保存状態完璧。"
+      ],
+      "checkoutFail": [
+        "計算も気になります。"
+      ],
+      "timeout": [
+        "失礼します。"
+      ],
+      "id": "kid_with_parent_24"
+    },
+    {
+      "base_id": "office_clerk",
+      "name": "会社員 25",
+      "emoji": "😤",
+      "type": "rushed",
+      "satisfactionDrainPerSec": 3.8,
+      "mistakePenalty": 8,
+      "scoreMultiplier": 1.2,
+      "greeting": [
+        "こんにちは。きっちりお願いします。",
+        "こんにちは。丁寧にお願いします。"
+      ],
+      "scanSuccess": [
+        "数字は大事です。",
+        "はい、それで合ってます。"
+      ],
+      "bagSuccess": [
+        "重い物は下で。",
+        "袋は一枚で。"
+      ],
+      "mistake": {
+        "missing": [
+          "それ、まだスキャンされていません。",
+          "商品が一つ抜けています。"
+        ],
+        "qty": [
+          "数量が違います。",
+          "もう一つあります。"
+        ],
+        "discount": [
+          "割引シールが違います。"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "正確さ重視で。"
+        ],
+        "annoyed": [
+          "計算は合ってますか？"
+        ],
+        "angry": [
+          "ミスは困ります。"
+        ]
+      },
+      "checkoutSuccess": [
+        "きれいな計算でした。"
+      ],
+      "checkoutFail": [
+        "合計が合いません。"
+      ],
+      "timeout": [
+        "また来ます。"
+      ],
+      "id": "office_clerk_25"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 01",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "천천히 하셔도 돼요.",
+        "안녕하세요. 한국 사람이라 반가워요."
+      ],
+      "scanSuccess": [
+        "괜찮아요, 편하게요.",
+        "네, 맞아요."
+      ],
+      "bagSuccess": [
+        "봉투는 아무렇게나요.",
+        "봉투 하나면 돼요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "수량이 하나 더 있어요.",
+          "하나는 빼주세요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "괜찮아요."
+        ],
+        "annoyed": [
+          "괜찮습니다."
+        ],
+        "angry": [
+          "오늘은 이만요."
+        ]
+      },
+      "checkoutSuccess": [
+        "수고하셨어요."
+      ],
+      "checkoutFail": [
+        "어, 다르네요."
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_01"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 02",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "오늘 날씨 좋죠?",
+        "여기 알바 힘들죠? 파이팅이에요."
+      ],
+      "scanSuccess": [
+        "레지 소리 은근 좋네요.",
+        "좋습니다."
+      ],
+      "bagSuccess": [
+        "예쁜 봉투 있나요?",
+        "깨지는 건 따로 부탁해요."
+      ],
+      "mistake": {
+        "missing": [
+          "아직 안 찍혔어요.",
+          "그거 빠졌네요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "두 개예요."
+        ],
+        "discount": [
+          "할인 스티커 다른데요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "제가 말이 많았죠?"
+        ],
+        "annoyed": [
+          "이야기 끊기네요."
+        ],
+        "angry": [
+          "오늘은 말할 기분이 아니에요."
+        ]
+      },
+      "checkoutSuccess": [
+        "재밌었어요. 감사합니다."
+      ],
+      "checkoutFail": [
+        "어, 계산이 달라요?"
+      ],
+      "timeout": [
+        "오늘은 그냥 나갈게요."
+      ],
+      "id": "korean_resident_02"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 03",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "빨리 부탁해요.",
+        "오늘은 간단히만 살게요."
+      ],
+      "scanSuccess": [
+        "네.",
+        "잘 됐네요."
+      ],
+      "bagSuccess": [
+        "봉투만요.",
+        "작은 봉투로요."
+      ],
+      "mistake": {
+        "missing": [
+          "그거 빠졌네요.",
+          "이거 하나 빠졌어요."
+        ],
+        "qty": [
+          "두 개예요.",
+          "수량이 하나 더 있어요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "좀 빨리요."
+        ],
+        "annoyed": [
+          "아직인가요?"
+        ],
+        "angry": [
+          "그만할게요."
+        ]
+      },
+      "checkoutSuccess": [
+        "…감사합니다."
+      ],
+      "checkoutFail": [
+        "틀렸어요."
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_03"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 04",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요! 오늘은 레지 운이 좋길.",
+        "일본 날씨가 또 애매하네요."
+      ],
+      "scanSuccess": [
+        "삑- 소리 최고네요.",
+        "그대로 주세요."
+      ],
+      "bagSuccess": [
+        "봉투에 마법 좀요.",
+        "봉투 하나면 돼요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "수량이 하나 더 있어요.",
+          "하나는 빼주세요."
+        ],
+        "discount": [
+          "할인 스티커 다른데요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "삑삑 리듬이 필요해요."
+        ],
+        "annoyed": [
+          "레지 템포가 깨졌어요."
+        ],
+        "angry": [
+          "오늘은 레지 운이 없네요."
+        ]
+      },
+      "checkoutSuccess": [
+        "완벽! 레지 고수!"
+      ],
+      "checkoutFail": [
+        "어, 버그 난 느낌?"
+      ],
+      "timeout": [
+        "오늘은 그냥 나갈게요."
+      ],
+      "id": "korean_resident_04"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 05",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요… 너무 졸려요.",
+        "바쁘면 천천히 하셔도 돼요."
+      ],
+      "scanSuccess": [
+        "정신이 없네요.",
+        "네, 맞아요."
+      ],
+      "bagSuccess": [
+        "봉투… 부탁해요.",
+        "깨지는 건 따로 부탁해요."
+      ],
+      "mistake": {
+        "missing": [
+          "아직 안 찍혔어요.",
+          "그거 빠졌네요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "두 개예요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "졸려서 힘들어요."
+        ],
+        "annoyed": [
+          "머리가 안 돌아가요."
+        ],
+        "angry": [
+          "오늘은 그냥 갈게요."
+        ]
+      },
+      "checkoutSuccess": [
+        "도움 됐어요…"
+      ],
+      "checkoutFail": [
+        "어, 다른가요…?"
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_05"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 06",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요. 세일이 최고죠.",
+        "안녕하세요. 한국 사람이라 반가워요."
+      ],
+      "scanSuccess": [
+        "할인 꼭 부탁해요.",
+        "좋습니다."
+      ],
+      "bagSuccess": [
+        "봉투는 아껴요.",
+        "작은 봉투로요."
+      ],
+      "mistake": {
+        "missing": [
+          "그거 빠졌네요.",
+          "이거 하나 빠졌어요."
+        ],
+        "qty": [
+          "두 개예요.",
+          "수량이 하나 더 있어요."
+        ],
+        "discount": [
+          "할인 스티커 다른데요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "세일 시간 놓치겠네요."
+        ],
+        "annoyed": [
+          "할인 빠졌죠?"
+        ],
+        "angry": [
+          "할인 없으면 안 사요."
+        ]
+      },
+      "checkoutSuccess": [
+        "싸게 샀네요."
+      ],
+      "checkoutFail": [
+        "가격이 비싸요."
+      ],
+      "timeout": [
+        "오늘은 그냥 나갈게요."
+      ],
+      "id": "korean_resident_06"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 07",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요. 신상품 보러 왔어요.",
+        "여기 알바 힘들죠? 파이팅이에요."
+      ],
+      "scanSuccess": [
+        "바코드도 예쁘네요.",
+        "잘 됐네요."
+      ],
+      "bagSuccess": [
+        "깔끔하게 담아주세요.",
+        "봉투 하나면 돼요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "수량이 하나 더 있어요.",
+          "하나는 빼주세요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "신제품 코너가 궁금해요."
+        ],
+        "annoyed": [
+          "상자 구겨지면 안 돼요."
+        ],
+        "angry": [
+          "수집품에 흠집이라니…"
+        ]
+      },
+      "checkoutSuccess": [
+        "상태 좋네요."
+      ],
+      "checkoutFail": [
+        "계산도 다시 봐주세요."
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_07"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 08",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "정확하게 부탁드려요.",
+        "오늘은 간단히만 살게요."
+      ],
+      "scanSuccess": [
+        "숫자 틀리면 곤란해요.",
+        "그대로 주세요."
+      ],
+      "bagSuccess": [
+        "무거운 건 아래에요.",
+        "깨지는 건 따로 부탁해요."
+      ],
+      "mistake": {
+        "missing": [
+          "아직 안 찍혔어요.",
+          "그거 빠졌네요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "두 개예요."
+        ],
+        "discount": [
+          "할인 스티커 다른데요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "정확도가 중요해요."
+        ],
+        "annoyed": [
+          "계산 다시 확인해주세요."
+        ],
+        "angry": [
+          "실수는 곤란해요."
+        ]
+      },
+      "checkoutSuccess": [
+        "정확했어요."
+      ],
+      "checkoutFail": [
+        "합계가 틀려요."
+      ],
+      "timeout": [
+        "오늘은 그냥 나갈게요."
+      ],
+      "id": "korean_resident_08"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 09",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "천천히 하셔도 돼요.",
+        "일본 날씨가 또 애매하네요."
+      ],
+      "scanSuccess": [
+        "괜찮아요, 편하게요.",
+        "네, 맞아요."
+      ],
+      "bagSuccess": [
+        "봉투는 아무렇게나요.",
+        "작은 봉투로요."
+      ],
+      "mistake": {
+        "missing": [
+          "그거 빠졌네요.",
+          "이거 하나 빠졌어요."
+        ],
+        "qty": [
+          "두 개예요.",
+          "수량이 하나 더 있어요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "괜찮아요."
+        ],
+        "annoyed": [
+          "괜찮습니다."
+        ],
+        "angry": [
+          "오늘은 이만요."
+        ]
+      },
+      "checkoutSuccess": [
+        "수고하셨어요."
+      ],
+      "checkoutFail": [
+        "어, 다르네요."
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_09"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 10",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "오늘 날씨 좋죠?",
+        "바쁘면 천천히 하셔도 돼요."
+      ],
+      "scanSuccess": [
+        "레지 소리 은근 좋네요.",
+        "좋습니다."
+      ],
+      "bagSuccess": [
+        "예쁜 봉투 있나요?",
+        "봉투 하나면 돼요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "수량이 하나 더 있어요.",
+          "하나는 빼주세요."
+        ],
+        "discount": [
+          "할인 스티커 다른데요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "제가 말이 많았죠?"
+        ],
+        "annoyed": [
+          "이야기 끊기네요."
+        ],
+        "angry": [
+          "오늘은 말할 기분이 아니에요."
+        ]
+      },
+      "checkoutSuccess": [
+        "재밌었어요. 감사합니다."
+      ],
+      "checkoutFail": [
+        "어, 계산이 달라요?"
+      ],
+      "timeout": [
+        "오늘은 그냥 나갈게요."
+      ],
+      "id": "korean_resident_10"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 11",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "빨리 부탁해요.",
+        "안녕하세요. 한국 사람이라 반가워요."
+      ],
+      "scanSuccess": [
+        "네.",
+        "잘 됐네요."
+      ],
+      "bagSuccess": [
+        "봉투만요.",
+        "깨지는 건 따로 부탁해요."
+      ],
+      "mistake": {
+        "missing": [
+          "아직 안 찍혔어요.",
+          "그거 빠졌네요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "두 개예요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "좀 빨리요."
+        ],
+        "annoyed": [
+          "아직인가요?"
+        ],
+        "angry": [
+          "그만할게요."
+        ]
+      },
+      "checkoutSuccess": [
+        "…감사합니다."
+      ],
+      "checkoutFail": [
+        "틀렸어요."
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_11"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 12",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요! 오늘은 레지 운이 좋길.",
+        "여기 알바 힘들죠? 파이팅이에요."
+      ],
+      "scanSuccess": [
+        "삑- 소리 최고네요.",
+        "그대로 주세요."
+      ],
+      "bagSuccess": [
+        "봉투에 마법 좀요.",
+        "작은 봉투로요."
+      ],
+      "mistake": {
+        "missing": [
+          "그거 빠졌네요.",
+          "이거 하나 빠졌어요."
+        ],
+        "qty": [
+          "두 개예요.",
+          "수량이 하나 더 있어요."
+        ],
+        "discount": [
+          "할인 스티커 다른데요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "삑삑 리듬이 필요해요."
+        ],
+        "annoyed": [
+          "레지 템포가 깨졌어요."
+        ],
+        "angry": [
+          "오늘은 레지 운이 없네요."
+        ]
+      },
+      "checkoutSuccess": [
+        "완벽! 레지 고수!"
+      ],
+      "checkoutFail": [
+        "어, 버그 난 느낌?"
+      ],
+      "timeout": [
+        "오늘은 그냥 나갈게요."
+      ],
+      "id": "korean_resident_12"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 13",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요… 너무 졸려요.",
+        "오늘은 간단히만 살게요."
+      ],
+      "scanSuccess": [
+        "정신이 없네요.",
+        "네, 맞아요."
+      ],
+      "bagSuccess": [
+        "봉투… 부탁해요.",
+        "봉투 하나면 돼요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "수량이 하나 더 있어요.",
+          "하나는 빼주세요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "졸려서 힘들어요."
+        ],
+        "annoyed": [
+          "머리가 안 돌아가요."
+        ],
+        "angry": [
+          "오늘은 그냥 갈게요."
+        ]
+      },
+      "checkoutSuccess": [
+        "도움 됐어요…"
+      ],
+      "checkoutFail": [
+        "어, 다른가요…?"
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_13"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 14",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요. 세일이 최고죠.",
+        "일본 날씨가 또 애매하네요."
+      ],
+      "scanSuccess": [
+        "할인 꼭 부탁해요.",
+        "좋습니다."
+      ],
+      "bagSuccess": [
+        "봉투는 아껴요.",
+        "깨지는 건 따로 부탁해요."
+      ],
+      "mistake": {
+        "missing": [
+          "아직 안 찍혔어요.",
+          "그거 빠졌네요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "두 개예요."
+        ],
+        "discount": [
+          "할인 스티커 다른데요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "세일 시간 놓치겠네요."
+        ],
+        "annoyed": [
+          "할인 빠졌죠?"
+        ],
+        "angry": [
+          "할인 없으면 안 사요."
+        ]
+      },
+      "checkoutSuccess": [
+        "싸게 샀네요."
+      ],
+      "checkoutFail": [
+        "가격이 비싸요."
+      ],
+      "timeout": [
+        "오늘은 그냥 나갈게요."
+      ],
+      "id": "korean_resident_14"
+    },
+    {
+      "base_id": "korean_resident",
+      "name": "한국인 손님 15",
+      "emoji": "🇰🇷",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.4,
+      "mistakePenalty": 12,
+      "scoreMultiplier": 0.95,
+      "greeting": [
+        "안녕하세요. 신상품 보러 왔어요.",
+        "바쁘면 천천히 하셔도 돼요."
+      ],
+      "scanSuccess": [
+        "바코드도 예쁘네요.",
+        "잘 됐네요."
+      ],
+      "bagSuccess": [
+        "깔끔하게 담아주세요.",
+        "작은 봉투로요."
+      ],
+      "mistake": {
+        "missing": [
+          "그거 빠졌네요.",
+          "이거 하나 빠졌어요."
+        ],
+        "qty": [
+          "두 개예요.",
+          "수량이 하나 더 있어요."
+        ],
+        "discount": [
+          "할인 붙은 거 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "신제품 코너가 궁금해요."
+        ],
+        "annoyed": [
+          "상자 구겨지면 안 돼요."
+        ],
+        "angry": [
+          "수집품에 흠집이라니…"
+        ]
+      },
+      "checkoutSuccess": [
+        "상태 좋네요."
+      ],
+      "checkoutFail": [
+        "계산도 다시 봐주세요."
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_resident_15"
+    },
+    {
+      "base_id": "korean_traveler",
+      "name": "한국인 여행객 01",
+      "emoji": "🧳",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.8,
+      "mistakePenalty": 10,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "정확하게 부탁드려요.",
+        "안녕하세요. 여행 중이라 서툴러요."
+      ],
+      "scanSuccess": [
+        "숫자 틀리면 곤란해요.",
+        "네, 맞습니다."
+      ],
+      "bagSuccess": [
+        "무거운 건 아래에요.",
+        "봉투 하나 주세요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "수량이 다른 것 같아요."
+        ],
+        "discount": [
+          "할인 적용된 거죠?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "정확도가 중요해요."
+        ],
+        "annoyed": [
+          "계산 다시 확인해주세요."
+        ],
+        "angry": [
+          "실수는 곤란해요."
+        ]
+      },
+      "checkoutSuccess": [
+        "정확했어요."
+      ],
+      "checkoutFail": [
+        "합계가 틀려요."
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_traveler_01"
+    },
+    {
+      "base_id": "korean_traveler",
+      "name": "한국인 여행객 02",
+      "emoji": "🧳",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.8,
+      "mistakePenalty": 10,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "천천히 하셔도 돼요.",
+        "처음 와봤는데 깔끔하네요."
+      ],
+      "scanSuccess": [
+        "괜찮아요, 편하게요.",
+        "좋아요."
+      ],
+      "bagSuccess": [
+        "봉투는 아무렇게나요.",
+        "작은 걸로 부탁해요."
+      ],
+      "mistake": {
+        "missing": [
+          "아직 안 찍혔어요.",
+          "이거 하나 빠졌어요."
+        ],
+        "qty": [
+          "수량이 다른 것 같아요.",
+          "하나는 빼주세요."
+        ],
+        "discount": [
+          "이거 세일 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "괜찮아요."
+        ],
+        "annoyed": [
+          "괜찮습니다."
+        ],
+        "angry": [
+          "오늘은 이만요."
+        ]
+      },
+      "checkoutSuccess": [
+        "수고하셨어요."
+      ],
+      "checkoutFail": [
+        "어, 다르네요."
+      ],
+      "timeout": [
+        "그냥 나갈게요."
+      ],
+      "id": "korean_traveler_02"
+    },
+    {
+      "base_id": "korean_traveler",
+      "name": "한국인 여행객 03",
+      "emoji": "🧳",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.8,
+      "mistakePenalty": 10,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "오늘 날씨 좋죠?",
+        "간단히만 살게요."
+      ],
+      "scanSuccess": [
+        "레지 소리 은근 좋네요.",
+        "오케이."
+      ],
+      "bagSuccess": [
+        "예쁜 봉투 있나요?",
+        "가볍게 담아주세요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "수량이 다른 것 같아요."
+        ],
+        "discount": [
+          "할인 적용된 거죠?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "제가 말이 많았죠?"
+        ],
+        "annoyed": [
+          "이야기 끊기네요."
+        ],
+        "angry": [
+          "오늘은 말할 기분이 아니에요."
+        ]
+      },
+      "checkoutSuccess": [
+        "재밌었어요. 감사합니다."
+      ],
+      "checkoutFail": [
+        "어, 계산이 달라요?"
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_traveler_03"
+    },
+    {
+      "base_id": "korean_traveler",
+      "name": "한국인 여행객 04",
+      "emoji": "🧳",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.8,
+      "mistakePenalty": 10,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "빨리 부탁해요.",
+        "여기 라면 코너 어디예요?"
+      ],
+      "scanSuccess": [
+        "네.",
+        "네, 맞습니다."
+      ],
+      "bagSuccess": [
+        "봉투만요.",
+        "봉투 하나 주세요."
+      ],
+      "mistake": {
+        "missing": [
+          "아직 안 찍혔어요.",
+          "이거 하나 빠졌어요."
+        ],
+        "qty": [
+          "수량이 다른 것 같아요.",
+          "하나는 빼주세요."
+        ],
+        "discount": [
+          "이거 세일 맞나요?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "좀 빨리요."
+        ],
+        "annoyed": [
+          "아직인가요?"
+        ],
+        "angry": [
+          "그만할게요."
+        ]
+      },
+      "checkoutSuccess": [
+        "…감사합니다."
+      ],
+      "checkoutFail": [
+        "틀렸어요."
+      ],
+      "timeout": [
+        "그냥 나갈게요."
+      ],
+      "id": "korean_traveler_04"
+    },
+    {
+      "base_id": "korean_traveler",
+      "name": "한국인 여행객 05",
+      "emoji": "🧳",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.8,
+      "mistakePenalty": 10,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "안녕하세요! 오늘은 레지 운이 좋길.",
+        "안녕하세요. 여행 중이라 서툴러요."
+      ],
+      "scanSuccess": [
+        "삑- 소리 최고네요.",
+        "좋아요."
+      ],
+      "bagSuccess": [
+        "봉투에 마법 좀요.",
+        "작은 걸로 부탁해요."
+      ],
+      "mistake": {
+        "missing": [
+          "이거 하나 빠졌어요.",
+          "아직 안 찍혔어요."
+        ],
+        "qty": [
+          "하나는 빼주세요.",
+          "수량이 다른 것 같아요."
+        ],
+        "discount": [
+          "할인 적용된 거죠?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "삑삑 리듬이 필요해요."
+        ],
+        "annoyed": [
+          "레지 템포가 깨졌어요."
+        ],
+        "angry": [
+          "오늘은 레지 운이 없네요."
+        ]
+      },
+      "checkoutSuccess": [
+        "완벽! 레지 고수!"
+      ],
+      "checkoutFail": [
+        "어, 버그 난 느낌?"
+      ],
+      "timeout": [
+        "다음에 올게요."
+      ],
+      "id": "korean_traveler_05"
+    },
+    {
+      "base_id": "western_mix",
+      "name": "西洋人の客 01",
+      "emoji": "🌍",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.7,
+      "mistakePenalty": 11,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "Hi… I'm sleepy。",
+        "Hello。すみません、少しだけ。"
+      ],
+      "scanSuccess": [
+        "Brain is foggy。",
+        "OK, thank you。"
+      ],
+      "bagSuccess": [
+        "Bag… please。",
+        "Bag one, please。"
+      ],
+      "mistake": {
+        "missing": [
+          "Not scanned yet。",
+          "これ、入ってないです。"
+        ],
+        "qty": [
+          "One less, please。",
+          "数量ちがう？"
+        ],
+        "discount": [
+          "Discount OK?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "I'm fading…"
+        ],
+        "annoyed": [
+          "Can't focus。"
+        ],
+        "angry": [
+          "I'll leave now。"
+        ]
+      },
+      "checkoutSuccess": [
+        "Thanks…"
+      ],
+      "checkoutFail": [
+        "Wait, is it wrong?"
+      ],
+      "timeout": [
+        "I will go now。失礼。"
+      ],
+      "id": "western_mix_01"
+    },
+    {
+      "base_id": "western_mix",
+      "name": "西洋人の客 02",
+      "emoji": "🌍",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.7,
+      "mistakePenalty": 11,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "Hi. I love discounts。",
+        "こんにちは。English OK?"
+      ],
+      "scanSuccess": [
+        "Please apply the sale。",
+        "Looks good。"
+      ],
+      "bagSuccess": [
+        "No bag, save money。",
+        "袋、お願いします。"
+      ],
+      "mistake": {
+        "missing": [
+          "これ、入ってないです。",
+          "Oops, one more item。"
+        ],
+        "qty": [
+          "数量ちがう？",
+          "Two items, I think。"
+        ],
+        "discount": [
+          "割引ありますか？"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "Sale time is ending。"
+        ],
+        "annoyed": [
+          "Discount missing?"
+        ],
+        "angry": [
+          "No sale, no buy。"
+        ]
+      },
+      "checkoutSuccess": [
+        "Nice, saved money。"
+      ],
+      "checkoutFail": [
+        "Price is too high。"
+      ],
+      "timeout": [
+        "またね。"
+      ],
+      "id": "western_mix_02"
+    },
+    {
+      "base_id": "western_mix",
+      "name": "西洋人の客 03",
+      "emoji": "🌍",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.7,
+      "mistakePenalty": 11,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "Hi, hunting new items。",
+        "Hey! Quick shopping today。"
+      ],
+      "scanSuccess": [
+        "Barcode looks cool。",
+        "はい、大丈夫。"
+      ],
+      "bagSuccess": [
+        "Please pack neatly。",
+        "Small bag, please。"
+      ],
+      "mistake": {
+        "missing": [
+          "Oops, one more item。",
+          "Not scanned yet。"
+        ],
+        "qty": [
+          "Two items, I think。",
+          "One less, please。"
+        ],
+        "discount": [
+          "Sale sticker different?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "I want to check the new shelf。"
+        ],
+        "annoyed": [
+          "Box damage is bad。"
+        ],
+        "angry": [
+          "My collection…"
+        ]
+      },
+      "checkoutSuccess": [
+        "Perfect condition!"
+      ],
+      "checkoutFail": [
+        "Please recheck total。"
+      ],
+      "timeout": [
+        "I will go now。失礼。"
+      ],
+      "id": "western_mix_03"
+    },
+    {
+      "base_id": "western_mix",
+      "name": "西洋人の客 04",
+      "emoji": "🌍",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.7,
+      "mistakePenalty": 11,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "Hi. Please be accurate。",
+        "Hi, bag please? こんにちは。"
+      ],
+      "scanSuccess": [
+        "Numbers matter。",
+        "OK, thank you。"
+      ],
+      "bagSuccess": [
+        "Heavy stuff bottom, please。",
+        "Bag one, please。"
+      ],
+      "mistake": {
+        "missing": [
+          "Not scanned yet。",
+          "これ、入ってないです。"
+        ],
+        "qty": [
+          "One less, please。",
+          "数量ちがう？"
+        ],
+        "discount": [
+          "Discount OK?"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "Accuracy first。"
+        ],
+        "annoyed": [
+          "Please check again。"
+        ],
+        "angry": [
+          "Mistakes are a problem。"
+        ]
+      },
+      "checkoutSuccess": [
+        "Looks precise, thanks。"
+      ],
+      "checkoutFail": [
+        "Total is off。"
+      ],
+      "timeout": [
+        "またね。"
+      ],
+      "id": "western_mix_04"
+    },
+    {
+      "base_id": "western_mix",
+      "name": "西洋人の客 05",
+      "emoji": "🌍",
+      "type": "kind",
+      "satisfactionDrainPerSec": 2.7,
+      "mistakePenalty": 11,
+      "scoreMultiplier": 1.0,
+      "greeting": [
+        "Hi, no rush。",
+        "Hello。すみません、少しだけ。"
+      ],
+      "scanSuccess": [
+        "All good, take your time。",
+        "Looks good。"
+      ],
+      "bagSuccess": [
+        "Any bag is fine。",
+        "袋、お願いします。"
+      ],
+      "mistake": {
+        "missing": [
+          "これ、入ってないです。",
+          "Oops, one more item。"
+        ],
+        "qty": [
+          "数量ちがう？",
+          "Two items, I think。"
+        ],
+        "discount": [
+          "割引ありますか？"
+        ]
+      },
+      "moodChange": {
+        "impatient": [
+          "It's okay。"
+        ],
+        "annoyed": [
+          "No worries。"
+        ],
+        "angry": [
+          "I'll come later。"
+        ]
+      },
+      "checkoutSuccess": [
+        "Thanks, easy。"
+      ],
+      "checkoutFail": [
+        "Oh, not matching?"
+      ],
+      "timeout": [
+        "I will go now。失礼。"
+      ],
+      "id": "western_mix_05"
     }
   ]
 }

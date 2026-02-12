@@ -70,7 +70,7 @@ POS.CUSTOMER_TYPES = {
 };
 
 POS.ROUNDS = [
-  /* R1  */ { customer:'kind',   drainRate:2.0, items:[{id:'banana',qty:1},{id:'bread',qty:1}] },
+  /* R1  */ { customer:'kind',   drainRate:2.0, items:[{id:'banana',qty:5},{id:'bread',qty:5}] },
   /* R2  */ { customer:'kind',   drainRate:2.5, items:[{id:'milk',qty:1},{id:'apple',qty:2},{id:'onigiri',qty:1}] },
   /* R3  */ { customer:'kind',   drainRate:3.0, items:[{id:'banana',qty:2},{id:'egg',qty:1},{id:'cola',qty:1}] },
   /* R4  */ { customer:'rushed', drainRate:3.5, items:[{id:'ramen',qty:1},{id:'onigiri',qty:2},{id:'milk',qty:1},{id:'bread',qty:1}] },

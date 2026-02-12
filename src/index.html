@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="css/customer-scene.css"/>
 <link rel="stylesheet" href="css/mid-split.css"/>
 <link rel="stylesheet" href="css/cart.css"/>
-<link rel="stylesheet" href="css/action-bar.css"/>
 <link rel="stylesheet" href="css/overlay.css"/>
 </head>
 <body>
@@ -70,7 +69,6 @@
       </div>
       <div class="pos-head">
         <span class="pos-title">■ POS</span>
-        <div class="bag-chip"><span class="bi">👜</span>×0</div>
       </div>
       <div class="pos-scroll">
         <!-- JS fills this -->
@@ -78,6 +76,10 @@
       <div class="pos-foot">
         <span class="tl">합계</span>
         <span class="tv">¥0</span>
+        <div class="checkout">
+          <span class="ck-main">계산 ▶</span>
+          <span class="ck-sub">CHECKOUT</span>
+        </div>
       </div>
     </div>
 
@@ -122,26 +124,10 @@
     </div>
     <div class="cart-top">
       <span class="cart-title">🛒 カート</span>
-      <span class="cart-hint">← 스와이프 →</span>
+      <span class="cart-hint">클릭해서 선택</span>
     </div>
-    <div class="cart-scroll">
-      <!-- JS fills this -->
-    </div>
-  </div>
-
-  <!-- [5] ACTION BUTTONS -->
-  <div class="action-bar">
-    <div class="act-btn bag">
-      <span class="ico">👜</span>
-      <span class="lbl">봉투</span>
-    </div>
-    <div class="act-btn ret">
-      <span class="ico">↩️</span>
-      <span class="lbl">되돌리기</span>
-    </div>
-    <div class="checkout">
-      <span class="ck-main">계산 ▶</span>
-      <span class="ck-sub">CHECKOUT</span>
+    <div class="cart-desktop">
+      <!-- JS fills scattered cards here -->
     </div>
   </div>
 

@@ -35,22 +35,17 @@ UI.prototype._cache = function () {
     pxQueue:      q('.px-queue'),
     posScroll:    q('.pos-scroll'),
     posFoot:      q('.pos-foot .tv'),
-    bagChip:      q('.bag-chip'),
     scanContent:  q('.scan-content'),
     scanProg:     q('.scan-prog-fill'),
     scanMsg:      q('.scan-msg'),
-    cartScroll:   q('.cart-scroll'),
+    cartDesktop:  q('.cart-desktop'),
     overlay:      q('#overlay'),
     overlayInner: q('#overlay-inner'),
   };
 };
 
 UI.prototype._bindButtons = function () {
-  var bagBtn = document.querySelector('.act-btn.bag');
-  var retBtn = document.querySelector('.act-btn.ret');
-  var chkBtn = document.querySelector('.checkout');
-  if (bagBtn) bagBtn.addEventListener('click', function () { Bus.emit('bagClick'); });
-  if (retBtn) retBtn.addEventListener('click', function () { Bus.emit('returnClick'); });
+  var chkBtn = document.querySelector('.pos-foot .checkout');
   if (chkBtn) chkBtn.addEventListener('click', function () { Bus.emit('checkoutClick'); });
 };
 
@@ -60,7 +55,6 @@ UI.prototype._listenBus = function () {
   Bus.on('roundReady',      function ()  { self._onRoundReady(); });
   Bus.on('itemSelected',    function (id){ self._renderScanItem(id); });
   Bus.on('itemBagged',      function ()  { self._clearScanItem(); });
-  Bus.on('itemReturned',    function ()  { self._clearScanItem(); });
   Bus.on('scanComplete',    function (d) { self._onScanComplete(d); });
   Bus.on('posUpdated',      function ()  { self._renderPOS(); });
   Bus.on('holdProgress',    function (p) { self._updateProgress(p); });
@@ -159,29 +153,158 @@ UI.prototype._onRoundReady = function () { this._hideOverlay(); };
 /* ---- cart ---- */
 
 UI.prototype._renderCart = function () {
-  var scroll = this.els.cartScroll;
-  if (!scroll) return;
+  var desktop = this.els.cartDesktop;
+  if (!desktop) return;
   var round = ROUNDS[State.round];
-  scroll.innerHTML = '';
+  desktop.innerHTML = '';
 
+  // Expand items: qty copies as individual cards, then shuffle
+  var cards = [];
   round.items.forEach(function (entry) {
     var item = ITEMS[entry.id];
     if (!item) return;
+    for (var q = 0; q < entry.qty; q++) {
+      cards.push(item);
+    }
+  });
+  // Fisher-Yates shuffle
+  for (var i = cards.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = cards[i]; cards[i] = cards[j]; cards[j] = tmp;
+  }
+
+  var cardW = 64, cardH = 64, pad = 6;
+  var areaW = desktop.clientWidth  || 340;
+  var areaH = desktop.clientHeight || 120;
+  var maxX = Math.max(areaW - cardW - pad, pad);
+  var maxY = Math.max(areaH - cardH - pad, pad);
+  var count = cards.length;
+
+  // Grid-based scattered positions
+  var cols = Math.ceil(Math.sqrt(count * (areaW / Math.max(areaH, 1))));
+  cols = Math.max(cols, 1);
+  var rows = Math.ceil(count / cols);
+  var cellW = maxX / Math.max(cols, 1);
+  var cellH = maxY / Math.max(rows, 1);
+
+  var self = this;
+  self._cartTopZ = count + 1;
+
+  cards.forEach(function (item, idx) {
     var card = document.createElement('div');
     card.className = 'cart-card';
     card.dataset.itemId = item.id;
+
+    var col = idx % cols;
+    var row = Math.floor(idx / cols);
+    var bx = pad + col * cellW + (Math.random() - 0.5) * cellW * 0.6;
+    var by = pad + row * cellH + (Math.random() - 0.5) * cellH * 0.6;
+    bx = Math.max(pad, Math.min(bx, maxX));
+    by = Math.max(pad, Math.min(by, maxY));
+
+    var rot = (Math.random() - 0.5) * 30;
+    var z = Math.floor(Math.random() * count) + 1;
+
+    card.style.left = bx + 'px';
+    card.style.top  = by + 'px';
+    card.style.transform = 'rotate(' + rot + 'deg)';
+    card.style.zIndex = z;
+
     card.innerHTML =
       '<span>' + item.emoji + '</span>' +
       '<span class="cn">' + item.name + '</span>' +
-      (entry.qty > 1 ? '<span class="badge">' + entry.qty + '</span>' : '') +
       (item.isSale ? '<span class="sbadge">割</span>' : '');
-    card.addEventListener('click', function () {
-      Bus.emit('cartItemClick', item.id);
-      scroll.querySelectorAll('.cart-card').forEach(function (c) { c.classList.remove('active'); });
-      card.classList.add('active');
-    });
-    scroll.appendChild(card);
+
+    // Drag & click handling
+    self._initCardDrag(card, desktop, item);
+    desktop.appendChild(card);
   });
+};
+
+/* ---- cart card drag + click-to-add ---- */
+
+UI.prototype._initCardDrag = function (card, desktop, item) {
+  var self = this;
+  var dragging = false;
+  var startX = 0, startY = 0;
+  var origLeft = 0, origTop = 0;
+  var moved = false;
+  var DRAG_THRESHOLD = 5;
+
+  function getScale() {
+    var gameEl = document.querySelector('.game');
+    if (!gameEl) return 1;
+    var gr = gameEl.getBoundingClientRect();
+    return gr.width / 360;
+  }
+
+  function onPointerDown(e) {
+    e.preventDefault();
+    dragging = true;
+    moved = false;
+    card.setPointerCapture(e.pointerId);
+
+    self._cartTopZ = (self._cartTopZ || 100) + 1;
+    card.style.zIndex = self._cartTopZ;
+
+    startX = e.clientX;
+    startY = e.clientY;
+    origLeft = parseFloat(card.style.left) || 0;
+    origTop  = parseFloat(card.style.top)  || 0;
+
+    card.style.transition = 'none';
+    card.style.cursor = 'grabbing';
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+
+    if (!moved && Math.abs(dx) + Math.abs(dy) > DRAG_THRESHOLD) {
+      moved = true;
+      card.style.transform = 'rotate(0deg) scale(1.05)';
+      card.style.boxShadow = '4px 4px 12px rgba(0,0,0,0.4), inset 1px 1px 0 #fff, inset -1px -1px 0 #808080';
+    }
+    if (!moved) return;
+
+    var scale = getScale();
+    var sdx = dx / scale;
+    var sdy = dy / scale;
+    var cardW = 64, cardH = 64, pad = 2;
+    var areaW = desktop.clientWidth;
+    var areaH = desktop.clientHeight;
+
+    var nx = Math.max(pad, Math.min(origLeft + sdx, areaW - cardW - pad));
+    var ny = Math.max(pad, Math.min(origTop  + sdy, areaH - cardH - pad));
+    card.style.left = nx + 'px';
+    card.style.top  = ny + 'px';
+  }
+
+  function onPointerUp(e) {
+    if (!dragging) return;
+    dragging = false;
+    try { card.releasePointerCapture(e.pointerId); } catch (ex) { /* ignore */ }
+    card.style.cursor = 'pointer';
+    card.style.transition = 'transform 0.15s, box-shadow 0.15s, border-color 0.15s';
+    card.style.boxShadow = '';
+
+    if (!moved) {
+      // Click → add item to POS
+      card.style.transform = '';
+      Bus.emit('cartItemClick', item.id);
+      card.classList.add('active');
+      setTimeout(function () { card.classList.remove('active'); }, 300);
+    } else {
+      var rot = (Math.random() - 0.5) * 10;
+      card.style.transform = 'rotate(' + rot + 'deg)';
+    }
+  }
+
+  card.addEventListener('pointerdown', onPointerDown);
+  card.addEventListener('pointermove', onPointerMove);
+  card.addEventListener('pointerup',   onPointerUp);
+  card.addEventListener('pointercancel', onPointerUp);
 };
 
 /* ---- POS list ---- */
@@ -192,7 +315,7 @@ UI.prototype._renderPOS = function () {
   scroll.innerHTML = '';
 
   if (State.posItems.length === 0) {
-    scroll.innerHTML = '<div style="color:#006600;font-size:11px;text-align:center;padding:12px 4px">C:\\POS> 상품을 스캔<br/>해주세요..._</div>';
+    scroll.innerHTML = '<div style="color:#006600;font-size:11px;text-align:center;padding:12px 4px">C:\\POS> 카트에서 상품을<br/>클릭해 추가..._</div>';
   }
 
   var total = 0;
@@ -230,7 +353,6 @@ UI.prototype._renderPOS = function () {
   });
 
   if (this.els.posFoot) this.els.posFoot.textContent = '¥' + total.toLocaleString();
-  if (this.els.bagChip) this.els.bagChip.innerHTML = '<span class="bi">👜</span>×' + State.bagCount;
 };
 
 /* ---- scan zone ---- */
@@ -281,10 +403,10 @@ UI.prototype._clearScanItem = function () {
   if (!content) return;
   var old = content.querySelector('.drag-item');
   if (old) old.remove();
-  if (this.els.scanMsg) this.els.scanMsg.innerHTML = '카트에서 상품을<br/>골라주세요!';
+  if (this.els.scanMsg) this.els.scanMsg.innerHTML = '카트 상품을 클릭 →<br/>POS에 추가!';
   this._updateProgress(0);
-  if (this.els.cartScroll) {
-    this.els.cartScroll.querySelectorAll('.cart-card').forEach(function (c) { c.classList.remove('active'); });
+  if (this.els.cartDesktop) {
+    this.els.cartDesktop.querySelectorAll('.cart-card').forEach(function (c) { c.classList.remove('active'); });
   }
 };
 
@@ -298,6 +420,7 @@ UI.prototype._updateProgress = function (pct) {
 UI.prototype._updateScanMsg = function () {
   var content = this.els.scanContent;
   if (!content) return;
+
   var zones = content.querySelectorAll('.bc-zone');
   for (var i = 0; i < zones.length; i++) zones[i].classList.remove('active');
 

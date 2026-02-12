@@ -57,8 +57,7 @@ body{
     auto          /* [1] info bar */
     auto          /* [2] customer scene */
     1fr           /* [3] MID SPLIT: POS | SCAN */
-    auto          /* [4] cart carousel */
-    auto          /* [5] action buttons */
+    1fr           /* [4] cart desktop */
   ;
   transform-origin:center center;
   background:#008080;

@@ -7,6 +7,7 @@ var audio   = new POS.AudioManager();
 var scanner = new POS.Scanner();
 var game    = new POS.Game(audio, scanner);
 var ui      = new POS.UI();
+POS.scanner = scanner;
 
 /* ---- viewport ---- */
 function fitViewport() {

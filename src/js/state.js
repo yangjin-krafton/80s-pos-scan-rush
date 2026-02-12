@@ -26,13 +26,13 @@ POS.State = {
   mistakeCount: 0,
 
   posItems: [],
-  bagCount: 0,
 
   scanPhase: 'idle',
   selectedItemId: null,
   holdProgress: 0,
   currentBarcodeHit: null,
 
+  cardDragActive: false,
   dragActive: false,
   dragOffsetX: 0,
   dragOffsetY: 0,
@@ -54,11 +54,11 @@ POS.State = {
     this.satisfaction = 100;
     this.mistakeCount = 0;
     this.posItems = [];
-    this.bagCount = 0;
     this.scanPhase = 'idle';
     this.selectedItemId = null;
     this.holdProgress = 0;
     this.currentBarcodeHit = null;
+    this.cardDragActive = false;
     this.dragActive = false;
     this.autoBagTimer = 0;
   },

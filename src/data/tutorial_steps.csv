@@ -1,0 +1,6 @@
+id,step,trigger,target,text,max_ms,once
+pick_item,1,itemSelected,.cart-zone,먼저 카트에서 상품을 선택하세요.,3000,true
+move_to_scan,2,holdProgress,.scanner-drop,바코드를 스캐너 위에 올려주세요.,3000,true
+scan_success,3,scanComplete,.scan-content,좋아요! 스캔이 완료됐어요.,2500,true
+pos_list,4,posUpdated,.pos-panel,POS에 항목이 등록됐어요.,2500,true
+checkout,5,checkoutClick,.pos-foot .checkout,모두 담았으면 계산해요.,3000,true
