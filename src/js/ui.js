@@ -220,7 +220,7 @@ UI.prototype._onMoodChange = function (mood) {
 
 UI.prototype._onRoundStart = function () {
   var round = ROUNDS[State.round];
-  var npc = NPCS[round.npcIndex];
+  var npc = round.npc;
 
   this._resetCustomerClasses();
   this._renderCart();
@@ -251,7 +251,7 @@ UI.prototype._onRoundStart = function () {
     var q = '';
     for (var i = 0; i < Math.min(remaining, 5); i++) {
       var futureRound = ROUNDS[State.round + 1 + i];
-      var futureNpc = futureRound ? NPCS[futureRound.npcIndex] : null;
+      var futureNpc = futureRound ? futureRound.npc : null;
       var qEmoji = futureNpc ? futureNpc.emoji : '😐';
       var qColor = futureNpc ? futureNpc.bodyColor : '#808080';
       q += '<div class="px-qchar">'

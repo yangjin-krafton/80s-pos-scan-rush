@@ -34,7 +34,7 @@ Game.prototype.startGame = function () {
 Game.prototype.startRound = function () {
   State.resetRound();
   var round = ROUNDS[State.round];
-  State.currentNpc = NPCS[round.npcIndex];
+  State.currentNpc = round.npc;
   State.currentMood = 'calm';
   State.prevMood = 'calm';
   State.phase = 'roundIntro';

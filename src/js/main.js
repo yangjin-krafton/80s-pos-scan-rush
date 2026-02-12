@@ -47,16 +47,35 @@ function boot() {
   ui.init();
   game.init();
 
-  var scanContent = document.querySelector('.scan-content');
-  if (scanContent) scanner.bind(scanContent);
+  /* Async data load → then start game */
+  POS.Loader.load().then(function () {
+    var scanContent = document.querySelector('.scan-content');
+    if (scanContent) scanner.bind(scanContent);
 
-  POS.Bus.on('startClick', function () { audio.unlock(); game.startGame(); });
-  POS.Bus.on('retryClick', function () { game.startGame(); });
+    POS.Bus.on('startClick', function () { audio.unlock(); game.startGame(); });
+    POS.Bus.on('retryClick', function () {
+      POS.Loader.regenerate();
+      game.startGame();
+    });
 
-  ui.showTitle();
+    ui.showTitle();
 
-  lastTime = performance.now();
-  requestAnimationFrame(loop);
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  }).catch(function (e) {
+    console.error('[loader] Failed to load data:', e);
+    /* Fallback: still allow the game to start with whatever data exists */
+    var scanContent = document.querySelector('.scan-content');
+    if (scanContent) scanner.bind(scanContent);
+
+    POS.Bus.on('startClick', function () { audio.unlock(); game.startGame(); });
+    POS.Bus.on('retryClick', function () { game.startGame(); });
+
+    ui.showTitle();
+
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', boot);
