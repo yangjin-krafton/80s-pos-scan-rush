@@ -367,10 +367,31 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
   var activePointerId = null;
   var DRAG_THRESHOLD = 6;
 
+  /* Cached during drag — avoids repeated layout reflow on PC */
+  var cachedGR = null;
+  var cachedScale = 1;
+  var rafPending = false;
+  var lastMoveEvt = null;
+  var scanPanelEl = null;
+
+  function cacheGameRect() {
+    cachedGR = gameEl.getBoundingClientRect();
+    cachedScale = cachedGR.width / 360;
+    if (!scanPanelEl) scanPanelEl = document.querySelector('.scan-panel');
+  }
+
   function gameCoords(e) {
-    var gr = gameEl.getBoundingClientRect();
-    var s = gr.width / 360;
+    var gr = cachedGR || gameEl.getBoundingClientRect();
+    var s = cachedGR ? cachedScale : (gr.width / 360);
     return { x: (e.clientX - gr.left) / s, y: (e.clientY - gr.top) / s, s: s };
+  }
+
+  function applyCardPosition(e) {
+    var gc = gameCoords(e);
+    var nx = Math.max(0, Math.min(gc.x - 32, 360 - 64));
+    var ny = Math.max(0, Math.min(gc.y - 32, 640 - 64));
+    card.style.left = nx + 'px';
+    card.style.top  = ny + 'px';
   }
 
   function isOver(e, el) {
@@ -478,6 +499,8 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     /* scan succeeded — fly card to wait area */
     dragging = false;
     State.dragActive = false;
+    cleanupDragState();
+    card.style.willChange = '';
     if (activePointerId !== null) {
       try { card.releasePointerCapture(activePointerId); } catch (ex) { /* ok */ }
       activePointerId = null;
@@ -497,7 +520,9 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     card.setPointerCapture(e.pointerId);
     startX = e.clientX;
     startY = e.clientY;
+    cacheGameRect();
     card.style.transition = 'none';
+    card.style.willChange = 'left, top, transform';
     card.style.cursor = 'grabbing';
 
     if (inGame) {
@@ -531,14 +556,23 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
       if (!moved) return;
     }
 
-    var gc = gameCoords(e);
-    var nx = Math.max(0, Math.min(gc.x - 32, 360 - 64));
-    var ny = Math.max(0, Math.min(gc.y - 32, 640 - 64));
-    card.style.left = nx + 'px';
-    card.style.top  = ny + 'px';
+    /* Batch position updates via RAF — prevents PC stutter from high-freq pointermove */
+    lastMoveEvt = e;
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(function () {
+        rafPending = false;
+        if (!lastMoveEvt || !dragging) return;
+        applyCardPosition(lastMoveEvt);
+        if (scanPanelEl) scanPanelEl.classList.toggle('drop-hover', isOver(lastMoveEvt, scanPanelEl));
+      });
+    }
+  }
 
-    var sp = document.querySelector('.scan-panel');
-    if (sp) sp.classList.toggle('drop-hover', isOver(e, sp));
+  function cleanupDragState() {
+    rafPending = false;
+    lastMoveEvt = null;
+    cachedGR = null;
   }
 
   function onUp(e) {
@@ -546,17 +580,21 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     dragging = false;
     activePointerId = null;
     State.dragActive = false;
+    cleanupDragState();
     try { card.releasePointerCapture(e.pointerId); } catch (ex) { /* ok */ }
     card.style.cursor = 'pointer';
     card.style.boxShadow = '';
+    card.style.willChange = '';
 
-    var sp = document.querySelector('.scan-panel');
-    if (sp) sp.classList.remove('drop-hover');
+    if (scanPanelEl) scanPanelEl.classList.remove('drop-hover');
 
     if (!moved) {
       card.style.transform = '';
       return;
     }
+
+    /* Apply final position exactly at drop point */
+    if (inGame) applyCardPosition(e);
 
     var cartZone = document.querySelector('.cart-zone');
     if (isOver(e, cartZone)) {
