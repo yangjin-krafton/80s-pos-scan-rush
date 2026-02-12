@@ -44,12 +44,26 @@ POS.State = {
   autoBagTimer: 0,
   phaseTimer: 0,
 
+  /* ---- Customer / NPC state ---- */
+  customerPhase: 'none',
+  customerFeedback: null,
+  currentNpc: null,
+  currentMood: 'calm',
+  prevMood: 'calm',
+  customerAnimTimer: 0,
+
   resetGame: function () {
     this.phase = 'title';
     this.round = 0;
     this.score = 0;
     this.combo = 0;
     this.maxCombo = 0;
+    this.customerPhase = 'none';
+    this.customerFeedback = null;
+    this.currentNpc = null;
+    this.currentMood = 'calm';
+    this.prevMood = 'calm';
+    this.customerAnimTimer = 0;
   },
 
   resetRound: function () {
@@ -65,6 +79,12 @@ POS.State = {
     this.cardDragActive = false;
     this.dragActive = false;
     this.autoBagTimer = 0;
+    this.customerPhase = 'none';
+    this.customerFeedback = null;
+    this.currentNpc = null;
+    this.currentMood = 'calm';
+    this.prevMood = 'calm';
+    this.customerAnimTimer = 0;
   },
 };
 

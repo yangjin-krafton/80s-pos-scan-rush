@@ -3,7 +3,7 @@
 'use strict';
 var POS    = window.POS;
 var ITEMS  = POS.ITEMS;
-var CUSTOMER_TYPES = POS.CUSTOMER_TYPES;
+var NPCS   = POS.NPCS;
 var ROUNDS = POS.ROUNDS;
 var PARAMS = POS.PARAMS;
 var State  = POS.State;
@@ -33,6 +33,10 @@ Game.prototype.startGame = function () {
 
 Game.prototype.startRound = function () {
   State.resetRound();
+  var round = ROUNDS[State.round];
+  State.currentNpc = NPCS[round.npcIndex];
+  State.currentMood = 'calm';
+  State.prevMood = 'calm';
   State.phase = 'roundIntro';
   State.phaseTimer = PARAMS.roundIntroTime;
   Bus.emit('roundStart', State.round);
@@ -41,22 +45,84 @@ Game.prototype.startRound = function () {
 /* ---- frame update ---- */
 
 Game.prototype.update = function (dt) {
+  /* roundIntro → customerEntering */
   if (State.phase === 'roundIntro') {
     State.phaseTimer -= dt;
-    if (State.phaseTimer <= 0) { State.phase = 'playing'; Bus.emit('roundReady'); }
+    if (State.phaseTimer <= 0) {
+      State.phase = 'customerEntering';
+      State.customerAnimTimer = 0.6;
+      Bus.emit('customerSummon');
+    }
     return;
   }
+
+  /* customerEntering → playing */
+  if (State.phase === 'customerEntering') {
+    State.customerAnimTimer -= dt;
+    if (State.customerAnimTimer <= 0) {
+      State.phase = 'playing';
+      Bus.emit('customerArrive');
+      Bus.emit('roundReady');
+    }
+    return;
+  }
+
+  /* customerFeedback → customerLeaving */
+  if (State.phase === 'customerFeedback') {
+    State.customerAnimTimer -= dt;
+    if (State.customerAnimTimer <= 0) {
+      State.phase = 'customerLeaving';
+      State.customerAnimTimer = State.customerFeedback === 'happy' ? 0.6 : 0.4;
+      Bus.emit('customerLeave', State.customerFeedback);
+    }
+    return;
+  }
+
+  /* customerLeaving → roundClear / gameOver / gameClear */
+  if (State.phase === 'customerLeaving') {
+    State.customerAnimTimer -= dt;
+    if (State.customerAnimTimer <= 0) {
+      Bus.emit('customerGone');
+      if (State.customerFeedback === 'happy') {
+        if (State.round >= ROUNDS.length - 1) {
+          State.phase = 'gameClear';
+          Bus.emit('gameClear');
+        } else {
+          State.phase = 'roundClear';
+          State.phaseTimer = PARAMS.roundClearTime;
+          Bus.emit('roundClear');
+        }
+      } else {
+        State.phase = 'gameOver';
+        Bus.emit('gameOver');
+      }
+    }
+    return;
+  }
+
+  /* roundClear → next round */
   if (State.phase === 'roundClear') {
     State.phaseTimer -= dt;
     if (State.phaseTimer <= 0) { State.round++; this.startRound(); }
     return;
   }
+
   if (State.phase !== 'playing') return;
 
-  /* satisfaction drain */
-  var round = ROUNDS[State.round];
-  var cust  = CUSTOMER_TYPES[round.customer];
-  State.satisfaction -= round.drainRate * cust.drainMult * dt;
+  /* ---- playing phase ---- */
+
+  /* satisfaction drain using NPC drainRate */
+  var npc = State.currentNpc;
+  State.satisfaction -= npc.drainRate * dt;
+
+  /* mood tracking */
+  var newMood = POS.getMoodStage(State.satisfaction);
+  if (newMood !== State.currentMood) {
+    State.prevMood = State.currentMood;
+    State.currentMood = newMood;
+    Bus.emit('moodChange', newMood);
+  }
+
   if (State.satisfaction <= 0) { State.satisfaction = 0; this._gameOver(); return; }
 
   /* scan hold */
@@ -271,9 +337,8 @@ Game.prototype.attemptCheckout = function () {
 
 Game.prototype._checkoutFail = function (reason, message) {
   State.mistakeCount++;
-  var round = ROUNDS[State.round];
-  var cust  = CUSTOMER_TYPES[round.customer];
-  var penalty = cust.mistakePenalty + PARAMS.mistakeEscalation * (State.mistakeCount - 1);
+  var npc = State.currentNpc;
+  var penalty = npc.mistakePenalty + PARAMS.mistakeEscalation * (State.mistakeCount - 1);
 
   State.satisfaction -= penalty;
   State.score += PARAMS.scoreMistake;
@@ -291,20 +356,19 @@ Game.prototype._checkoutSuccess = function () {
 
   this.audio.play('checkout_success');
 
-  if (State.round >= ROUNDS.length - 1) {
-    State.phase = 'gameClear';
-    Bus.emit('gameClear');
-  } else {
-    State.phase = 'roundClear';
-    State.phaseTimer = PARAMS.roundClearTime;
-    Bus.emit('roundClear');
-  }
+  State.phase = 'customerFeedback';
+  State.customerFeedback = 'happy';
+  State.customerAnimTimer = 1.2;
+  Bus.emit('customerFeedback', 'happy');
 };
 
 Game.prototype._gameOver = function () {
-  State.phase = 'gameOver';
   this.audio.play('warning');
-  Bus.emit('gameOver');
+
+  State.phase = 'customerFeedback';
+  State.customerFeedback = 'angry';
+  State.customerAnimTimer = 0.8;
+  Bus.emit('customerFeedback', 'angry');
 };
 
 POS.Game = Game;

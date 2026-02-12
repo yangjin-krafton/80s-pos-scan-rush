@@ -3,11 +3,14 @@
 'use strict';
 var POS    = window.POS;
 var ITEMS  = POS.ITEMS;
-var CUSTOMER_TYPES = POS.CUSTOMER_TYPES;
+var NPCS   = POS.NPCS;
 var ROUNDS = POS.ROUNDS;
 var PARAMS = POS.PARAMS;
 var State  = POS.State;
 var Bus    = POS.Bus;
+
+/* reason key mapping: game.js reason → NPC dialogue.mistake key */
+var MISTAKE_KEY_MAP = { missing:'missing', excess:'missing', quantity:'qty', discount:'discount' };
 
 function UI() {
   this.els = {};
@@ -27,11 +30,11 @@ UI.prototype._cache = function () {
     infoRound:    q('#info-round'),
     infoScore:    q('#info-score'),
     hudName:      q('.hud-name'),
-    hudHearts:    q('.hud-hearts'),
     hudRight:     q('.hud-right'),
+    pxCurrent:    q('.px-current'),
     pxHead:       q('.px-head'),
-    pxBubble:     q('.px-bubble'),
     pxBody:       q('.px-body'),
+    pxFeedback:   q('.px-feedback'),
     pxQueue:      q('.px-queue'),
     posScroll:    q('.pos-scroll'),
     posFoot:      q('.pos-foot .tv'),
@@ -59,17 +62,24 @@ UI.prototype._bindButtons = function () {
 UI.prototype._listenBus = function () {
   var self = this;
   Bus.on('roundStart',      function ()  { self._onRoundStart(); });
-  Bus.on('roundReady',      function ()  { self._onRoundReady(); });
+  Bus.on('roundReady',      function ()  { /* overlay already hidden by customerSummon */ });
   Bus.on('itemSelected',    function (id){ self._renderScanItem(id); });
   Bus.on('itemBagged',      function ()  { self._clearScanItem(); });
   Bus.on('scanComplete',    function (d) { self._onScanComplete(d); });
   Bus.on('posUpdated',      function ()  { self._renderPOS(); });
   Bus.on('holdProgress',    function (p) { self._updateProgress(p); });
-  Bus.on('checkoutMistake', function (d) { self._showFeedback(d.message, 'error'); });
+  Bus.on('checkoutMistake', function (d) { self._onCheckoutMistake(d); });
   Bus.on('roundClear',      function ()  { self._showOverlay('ROUND CLEAR!', '+' + PARAMS.scoreCheckout + ' pts', 'success'); });
   Bus.on('gameOver',        function ()  { self._showOverlay('GAME OVER', 'SCORE: ' + State.score.toLocaleString(), 'fail'); });
   Bus.on('gameClear',       function ()  { self._showOverlay('ALL CLEAR!', 'TOTAL: ' + State.score.toLocaleString(), 'clear'); });
   Bus.on('scanFail',        function ()  { self._onScanFail(); });
+
+  /* ---- New customer state machine handlers ---- */
+  Bus.on('customerSummon',  function ()  { self._onCustomerSummon(); });
+  Bus.on('customerArrive',  function ()  { self._onCustomerArrive(); });
+  Bus.on('customerFeedback',function (t) { self._onCustomerFeedback(t); });
+  Bus.on('customerLeave',   function (t) { self._onCustomerLeave(t); });
+  Bus.on('moodChange',      function (m) { self._onMoodChange(m); });
 };
 
 /* ---- per-frame ---- */
@@ -94,70 +104,180 @@ UI.prototype._updateInfoBar = function () {
 /* ---- customer ---- */
 UI.prototype._updateCustomer = function () {
   if (State.phase === 'title') return;
-  var round = ROUNDS[State.round];
-  if (!round) return;
-  var cust = CUSTOMER_TYPES[round.customer];
-  var sat  = State.satisfaction;
+  var npc = State.currentNpc;
+  if (!npc) return;
+  var sat = State.satisfaction;
 
-  // hearts
-  var hearts = this.els.hudHearts;
-  if (hearts) {
-    var total = 10;
-    var filled = Math.ceil(sat / (PARAMS.maxSatisfaction / total));
-    var html = '';
-    for (var i = 0; i < total; i++) {
-      if (i < filled) html += sat < 30 ? '<i class="hud-heart warn"></i>' : '<i class="hud-heart"></i>';
-      else html += '<i class="hud-heart empty"></i>';
-    }
-    hearts.innerHTML = html;
-  }
-  // expression
+  // expression — use NPC emoji for calm, generic for other moods
   if (this.els.pxHead) {
-    if (sat > 70) this.els.pxHead.textContent = cust.emoji;
+    if (sat > 70) this.els.pxHead.textContent = npc.emoji;
     else if (sat > 40) this.els.pxHead.textContent = '😐';
     else if (sat > 15) this.els.pxHead.textContent = '😠';
     else this.els.pxHead.textContent = '🤬';
   }
-  // bubble
-  if (this.els.pxBubble) {
-    if (sat > 70) this.els.pxBubble.textContent = '좋아좋아!';
-    else if (sat > 40) this.els.pxBubble.textContent = '아직인가…';
-    else if (sat > 15) this.els.pxBubble.textContent = '느려!';
-    else this.els.pxBubble.textContent = '더 못 참아!';
-  }
-  if (this.els.hudName)  this.els.hudName.textContent = cust.name + ' #' + pad2(State.round + 1);
+  // HUD name & round
+  if (this.els.hudName)  this.els.hudName.textContent = npc.name + ' #' + pad2(State.round + 1);
   if (this.els.hudRight) this.els.hudRight.textContent = 'ROUND ' + pad2(State.round + 1) + '/' + ROUNDS.length;
+};
+
+/* ---- customer state machine UI handlers ---- */
+
+UI.prototype._resetCustomerClasses = function () {
+  var px = this.els.pxCurrent;
+  if (px) {
+    px.classList.remove('is-moving', 'is-happy', 'is-angry', 'leave-left', 'leave-right');
+    px.classList.add('offscreen-right');
+  }
+  var fb = this.els.pxFeedback;
+  if (fb) {
+    fb.classList.remove('active');
+    fb.innerHTML = '';
+  }
+};
+
+UI.prototype._onCustomerSummon = function () {
+  this._hideOverlay();
+  var px = this.els.pxCurrent;
+  if (px) {
+    px.classList.remove('offscreen-right');
+    px.classList.add('is-moving');
+  }
+  // First queue character departs
+  var firstQ = this.els.pxQueue ? this.els.pxQueue.querySelector('.px-qchar') : null;
+  if (firstQ) firstQ.classList.add('departing');
+};
+
+UI.prototype._onCustomerArrive = function () {
+  var px = this.els.pxCurrent;
+  if (px) px.classList.remove('is-moving');
+  // Remove departing queue character
+  var dept = this.els.pxQueue ? this.els.pxQueue.querySelector('.px-qchar.departing') : null;
+  if (dept) dept.remove();
+  // Show NPC greeting
+  var npc = State.currentNpc;
+  if (npc && this.els.pxBubble) {
+    this.els.pxBubble.textContent = POS.pickDialogue(npc.dialogue.greeting);
+  }
+};
+
+UI.prototype._onCustomerFeedback = function (type) {
+  var px = this.els.pxCurrent;
+  var fb = this.els.pxFeedback;
+  var npc = State.currentNpc;
+
+  if (type === 'happy') {
+    if (px) px.classList.add('is-happy');
+    if (fb) {
+      fb.innerHTML =
+        '<span class="fb-heart">♥</span>' +
+        '<span class="fb-heart" style="left:8px;animation-delay:0.15s">♥</span>' +
+        '<span class="fb-heart" style="left:16px;animation-delay:0.3s">♥</span>';
+      fb.classList.add('active');
+    }
+    if (npc && this.els.pxBubble) {
+      this.els.pxBubble.textContent = POS.pickDialogue(npc.dialogue.checkoutSuccess);
+      this.els.pxBubble.classList.remove('feedback-error');
+    }
+    if (this.els.pxHead) this.els.pxHead.textContent = '😄';
+  } else {
+    if (px) px.classList.add('is-angry');
+    if (fb) {
+      fb.innerHTML = '<span class="fb-angry">!!</span>';
+      fb.classList.add('active');
+    }
+    if (npc && this.els.pxBubble) {
+      this.els.pxBubble.textContent = POS.pickDialogue(npc.dialogue.timeout);
+      this.els.pxBubble.classList.add('feedback-error');
+    }
+    if (this.els.pxHead) this.els.pxHead.textContent = '🤬';
+  }
+};
+
+UI.prototype._onCustomerLeave = function (type) {
+  var px = this.els.pxCurrent;
+  if (!px) return;
+  px.classList.remove('is-happy', 'is-angry');
+  if (type === 'happy') {
+    px.classList.add('leave-left');
+  } else {
+    px.classList.add('leave-right');
+  }
+  var fb = this.els.pxFeedback;
+  if (fb) fb.classList.remove('active');
+};
+
+UI.prototype._onMoodChange = function (mood) {
+  var npc = State.currentNpc;
+  if (npc && this.els.pxBubble) {
+    var lines = npc.dialogue.moodChange[mood];
+    if (lines && lines.length) {
+      this.els.pxBubble.textContent = POS.pickDialogue(lines);
+    }
+  }
 };
 
 /* ---- round lifecycle ---- */
 
 UI.prototype._onRoundStart = function () {
+  var round = ROUNDS[State.round];
+  var npc = NPCS[round.npcIndex];
+
+  this._resetCustomerClasses();
   this._renderCart();
   this._renderPOS();
   this._clearScanItem();
   this._updateDiscountDisplay();
+
+  // Apply NPC body color via CSS variable
+  var px = this.els.pxCurrent;
+  if (px) {
+    px.style.setProperty('--npc-body', npc.bodyColor);
+    var c = npc.bodyColor;
+    var r = parseInt(c.substr(1,2),16), g = parseInt(c.substr(3,2),16), b = parseInt(c.substr(5,2),16);
+    var leg = '#' + [Math.floor(r*0.65), Math.floor(g*0.65), Math.floor(b*0.65)]
+      .map(function(v){ return ('0'+Math.max(0,v).toString(16)).slice(-2); }).join('');
+    px.style.setProperty('--npc-legs', leg);
+  }
+
   this._showOverlay(
     'ROUND ' + (State.round + 1),
-    CUSTOMER_TYPES[ROUNDS[State.round].customer].name + ' 등장!',
+    npc.name + ' 등장!',
     'intro'
   );
-  // queue
+
+  // Queue preview with future NPC emojis
   var remaining = ROUNDS.length - State.round - 1;
   if (this.els.pxQueue) {
-    var emojis = ['😐','😴','🤔','😊','😤'];
     var q = '';
     for (var i = 0; i < Math.min(remaining, 5); i++) {
+      var futureRound = ROUNDS[State.round + 1 + i];
+      var futureNpc = futureRound ? NPCS[futureRound.npcIndex] : null;
+      var qEmoji = futureNpc ? futureNpc.emoji : '😐';
+      var qColor = futureNpc ? futureNpc.bodyColor : '#808080';
       q += '<div class="px-qchar">'
-        + '<span class="qc-head">' + emojis[i % emojis.length] + '</span>'
-        + '<div class="qc-body"></div>'
-        + '<div class="qc-legs"><div class="qc-leg"></div><div class="qc-leg"></div></div>'
+        + '<span class="qc-head">' + qEmoji + '</span>'
+        + '<div class="qc-body" style="background:' + qColor + '"></div>'
+        + '<div class="qc-legs"><div class="qc-leg" style="background:' + qColor + '"></div><div class="qc-leg" style="background:' + qColor + '"></div></div>'
         + '</div>';
     }
     this.els.pxQueue.innerHTML = q;
   }
 };
 
-UI.prototype._onRoundReady = function () { this._hideOverlay(); };
+/* ---- checkout mistake with NPC dialogue ---- */
+
+UI.prototype._onCheckoutMistake = function (d) {
+  var npc = State.currentNpc;
+  var msg = d.message;
+  if (npc) {
+    var key = MISTAKE_KEY_MAP[d.reason] || d.reason;
+    var lines = npc.dialogue.mistake[key];
+    if (lines && lines.length) {
+      msg = POS.pickDialogue(lines);
+    }
+  }
+  this._showFeedback(msg, 'error');
+};
 
 /* ---- cart ---- */
 
@@ -631,6 +751,11 @@ UI.prototype._onScanComplete = function (data) {
     setTimeout(function () { content.classList.remove('scan-flash'); }, 200);
   }
   if (data.combo >= 2) this._showCombo(data.combo);
+
+  // 30% chance to show NPC scanSuccess dialogue
+  if (Math.random() < 0.3 && State.currentNpc && this.els.pxBubble) {
+    this.els.pxBubble.textContent = POS.pickDialogue(State.currentNpc.dialogue.scanSuccess);
+  }
 };
 
 UI.prototype._showCombo = function (n) {

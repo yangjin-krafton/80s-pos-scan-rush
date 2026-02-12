@@ -47,14 +47,6 @@
   text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;
   letter-spacing:0.5px;
 }
-.hud-hearts{display:flex;gap:1px}
-.hud-heart{
-  width:10px;height:9px;font-size:0;background:#e00040;
-  clip-path:polygon(0% 35%,10% 15%,25% 0%,40% 0%,50% 15%,60% 0%,75% 0%,90% 15%,100% 35%,50% 100%);
-  image-rendering:pixelated;
-}
-.hud-heart.empty{background:#402;opacity:0.5}
-.hud-heart.warn{background:#e0a000}
 .hud-right{
   font-family:'Courier New',monospace;font-size:9px;font-weight:bold;color:#ffe040;
   text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;
@@ -69,31 +61,17 @@
 @keyframes px-idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 .px-head{font-size:26px;line-height:1;filter:drop-shadow(1px 1px 0 #000)}
 .px-body{
-  width:20px;height:14px;background:#3060d0;border:2px solid #000;border-top:none;
+  width:20px;height:14px;background:var(--npc-body,#3060d0);border:2px solid #000;border-top:none;
   position:relative;image-rendering:pixelated;
 }
 .px-body::before,.px-body::after{
   content:"";position:absolute;top:1px;width:4px;height:8px;
-  background:#3060d0;border:1px solid #000;
+  background:var(--npc-body,#3060d0);border:1px solid #000;
 }
 .px-body::before{left:-5px}
 .px-body::after{right:-5px}
 .px-legs{display:flex;gap:4px}
-.px-leg{width:6px;height:6px;background:#204080;border:1px solid #000}
-.px-bubble{
-  position:absolute;left:56px;bottom:52px;background:#fff;color:#000;
-  font-family:'Courier New',monospace;font-size:10px;font-weight:bold;
-  padding:3px 8px;border:2px solid #000;z-index:4;white-space:nowrap;
-  image-rendering:auto;transition:color 0.2s;
-}
-.px-bubble::before{
-  content:"";position:absolute;bottom:-6px;left:8px;
-  width:6px;height:6px;background:#fff;
-  border-right:2px solid #000;border-bottom:2px solid #000;
-  transform:skewY(-20deg);
-}
-.px-bubble.feedback-error{color:#c00;border-color:#c00}
-.px-bubble.feedback-error::before{border-color:#c00}
+.px-leg{width:6px;height:6px;background:var(--npc-legs,#204080);border:1px solid #000}
 
 /* Queue characters */
 .px-queue{
@@ -133,4 +111,87 @@
 .px-counter::after{
   content:"";position:absolute;bottom:2px;left:6px;right:6px;height:3px;
   background:#404040;border:1px solid #222;
+}
+
+/* ================================================================
+   Customer state machine animations
+   ================================================================ */
+
+/* Offscreen right (initial / between rounds) */
+.px-current.offscreen-right{transform:translateX(320px);animation:none;}
+
+/* Entering: move to counter (0.6s) */
+.px-current.is-moving{animation:move-to-counter 0.6s steps(8) forwards;}
+@keyframes move-to-counter{
+  0%{transform:translateX(320px)}
+  50%{transform:translateX(160px) translateY(-2px)}
+  100%{transform:translateX(0)}
+}
+
+/* Happy feedback bounce */
+.px-current.is-happy{animation:happy-bounce 0.3s steps(1) 3;}
+@keyframes happy-bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-3px)}
+}
+
+/* Angry feedback shake */
+.px-current.is-angry{animation:angry-shake 0.1s steps(1) 4;}
+@keyframes angry-shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-3px)}
+  75%{transform:translateX(3px)}
+}
+
+/* Leave left (happy exit) */
+.px-current.leave-left{animation:leave-left 0.6s steps(6) forwards;}
+@keyframes leave-left{
+  0%{transform:translateX(0);opacity:1}
+  100%{transform:translateX(-100px);opacity:0}
+}
+
+/* Leave right (angry exit) */
+.px-current.leave-right{animation:leave-right 0.4s steps(4) forwards;}
+@keyframes leave-right{
+  0%{transform:translateX(0);opacity:1}
+  100%{transform:translateX(340px);opacity:0}
+}
+
+/* Feedback container */
+.px-feedback{
+  position:absolute;left:20px;bottom:60px;
+  pointer-events:none;z-index:6;opacity:0;
+}
+.px-feedback.active{opacity:1;}
+
+/* Heart effect */
+.fb-heart{
+  position:absolute;font-size:12px;
+  animation:heart-float 1.0s ease-out forwards;
+  color:#e00040;
+}
+@keyframes heart-float{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  60%{opacity:1;transform:translateY(-14px) scale(1.1)}
+  100%{opacity:0;transform:translateY(-20px) scale(0.8)}
+}
+
+/* Angry effect */
+.fb-angry{
+  font-family:'Courier New';font-size:14px;font-weight:bold;
+  color:#c00;animation:angry-pop 0.6s forwards;
+}
+@keyframes angry-pop{
+  0%{opacity:0;transform:scale(0.5)}
+  20%{opacity:1;transform:scale(1.3)}
+  40%,100%{opacity:1;transform:scale(1)}
+}
+
+/* Queue departing character */
+.px-qchar.departing{
+  animation:q-depart 0.4s steps(4) forwards;
+}
+@keyframes q-depart{
+  0%{transform:translateX(0);opacity:1}
+  100%{transform:translateX(-30px);opacity:0}
 }
