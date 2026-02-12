@@ -344,6 +344,14 @@ Game.prototype._checkoutSuccess = function () {
   var timeBonus = Math.floor(State.satisfaction * PARAMS.scoreTimeBonusMult);
   State.score += PARAMS.scoreCheckout + timeBonus;
 
+  /* ---- Adaptive difficulty: update rating based on performance ---- */
+  if (State.round >= 3) {
+    var satFactor = State.satisfaction / PARAMS.maxSatisfaction;
+    var mistakeFactor = Math.max(0, 1 - State.mistakeCount * 0.3);
+    var perf = satFactor * 0.6 + mistakeFactor * 0.4;
+    State.diffRating += 0.5 + perf * 1.2;
+  }
+
   this.audio.play('checkout_success');
   Bus.emit('checkoutSuccess');
 

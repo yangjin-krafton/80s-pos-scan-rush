@@ -25,7 +25,7 @@
     {
       "base_id": "office_clerk",
       "name": "会社員 01",
-      "emoji": "😤",
+      "emoji": "😃",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.8,
       "mistakePenalty": 8,
@@ -80,7 +80,7 @@
     {
       "base_id": "housewife",
       "name": "主婦 02",
-      "emoji": "😊",
+      "emoji": "🐶",
       "type": "kind",
       "satisfactionDrainPerSec": 2.2,
       "mistakePenalty": 12,
@@ -135,7 +135,7 @@
     {
       "base_id": "highschooler",
       "name": "高校生 03",
-      "emoji": "😅",
+      "emoji": "😆",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.5,
       "mistakePenalty": 10,
@@ -190,7 +190,7 @@
     {
       "base_id": "grandpa",
       "name": "おじいさん 04",
-      "emoji": "🙂",
+      "emoji": "😻",
       "type": "picky",
       "satisfactionDrainPerSec": 2.0,
       "mistakePenalty": 18,
@@ -245,7 +245,7 @@
     {
       "base_id": "young_mom",
       "name": "子連れのお母さん 05",
-      "emoji": "😣",
+      "emoji": "🦁",
       "type": "picky",
       "satisfactionDrainPerSec": 2.6,
       "mistakePenalty": 16,
@@ -300,7 +300,7 @@
     {
       "base_id": "taxi_driver",
       "name": "タクシー運転手 06",
-      "emoji": "😠",
+      "emoji": "🐔",
       "type": "rushed",
       "satisfactionDrainPerSec": 4.0,
       "mistakePenalty": 9,
@@ -355,7 +355,7 @@
     {
       "base_id": "factory_worker",
       "name": "作業服の客 07",
-      "emoji": "🙂",
+      "emoji": "🦦",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -410,7 +410,7 @@
     {
       "base_id": "college_couple",
       "name": "大学生カップル 08",
-      "emoji": "😁",
+      "emoji": "🐸",
       "type": "kind",
       "satisfactionDrainPerSec": 2.3,
       "mistakePenalty": 12,
@@ -465,7 +465,7 @@
     {
       "base_id": "night_vendor",
       "name": "夜勤帰り 09",
-      "emoji": "😫",
+      "emoji": "🦝",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.6,
       "mistakePenalty": 10,
@@ -520,7 +520,7 @@
     {
       "base_id": "fashionista",
       "name": "おしゃれ客 10",
-      "emoji": "😏",
+      "emoji": "🐹",
       "type": "picky",
       "satisfactionDrainPerSec": 2.1,
       "mistakePenalty": 18,
@@ -575,7 +575,7 @@
     {
       "base_id": "small_owner",
       "name": "小さな店の店主 11",
-      "emoji": "🧐",
+      "emoji": "🙄",
       "type": "picky",
       "satisfactionDrainPerSec": 2.0,
       "mistakePenalty": 18,
@@ -630,7 +630,7 @@
     {
       "base_id": "kid_with_parent",
       "name": "親子 12",
-      "emoji": "🙂",
+      "emoji": "🦄",
       "type": "kind",
       "satisfactionDrainPerSec": 2.5,
       "mistakePenalty": 12,
@@ -685,7 +685,7 @@
     {
       "base_id": "office_clerk",
       "name": "会社員 13",
-      "emoji": "😤",
+      "emoji": "😇",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.8,
       "mistakePenalty": 8,
@@ -740,7 +740,7 @@
     {
       "base_id": "housewife",
       "name": "主婦 14",
-      "emoji": "😊",
+      "emoji": "😎",
       "type": "kind",
       "satisfactionDrainPerSec": 2.2,
       "mistakePenalty": 12,
@@ -795,7 +795,7 @@
     {
       "base_id": "highschooler",
       "name": "高校生 15",
-      "emoji": "😅",
+      "emoji": "🤤",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.5,
       "mistakePenalty": 10,
@@ -850,7 +850,7 @@
     {
       "base_id": "grandpa",
       "name": "おじいさん 16",
-      "emoji": "🙂",
+      "emoji": "🐺",
       "type": "picky",
       "satisfactionDrainPerSec": 2.0,
       "mistakePenalty": 18,
@@ -905,7 +905,7 @@
     {
       "base_id": "young_mom",
       "name": "子連れのお母さん 17",
-      "emoji": "😣",
+      "emoji": "🦥",
       "type": "picky",
       "satisfactionDrainPerSec": 2.6,
       "mistakePenalty": 16,
@@ -960,7 +960,7 @@
     {
       "base_id": "taxi_driver",
       "name": "タクシー運転手 18",
-      "emoji": "😠",
+      "emoji": "😺",
       "type": "rushed",
       "satisfactionDrainPerSec": 4.0,
       "mistakePenalty": 9,
@@ -1015,7 +1015,7 @@
     {
       "base_id": "factory_worker",
       "name": "作業服の客 19",
-      "emoji": "🙂",
+      "emoji": "😁",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1070,7 +1070,7 @@
     {
       "base_id": "college_couple",
       "name": "大学生カップル 20",
-      "emoji": "😁",
+      "emoji": "😑",
       "type": "kind",
       "satisfactionDrainPerSec": 2.3,
       "mistakePenalty": 12,
@@ -1125,7 +1125,7 @@
     {
       "base_id": "night_vendor",
       "name": "夜勤帰り 21",
-      "emoji": "😫",
+      "emoji": "🙂",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.6,
       "mistakePenalty": 10,
@@ -1180,7 +1180,7 @@
     {
       "base_id": "fashionista",
       "name": "おしゃれ客 22",
-      "emoji": "😏",
+      "emoji": "🐮",
       "type": "picky",
       "satisfactionDrainPerSec": 2.1,
       "mistakePenalty": 18,
@@ -1235,7 +1235,7 @@
     {
       "base_id": "small_owner",
       "name": "小さな店の店主 23",
-      "emoji": "🧐",
+      "emoji": "🤗",
       "type": "picky",
       "satisfactionDrainPerSec": 2.0,
       "mistakePenalty": 18,
@@ -1290,7 +1290,7 @@
     {
       "base_id": "kid_with_parent",
       "name": "親子 24",
-      "emoji": "🙂",
+      "emoji": "🦒",
       "type": "kind",
       "satisfactionDrainPerSec": 2.5,
       "mistakePenalty": 12,
@@ -1345,7 +1345,7 @@
     {
       "base_id": "office_clerk",
       "name": "会社員 25",
-      "emoji": "😤",
+      "emoji": "😸",
       "type": "rushed",
       "satisfactionDrainPerSec": 3.8,
       "mistakePenalty": 8,
@@ -1400,7 +1400,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 01",
-      "emoji": "🇰🇷",
+      "emoji": "🦊",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1455,7 +1455,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 02",
-      "emoji": "🇰🇷",
+      "emoji": "😄",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1510,7 +1510,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 03",
-      "emoji": "🇰🇷",
+      "emoji": "🐤",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1565,7 +1565,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 04",
-      "emoji": "🇰🇷",
+      "emoji": "🤠",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1620,7 +1620,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 05",
-      "emoji": "🇰🇷",
+      "emoji": "🐧",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1675,7 +1675,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 06",
-      "emoji": "🇰🇷",
+      "emoji": "🐻",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1730,7 +1730,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 07",
-      "emoji": "🇰🇷",
+      "emoji": "🤔",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1785,7 +1785,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 08",
-      "emoji": "🇰🇷",
+      "emoji": "😀",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1840,7 +1840,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 09",
-      "emoji": "🇰🇷",
+      "emoji": "😬",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1895,7 +1895,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 10",
-      "emoji": "🇰🇷",
+      "emoji": "🤨",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -1950,7 +1950,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 11",
-      "emoji": "🇰🇷",
+      "emoji": "🐱",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -2005,7 +2005,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 12",
-      "emoji": "🇰🇷",
+      "emoji": "🙃",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -2060,7 +2060,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 13",
-      "emoji": "🇰🇷",
+      "emoji": "😐",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -2115,7 +2115,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 14",
-      "emoji": "🇰🇷",
+      "emoji": "🐰",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -2170,7 +2170,7 @@
     {
       "base_id": "korean_resident",
       "name": "한국인 손님 15",
-      "emoji": "🇰🇷",
+      "emoji": "😉",
       "type": "kind",
       "satisfactionDrainPerSec": 2.4,
       "mistakePenalty": 12,
@@ -2225,7 +2225,7 @@
     {
       "base_id": "korean_traveler",
       "name": "한국인 여행객 01",
-      "emoji": "🧳",
+      "emoji": "🧐",
       "type": "kind",
       "satisfactionDrainPerSec": 2.8,
       "mistakePenalty": 10,
@@ -2280,7 +2280,7 @@
     {
       "base_id": "korean_traveler",
       "name": "한국인 여행객 02",
-      "emoji": "🧳",
+      "emoji": "🐷",
       "type": "kind",
       "satisfactionDrainPerSec": 2.8,
       "mistakePenalty": 10,
@@ -2335,7 +2335,7 @@
     {
       "base_id": "korean_traveler",
       "name": "한국인 여행객 03",
-      "emoji": "🧳",
+      "emoji": "😶",
       "type": "kind",
       "satisfactionDrainPerSec": 2.8,
       "mistakePenalty": 10,
@@ -2390,7 +2390,7 @@
     {
       "base_id": "korean_traveler",
       "name": "한국인 여행객 04",
-      "emoji": "🧳",
+      "emoji": "🐯",
       "type": "kind",
       "satisfactionDrainPerSec": 2.8,
       "mistakePenalty": 10,
@@ -2445,7 +2445,7 @@
     {
       "base_id": "korean_traveler",
       "name": "한국인 여행객 05",
-      "emoji": "🧳",
+      "emoji": "🐙",
       "type": "kind",
       "satisfactionDrainPerSec": 2.8,
       "mistakePenalty": 10,
@@ -2500,7 +2500,7 @@
     {
       "base_id": "western_mix",
       "name": "西洋人の客 01",
-      "emoji": "🌍",
+      "emoji": "😋",
       "type": "kind",
       "satisfactionDrainPerSec": 2.7,
       "mistakePenalty": 11,
@@ -2555,7 +2555,7 @@
     {
       "base_id": "western_mix",
       "name": "西洋人の客 02",
-      "emoji": "🌍",
+      "emoji": "😙",
       "type": "kind",
       "satisfactionDrainPerSec": 2.7,
       "mistakePenalty": 11,
@@ -2610,7 +2610,7 @@
     {
       "base_id": "western_mix",
       "name": "西洋人の客 03",
-      "emoji": "🌍",
+      "emoji": "😳",
       "type": "kind",
       "satisfactionDrainPerSec": 2.7,
       "mistakePenalty": 11,
@@ -2665,7 +2665,7 @@
     {
       "base_id": "western_mix",
       "name": "西洋人の客 04",
-      "emoji": "🌍",
+      "emoji": "🦔",
       "type": "kind",
       "satisfactionDrainPerSec": 2.7,
       "mistakePenalty": 11,
@@ -2720,7 +2720,7 @@
     {
       "base_id": "western_mix",
       "name": "西洋人の客 05",
-      "emoji": "🌍",
+      "emoji": "🥺",
       "type": "kind",
       "satisfactionDrainPerSec": 2.7,
       "mistakePenalty": 11,

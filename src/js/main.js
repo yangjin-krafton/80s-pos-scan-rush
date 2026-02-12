@@ -25,10 +25,11 @@ function unlockAudio() {
   document.removeEventListener('keydown', unlockAudio);
 }
 
-/* ---- BGM register by round ---- */
-function bgmRegisterForRound(roundIdx) {
-  if (roundIdx < 3) return 'low';
-  if (roundIdx < 7) return 'mid';
+/* ---- BGM register by adaptive difficulty ---- */
+function bgmRegisterForRound() {
+  var dr = POS.State.diffRating;
+  if (dr < 2) return 'low';
+  if (dr < 5) return 'mid';
   return 'high';
 }
 
@@ -113,8 +114,8 @@ function boot() {
     });
 
     /* Escalate BGM register as rounds progress */
-    POS.Bus.on('roundStart', function (roundIdx) {
-      audio.bgmSetRegister(bgmRegisterForRound(roundIdx));
+    POS.Bus.on('roundStart', function () {
+      audio.bgmSetRegister(bgmRegisterForRound());
     });
 
     /* Stop BGM on game over / clear */

@@ -202,27 +202,45 @@ POS.Loader = {
   },
 
   _getTierForRound: function (roundIndex) {
-    if (roundIndex < DIFFICULTY_TABLE.length) {
-      var base = DIFFICULTY_TABLE[roundIndex];
+    /* Rounds 0-2: fixed intro tiers (always easy start) */
+    if (roundIndex < 3) {
+      var intro = DIFFICULTY_TABLE[roundIndex];
       return {
-        npcType:   base.npcType,
-        products: base.products,
-        qtyMin:   base.qtyMin,
-        qtyMax:   base.qtyMax,
-        saleCount: base.saleCount,
-        discPair: base.discPair,
+        npcType:   intro.npcType,
+        products:  intro.products,
+        qtyMin:    intro.qtyMin,
+        qtyMax:    intro.qtyMax,
+        saleCount: intro.saleCount,
+        discPair:  intro.discPair,
       };
     }
 
-    /* After round 10: spike difficulty every 3 rounds */
-    var block = Math.floor((roundIndex - 10) / 3) + 1;
+    /* Round 3+: adaptive — tier driven by State.diffRating */
+    var State = POS.State;
+    var tierIdx = 3 + Math.floor(State.diffRating);
+
+    if (tierIdx < DIFFICULTY_TABLE.length) {
+      var base = DIFFICULTY_TABLE[tierIdx];
+      return {
+        npcType:   base.npcType,
+        products:  base.products,
+        qtyMin:    base.qtyMin,
+        qtyMax:    base.qtyMax,
+        saleCount: base.saleCount,
+        discPair:  base.discPair,
+      };
+    }
+
+    /* Beyond table: escalating difficulty */
+    var overflow = tierIdx - DIFFICULTY_TABLE.length;
+    var block = Math.max(1, Math.floor(overflow / 3) + 1);
     var tier = {
       npcType:   'rushed',
-      products: Math.min(8, 5 + Math.floor(block / 2)),
-      qtyMin:   6 + Math.floor(block / 2),
-      qtyMax:   7 + Math.floor((block + 1) / 2),
+      products:  Math.min(8, 5 + Math.floor(block / 2)),
+      qtyMin:    6 + Math.floor(block / 2),
+      qtyMax:    7 + Math.floor((block + 1) / 2),
       saleCount: Math.min(3, 2 + Math.floor(block / 3)),
-      discPair: [15, 20],
+      discPair:  [15, 20],
       drainRateMult: 1 + block * 0.12,
       mistakeMult:   1 + block * 0.10,
     };

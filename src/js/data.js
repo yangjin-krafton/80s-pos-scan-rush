@@ -45,8 +45,8 @@ POS.PARAMS = {
   roundIntroTime: 0.0,
   roundClearTime: 0.0,
   endlessRounds: true,
-  roundSeedCount: 12,
-  roundChunkSize: 6,
+  roundSeedCount: 3,
+  roundChunkSize: 2,
 };
 
 POS.getCorrectDiscount = function (itemId) {

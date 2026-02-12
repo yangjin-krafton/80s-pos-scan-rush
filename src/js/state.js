@@ -53,12 +53,16 @@ POS.State = {
   customerAnimTimer: 0,
   lastCheckoutReport: null,
 
+  /* ---- Adaptive difficulty ---- */
+  diffRating: 0,
+
   resetGame: function () {
     this.phase = 'title';
     this.round = 0;
     this.score = 0;
     this.combo = 0;
     this.maxCombo = 0;
+    this.diffRating = 0;
     this.customerPhase = 'none';
     this.customerFeedback = null;
     this.currentNpc = null;
