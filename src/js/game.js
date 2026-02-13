@@ -328,6 +328,9 @@ Game.prototype.addToPOS = function (itemId) {
   var discRate = State.scanDiscountRate;
   var barcodeType;
 
+  /* Free card requires free mode active */
+  if (State.selectedFreeCard && !State.scanFreeMode) { this._scanReject(); return; }
+
   if (State.scanFreeMode) {
     /* Free mode: only promo items allowed */
     if (!item.isPromo) { this._scanReject(); return; }
@@ -422,6 +425,41 @@ Game.prototype._completeScan = function (barcode) {
 
   Bus.emit('scanComplete', { itemId: State.selectedItemId, barcode: barcode, combo: State.combo });
   Bus.emit('posUpdated');
+
+  /* Check if promo free cards should be unlocked */
+  if (!State.scanFreeMode) this._checkPromoFreeUnlock(State.selectedItemId);
+};
+
+/* ---- Promo free unlock: add free cards to cart after buyQty scanned ---- */
+
+Game.prototype._checkPromoFreeUnlock = function (itemId) {
+  var round = ROUNDS[State.round];
+  if (!round) return;
+
+  for (var i = 0; i < round.items.length; i++) {
+    var entry = round.items[i];
+    if (entry.id !== itemId) continue;
+    if (!entry.promoFreeQty || entry._promoFreeAdded) continue;
+
+    /* Count normal (non-free) scans of this item in POS */
+    var normalCount = 0;
+    for (var j = 0; j < State.posItems.length; j++) {
+      if (State.posItems[j].itemId === itemId && State.posItems[j].barcodeType === 'normal') {
+        normalCount += State.posItems[j].qty;
+      }
+    }
+
+    var buyQty = entry.promoBuyQty || (entry.qty - entry.promoFreeQty);
+    if (normalCount >= buyQty) {
+      entry._promoFreeAdded = true;
+      Bus.emit('promoFreeUnlocked', {
+        itemId: itemId,
+        freeQty: entry.promoFreeQty,
+        promoType: entry.promoType,
+      });
+    }
+    break;
+  }
 };
 
 /* ---- POS qty ---- */

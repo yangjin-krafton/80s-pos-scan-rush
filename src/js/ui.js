@@ -111,6 +111,7 @@ UI.prototype._listenBus = function () {
   Bus.on('posBlackout',     function (on) { self._onPosBlackout(on); });
   Bus.on('midAdd',          function (items) { self._onMidAdd(items); });
   Bus.on('midCancel',       function (items) { self._onMidCancel(items); });
+  Bus.on('promoFreeUnlocked', function (data) { self._onPromoFreeUnlocked(data); });
 };
 
 /* ---- per-frame ---- */
@@ -594,11 +595,13 @@ UI.prototype._renderCart = function () {
   for (var k = 0; k < orphans.length; k++) orphans[k].remove();
 
   // Expand items: qty copies as individual cards with damage info, then shuffle
+  // For promo items, only render buyQty initially (free cards added after scanning)
   var cards = [];
   round.items.forEach(function (entry) {
     var item = ITEMS[entry.id];
     if (!item) return;
-    for (var q = 0; q < entry.qty; q++) {
+    var renderQty = entry.promoFreeQty ? (entry.qty - entry.promoFreeQty) : entry.qty;
+    for (var q = 0; q < renderQty; q++) {
       var isDamaged = entry.damagedCopies ? entry.damagedCopies[q] : false;
       cards.push({ item: item, isDamaged: isDamaged, isAdded: !!entry.isAdded });
     }
@@ -846,6 +849,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     }
     addBarcodeZones();
     State.selectedItemId = item.id;
+    State.selectedFreeCard = (card.dataset.isFree === '1');
     State.scanPhase = 'itemSelected';
     State.holdProgress = 0;
     State.dragActive = true;
@@ -1067,6 +1071,56 @@ UI.prototype._onMidAdd = function (newItems) {
       })(card, rot);
     }
   }
+};
+
+/* ---- Promo free card unlock: add free cards to cart after buyQty scanned ---- */
+
+UI.prototype._onPromoFreeUnlocked = function (data) {
+  var desktop = this.els.cartDesktop;
+  if (!desktop) return;
+  var item = ITEMS[data.itemId];
+  if (!item) return;
+  var self = this;
+
+  var areaW = desktop.clientWidth || 340;
+  var areaH = desktop.clientHeight || 120;
+
+  for (var i = 0; i < data.freeQty; i++) {
+    var card = document.createElement('div');
+    card.className = 'cart-card is-promo-free';
+    card.dataset.itemId = item.id;
+    card.dataset.isDamaged = '0';
+    card.dataset.isFree = '1';
+
+    var bx = Math.random() * (areaW - 64);
+    var by = Math.random() * (areaH - 64);
+    var rot = (Math.random() - 0.5) * 20;
+
+    card.style.left = bx + 'px';
+    card.style.top = by + 'px';
+    card.style.transform = 'rotate(' + rot + 'deg) scale(0)';
+    card.style.zIndex = String((self._cartTopZ || 100) + 1);
+    self._cartTopZ = parseInt(card.style.zIndex);
+
+    card.innerHTML =
+      '<span>' + item.emoji + '</span>' +
+      '<span class="cn">' + item.name + '</span>' +
+      '<span class="sbadge promo free">무료</span>';
+
+    self._initCardDrag(card, desktop, item);
+    desktop.appendChild(card);
+
+    /* Pop-in animation */
+    (function (c, r) {
+      setTimeout(function () {
+        c.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        c.style.transform = 'rotate(' + r + 'deg) scale(1)';
+        setTimeout(function () { c.style.transition = ''; }, 320);
+      }, 50 + i * 100);
+    })(card, rot);
+  }
+
+  POS.audio.play('item_pickup');
 };
 
 /* ---- Meta event: Mid-round Cancel ---- */

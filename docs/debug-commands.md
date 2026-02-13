@@ -11,6 +11,7 @@
 | `POS.debug.god()` | God 모드 토글 (만족도 드레인 정지) |
 | `POS.debug.setDifficulty(n)` | 난이도 강제 설정 후 다음 라운드 재생성 |
 | `POS.debug.trigger(name)` | 실시간 메타 이벤트 즉시 발동 (0.5초 후) |
+| `POS.debug.tutorial(id)` | 특정 튜토리얼 라운드로 즉시 진입 |
 
 ---
 
@@ -63,6 +64,30 @@ POS.debug.trigger('posBlackout')   // POS 정전
 POS.debug.trigger('midAdd')        // 상품 추가
 POS.debug.trigger('midCancel')     // 상품 취소
 ```
+
+---
+
+## POS.debug.tutorial(id)
+
+튜토리얼 라운드를 **즉시 다음 라운드로 삽입**한 뒤 곧바로 시작한다.
+
+- 사용 가능 시점: 게임이 시작된 상태(`playing` / `roundIntro` / `customerEntering`)
+- 동작 요약: unlock DR 이상으로 `State.diffRating` 올림 → 튜토리얼+연습 라운드 2개를 다음 순서에 삽입 → `State.round` 갱신 후 `startRound`로 즉시 진입
+
+```
+POS.debug.tutorial()        // 사용 가능한 튜토리얼 ID 목록 출력
+POS.debug.tutorial('sale')  // 세일 튜토리얼로 진입
+```
+
+### 튜토리얼 ID 목록 (DR 기준)
+
+| id | unlock DR | 라벨 |
+|----|-----------|------|
+| sale | 2 | 할인 스캔 |
+| damagedBarcode | 5 | 훼손 바코드 |
+| promo | 6 | 1+1 무료 |
+| midAdd | 6 | 추가 상품 |
+| midCancel | 9 | 취소 요청 |
 
 ---
 

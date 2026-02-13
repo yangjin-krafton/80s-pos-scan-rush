@@ -280,6 +280,7 @@ POS.Loader = {
       POS.ITEMS[item.id] = item;
       var ri = { id: item.id, qty: prod.qty };
       if (prod._isPromo) {
+        ri.promoBuyQty = prod._promoBuyQty || 1;
         ri.promoFreeQty = prod._promoFreeQty || 0;
         ri.promoType = prod._promoType;
       }
@@ -343,6 +344,7 @@ POS.Loader = {
         POS.ITEMS[item.id] = item;
         var ri = { id: item.id, qty: prod.qty };
         if (prod._isPromo) {
+          ri.promoBuyQty = prod._promoBuyQty || 1;
           ri.promoFreeQty = prod._promoFreeQty || 0;
           ri.promoType = prod._promoType;
         }
@@ -579,7 +581,10 @@ POS.Loader = {
           var promoIdx = promoTargets[Math.floor(Math.random() * promoTargets.length)];
           result[promoIdx]._isPromo = true;
           result[promoIdx]._promoType = chosenPromo.label;
+          result[promoIdx]._promoBuyQty = chosenPromo.buyQty;
           result[promoIdx]._promoFreeQty = chosenPromo.freeQty;
+          /* Ensure at least buyQty before adding free copies */
+          result[promoIdx].qty = Math.max(result[promoIdx].qty, chosenPromo.buyQty);
           result[promoIdx].qty += chosenPromo.freeQty;
           promoApplied = true;
         }

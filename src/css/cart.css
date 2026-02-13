@@ -149,6 +149,18 @@
   background:#0066cc;
   font-size:7px;
 }
+.cart-card .sbadge.promo.free{
+  background:#009933;
+  font-size:8px;
+  animation:free-pulse 0.8s ease-in-out infinite alternate;
+}
+.cart-card.is-promo-free{
+  box-shadow:0 0 8px #00cc44,2px 2px 0 #000,inset 1px 1px 0 #fff;
+}
+@keyframes free-pulse{
+  from{transform:scale(1)}
+  to{transform:scale(1.15)}
+}
 
 /* Card in .game (cross-zone drag / waiting in scan zone) */
 .game > .cart-card{
