@@ -10,7 +10,7 @@ var State  = POS.State;
 var Bus    = POS.Bus;
 
 /* reason key mapping: game.js reason → NPC dialogue.mistake key */
-var MISTAKE_KEY_MAP = { missing:'missing', excess:'missing', quantity:'qty', discount:'discount' };
+var MISTAKE_KEY_MAP = { missing:'missing', excess:'missing', quantity:'qty', discount:'discount', promo:'qty' };
 
 function UI() {
   this.els = {};
@@ -76,6 +76,9 @@ UI.prototype._bindButtons = function () {
   var dcDown = document.querySelector('#dc-down');
   if (dcUp)   dcUp.addEventListener('click', function () { self._changeDiscount(5); });
   if (dcDown) dcDown.addEventListener('click', function () { self._changeDiscount(-5); });
+
+  var freeBtn = document.querySelector('#free-toggle');
+  if (freeBtn) freeBtn.addEventListener('click', function () { self._toggleFreeMode(); });
 };
 
 UI.prototype._listenBus = function () {
@@ -499,6 +502,7 @@ UI.prototype._onRoundStart = function () {
   this._renderPOS();
   this._clearScanItem();
   this._updateDiscountDisplay();
+  this._updateFreeDisplay();
   this._randomizeSeasonFx();
 
   // Apply NPC body color via CSS variable
@@ -623,7 +627,9 @@ UI.prototype._renderCart = function () {
     card.style.zIndex = z;
 
     var saleBadge = '';
-    if (item.isSale) {
+    if (item.isPromo) {
+      saleBadge = '<span class="sbadge promo">' + item.promoType + '</span>';
+    } else if (item.isSale) {
       var disc = POS.getCorrectDiscount(item.id);
       saleBadge = '<span class="sbadge">' + (disc ? disc.discountRate + '%' : '割') + '</span>';
     }
@@ -1012,7 +1018,9 @@ UI.prototype._onMidAdd = function (newItems) {
       self._cartTopZ = parseInt(card.style.zIndex);
 
       var saleBadge = '';
-      if (item.isSale) {
+      if (item.isPromo) {
+        saleBadge = '<span class="sbadge promo">' + item.promoType + '</span>';
+      } else if (item.isSale) {
         var disc = POS.getCorrectDiscount(item.id);
         saleBadge = '<span class="sbadge">' + (disc ? disc.discountRate + '%' : '割') + '</span>';
       }
@@ -1095,18 +1103,27 @@ UI.prototype._renderPOS = function () {
   for (var pi = items.length - 1; pi >= 0; pi--) { var pos = items[pi];
     var item = ITEMS[pos.itemId];
     if (!item) return;
-    var price = item.isSale && pos.barcodeType === 'discount'
-      ? Math.round(item.price * (1 - pos.discountRate / 100))
-      : item.price;
+    var price = pos.barcodeType === 'promo'
+      ? 0
+      : (item.isSale && pos.barcodeType === 'discount'
+        ? Math.round(item.price * (1 - pos.discountRate / 100))
+        : item.price);
     var lineTotal = price * pos.qty;
     total += lineTotal;
 
     var row = document.createElement('div');
-    row.className = 'pos-row' + (item.isSale ? ' sale' : '');
-    var posKey = pos.itemId + '_' + pos.discountRate;
-    var midLabel = pos.discountRate > 0
-      ? '<span class="sale-dot">' + pos.discountRate + '%OFF</span>'
-      : (item.isSale ? '<span class="sale-dot">割</span>' : '<span class="nm">' + item.name + '</span>');
+    row.className = 'pos-row' + (pos.barcodeType === 'promo' ? ' promo' : (item.isSale ? ' sale' : ''));
+    var posKey = pos.itemId + '_' + pos.barcodeType + '_' + pos.discountRate;
+    var midLabel;
+    if (pos.barcodeType === 'promo') {
+      midLabel = '<span class="sale-dot promo-dot">무료</span>';
+    } else if (pos.discountRate > 0) {
+      midLabel = '<span class="sale-dot">' + pos.discountRate + '%OFF</span>';
+    } else if (item.isSale) {
+      midLabel = '<span class="sale-dot">割</span>';
+    } else {
+      midLabel = '<span class="nm">' + item.name + '</span>';
+    }
 
     row.innerHTML =
       '<span class="em">' + item.emoji + '</span>' +
@@ -1199,6 +1216,10 @@ UI.prototype._updateProgress = function (pct) {
 
 UI.prototype._changeDiscount = function (delta) {
   State.scanDiscountRate = Math.max(0, Math.min(50, State.scanDiscountRate + delta));
+  if (State.scanDiscountRate > 0) {
+    State.scanFreeMode = false;
+    this._updateFreeDisplay();
+  }
   this._updateDiscountDisplay();
 };
 
@@ -1207,6 +1228,20 @@ UI.prototype._updateDiscountDisplay = function () {
   var r = State.scanDiscountRate;
   this.els.dcVal.textContent = r > 0 ? r + '% OFF' : '할인 없음';
   this.els.dcVal.classList.toggle('dc-active', r > 0);
+};
+
+UI.prototype._toggleFreeMode = function () {
+  State.scanFreeMode = !State.scanFreeMode;
+  if (State.scanFreeMode) {
+    State.scanDiscountRate = 0;
+    this._updateDiscountDisplay();
+  }
+  this._updateFreeDisplay();
+};
+
+UI.prototype._updateFreeDisplay = function () {
+  var btn = document.querySelector('#free-toggle');
+  if (btn) btn.classList.toggle('free-active', State.scanFreeMode);
 };
 
 /* ---- scan fail flash ---- */

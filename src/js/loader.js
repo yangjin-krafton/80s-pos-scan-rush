@@ -71,6 +71,13 @@ function computeMetas(dr) {
     };
   }
 
+  /* promo: unlocks at dr >= 6 */
+  if (dr >= 6) {
+    metas.promo = {
+      chance: clamp(0.35 + (dr - 6) * 0.05, 0.35, 0.8),
+    };
+  }
+
   /* midAdd: unlocks at dr >= 6 */
   if (dr >= 6) {
     metas.midAdd = {
@@ -124,6 +131,7 @@ function computeMetas(dr) {
 POS.Loader = {
   catalog: [],
   npcPool: [],
+  promos: [],
   _npcByType: null,
   _productPool: [],
   _nextRoundIndex: 0,
@@ -136,14 +144,17 @@ POS.Loader = {
       fetch('data/products.csv').then(function (r) { return r.text(); }),
       fetch('data/npcs.json').then(function (r) { return r.json(); }),
       fetch('data/encouragements.json').then(function (r) { return r.json(); }).catch(function () { return { encouragements: [] }; }),
+      fetch('data/promos.json').then(function (r) { return r.json(); }).catch(function () { return { promos: [] }; }),
     ]).then(function (results) {
       self.catalog = self._parseCSV(results[0]);
       self.npcPool = results[1].npcs.map(function (raw) { return self._adaptNpc(raw); });
       POS.ENCOURAGEMENTS = results[2].encouragements || [];
+      self.promos = results[3].promos || [];
+      POS.PROMOS = self.promos;
       self._buildNpcIndex();
       self._resetRoundStream();
       self._appendRounds(PARAMS.roundSeedCount || 12);
-      console.log('[loader] Loaded', self.catalog.length, 'products,', self.npcPool.length, 'NPCs,', POS.ENCOURAGEMENTS.length, 'encouragements,', POS.ROUNDS.length, 'rounds');
+      console.log('[loader] Loaded', self.catalog.length, 'products,', self.npcPool.length, 'NPCs,', POS.ENCOURAGEMENTS.length, 'encouragements,', self.promos.length, 'promos,', POS.ROUNDS.length, 'rounds');
     });
   },
 
@@ -269,9 +280,14 @@ POS.Loader = {
         var prod = picked[p];
         var isSale = prod._isSale;
         var dp = prod._discPairOverride || tier.discPair;
-        var item = this._buildItem(prod.product, isSale, dp, roundIndex);
+        var item = this._buildItem(prod.product, isSale, dp, roundIndex, prod._isPromo, prod._promoType);
         POS.ITEMS[item.id] = item;
-        roundItems.push({ id: item.id, qty: prod.qty });
+        var ri = { id: item.id, qty: prod.qty };
+        if (prod._isPromo) {
+          ri.promoFreeQty = prod._promoFreeQty || 0;
+          ri.promoType = prod._promoType;
+        }
+        roundItems.push(ri);
       }
 
       /* ---- Apply damagedBarcode meta ---- */
@@ -452,6 +468,30 @@ POS.Loader = {
       }
     }
 
+    /* ---- Step 3.5: Promo products (max 1 per round, v1) ---- */
+    var promoMeta = metas.promo;
+    var promoApplied = false;
+    if (promoMeta && Math.random() < promoMeta.chance && POS.Loader.promos && POS.Loader.promos.length) {
+      var dr = (POS.State && POS.State.diffRating) || 0;
+      var eligible = POS.Loader.promos.filter(function (p) { return dr >= p.unlockDR; });
+      if (eligible.length > 0) {
+        var chosenPromo = eligible[Math.floor(Math.random() * eligible.length)];
+        /* Pick a normal (non-sale) item from result to promote */
+        var promoTargets = [];
+        for (var pt = 0; pt < result.length; pt++) {
+          if (!result[pt]._isSale) promoTargets.push(pt);
+        }
+        if (promoTargets.length > 0) {
+          var promoIdx = promoTargets[Math.floor(Math.random() * promoTargets.length)];
+          result[promoIdx]._isPromo = true;
+          result[promoIdx]._promoType = chosenPromo.label;
+          result[promoIdx]._promoFreeQty = chosenPromo.freeQty;
+          result[promoIdx].qty += chosenPromo.freeQty;
+          promoApplied = true;
+        }
+      }
+    }
+
     /* ---- Step 4: Remaining normal products ---- */
     var normalCount = Math.max(0, needed);
     for (var nc = 0; nc < normalCount; nc++) {
@@ -537,7 +577,7 @@ POS.Loader = {
   },
 
   /* ---- Build a POS.ITEMS entry ---- */
-  _buildItem: function (product, isSale, discPair, roundIndex) {
+  _buildItem: function (product, isSale, discPair, roundIndex, isPromo, promoType) {
     var barcodes = [{ x:0.20, y:0.76, w:0.60, h:0.18, type:'normal' }];
 
     if (isSale && discPair) {
@@ -547,7 +587,7 @@ POS.Loader = {
       barcodes.push({ x:0.56, y:0.18, w:0.44, h:0.24, type:'discount', discountRate:high, label:high + '%OFF' });
     }
 
-    var suffix = '_r' + (roundIndex + 1) + (isSale ? 's' + (discPair ? discPair[0] : '') : 'n');
+    var suffix = '_r' + (roundIndex + 1) + (isSale ? 's' + (discPair ? discPair[0] : '') : (isPromo ? 'p' : 'n'));
     var itemId = product.id + suffix;
     if (POS.ITEMS[itemId]) itemId = itemId + '_' + Math.floor(Math.random() * 1000);
     var item = {
@@ -560,6 +600,10 @@ POS.Loader = {
       barcodes: barcodes,
     };
     if (isSale) item.isSale = true;
+    if (isPromo) {
+      item.isPromo = true;
+      item.promoType = promoType || '1+1';
+    }
     return item;
   },
 };

@@ -145,6 +145,10 @@
   border:2px solid #fff;box-shadow:1px 1px 0 #000;padding:0 2px;
   font-family:"MS Gothic","Arial Black",sans-serif;
 }
+.cart-card .sbadge.promo{
+  background:#0066cc;
+  font-size:7px;
+}
 
 /* Card in .game (cross-zone drag / waiting in scan zone) */
 .game > .cart-card{

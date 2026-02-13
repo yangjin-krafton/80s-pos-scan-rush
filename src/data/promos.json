@@ -1,0 +1,6 @@
+{
+  "promos": [
+    { "id": "bogo",  "label": "1+1", "buyQty": 1, "freeQty": 1, "unlockDR": 6, "chance": 0.35 },
+    { "id": "b2g1",  "label": "2+1", "buyQty": 2, "freeQty": 1, "unlockDR": 8, "chance": 0.25 }
+  ]
+}

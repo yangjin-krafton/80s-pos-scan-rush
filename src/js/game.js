@@ -46,15 +46,16 @@ Game.prototype.startRound = function () {
   State.phaseTimer = PARAMS.roundIntroTime;
 
   /* ---- Compute drainRate from item count + difficulty margin ---- */
-  var totalQty = 0, saleQty = 0;
+  var totalQty = 0, saleQty = 0, promoQty = 0;
   for (var i = 0; i < round.items.length; i++) {
     var ri = round.items[i];
     totalQty += ri.qty;
     if (ITEMS[ri.id] && ITEMS[ri.id].isSale) saleQty += ri.qty;
+    promoQty += (ri.promoFreeQty || 0);
   }
-  var normalQty = totalQty - saleQty;
-  var rawTime = normalQty * PARAMS.timePerNormal + saleQty * PARAMS.timePerSale;
-  var effectiveSat = PARAMS.maxSatisfaction + totalQty * PARAMS.scanRecovery;
+  var normalQty = totalQty - saleQty - promoQty;
+  var rawTime = normalQty * PARAMS.timePerNormal + saleQty * PARAMS.timePerSale + promoQty * PARAMS.timePerPromo;
+  var effectiveSat = PARAMS.maxSatisfaction + (totalQty - promoQty) * PARAMS.scanRecovery + promoQty * PARAMS.promoScanRecovery;
   var t = Math.min(State.diffRating / PARAMS.marginPeak, 1);
   var margin = PARAMS.marginHard + (PARAMS.marginEasy - PARAMS.marginHard) * Math.pow(1 - t, 1.5);
   State.currentNpc.drainRate = effectiveSat / (rawTime * margin);
@@ -310,9 +311,15 @@ Game.prototype.addToPOS = function (itemId) {
   if (!item) return;
 
   var discRate = State.scanDiscountRate;
+  var barcodeType;
 
-  /* validate discount setting vs item */
-  if (discRate > 0) {
+  if (State.scanFreeMode) {
+    /* Free mode: only promo items allowed */
+    if (!item.isPromo) { this._scanReject(); return; }
+    barcodeType = 'promo';
+    discRate = 0;
+  } else if (discRate > 0) {
+    /* Discount mode: validate discount setting vs item */
     if (!item.isSale) { this._scanReject(); return; }
     var hasMatch = false;
     for (var j = 0; j < item.barcodes.length; j++) {
@@ -321,15 +328,16 @@ Game.prototype.addToPOS = function (itemId) {
       }
     }
     if (!hasMatch) { this._scanReject(); return; }
+    barcodeType = 'discount';
   } else {
+    /* Normal mode */
     if (item.isSale) { this._scanReject(); return; }
+    barcodeType = 'normal';
   }
-
-  var barcodeType = discRate > 0 ? 'discount' : 'normal';
 
   var existing = null;
   for (var i = 0; i < State.posItems.length; i++) {
-    if (State.posItems[i].itemId === itemId && State.posItems[i].discountRate === discRate) {
+    if (State.posItems[i].itemId === itemId && State.posItems[i].barcodeType === barcodeType && State.posItems[i].discountRate === discRate) {
       existing = State.posItems[i]; break;
     }
   }
@@ -387,7 +395,8 @@ Game.prototype._completeScan = function (barcode) {
   State.combo++;
   if (State.combo > State.maxCombo) State.maxCombo = State.combo;
   State.score += PARAMS.scorePerScan + PARAMS.scoreComboBonus * State.combo;
-  State.satisfaction = Math.min(PARAMS.maxSatisfaction, State.satisfaction + PARAMS.scanRecovery);
+  var recovery = State.scanFreeMode ? PARAMS.promoScanRecovery : PARAMS.scanRecovery;
+  State.satisfaction = Math.min(PARAMS.maxSatisfaction, State.satisfaction + recovery);
   Bus.emit('moodHint', 'calm');
 
   this.audio.play('scan_beep');
@@ -403,13 +412,15 @@ Game.prototype._completeScan = function (barcode) {
 /* ---- POS qty ---- */
 
 Game.prototype.changeQty = function (key, delta) {
-  var sep = key.lastIndexOf('_');
-  var itemId   = key.substring(0, sep);
-  var discRate = parseFloat(key.substring(sep + 1));
+  /* posKey format: itemId_barcodeType_discountRate */
+  var parts = key.split('_');
+  var discRate = parseFloat(parts.pop());
+  var barcodeType = parts.pop();
+  var itemId = parts.join('_');
 
   var entry = null;
   for (var i = 0; i < State.posItems.length; i++) {
-    if (State.posItems[i].itemId === itemId && State.posItems[i].discountRate === discRate) {
+    if (State.posItems[i].itemId === itemId && State.posItems[i].barcodeType === barcodeType && State.posItems[i].discountRate === discRate) {
       entry = State.posItems[i]; break;
     }
   }
@@ -417,7 +428,7 @@ Game.prototype.changeQty = function (key, delta) {
   entry.qty += delta;
   if (entry.qty <= 0) {
     State.posItems = State.posItems.filter(function (p) {
-      return !(p.itemId === itemId && p.discountRate === discRate);
+      return !(p.itemId === itemId && p.barcodeType === barcodeType && p.discountRate === discRate);
     });
   }
   this.audio.play('ui_click');
@@ -472,9 +483,24 @@ Game.prototype.attemptCheckout = function () {
     for (var j = 0; j < State.posItems.length; j++) {
       var entry = State.posItems[j];
       if (entry.itemId !== req.id) continue;
+      if (entry.barcodeType === 'promo') continue; /* skip promo entries */
       if (entry.barcodeType !== 'discount' || entry.discountRate !== correct.discountRate)
         return this._checkoutFail('discount', '할인 스티커가 달라!');
     }
+  }
+
+  /* Promo free quantity verification */
+  for (i = 0; i < required.length; i++) {
+    req = required[i];
+    if (!req.promoFreeQty) continue;
+    var freeScanned = 0;
+    for (var pj = 0; pj < State.posItems.length; pj++) {
+      if (State.posItems[pj].itemId === req.id && State.posItems[pj].barcodeType === 'promo') {
+        freeScanned += State.posItems[pj].qty;
+      }
+    }
+    if (freeScanned !== req.promoFreeQty)
+      return this._checkoutFail('promo', '무료 상품이 안 맞아!');
   }
 
   this._checkoutSuccess();
@@ -561,11 +587,21 @@ Game.prototype._buildCheckoutReport = function (reason, message) {
         for (var k = 0; k < State.posItems.length; k++) {
           var e = State.posItems[k];
           if (e.itemId !== req.id) continue;
+          if (e.barcodeType === 'promo') continue;
           if (e.barcodeType !== 'discount' || e.discountRate !== correct.discountRate) {
             status = 'discount'; break;
           }
         }
       }
+    }
+    if (status === 'ok' && req.promoFreeQty) {
+      var freeCount = 0;
+      for (var pck = 0; pck < State.posItems.length; pck++) {
+        if (State.posItems[pck].itemId === req.id && State.posItems[pck].barcodeType === 'promo') {
+          freeCount += State.posItems[pck].qty;
+        }
+      }
+      if (freeCount !== req.promoFreeQty) status = 'promo';
     }
     lines.push({
       id: req.id,

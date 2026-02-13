@@ -71,12 +71,16 @@
   font-family:"Courier New",monospace;
 }
 .pos-row.sale{border-color:#880000}
+.pos-row.promo{border-color:#003399}
 .pos-row.sale .nm{color:#ff6666}
 .pos-row.sale .pr{color:#ff4444}
 .sale-dot{
   display:inline-block;padding:0 3px;background:#880000;
   color:#ff6666;font-size:9px;font-weight:bold;margin-left:3px;
   font-family:"Courier New",monospace;
+}
+.sale-dot.promo-dot{
+  background:#003399;color:#66aaff;
 }
 .pos-foot{
   flex-shrink:0;padding:3px 4px;background:#000;
@@ -178,6 +182,28 @@
 .dc-val.dc-active{
   background:#ffe0e0;color:#c00;
   font-weight:900;
+}
+
+/* Free toggle button */
+.free-btn{
+  width:36px;height:22px;
+  background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-size:10px;font-weight:bold;color:#000;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-family:"MS Gothic","Arial Black",sans-serif;
+  padding:0;line-height:1;
+}
+.free-btn:active{
+  border-color:#000 #dfdfdf #dfdfdf #000;
+  box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff;
+}
+.free-btn.free-active{
+  background:#0066cc;color:#fff;
+  border-color:#000 #4499ee #4499ee #000;
+  box-shadow:inset 1px 1px 0 #003366, inset -1px -1px 0 #66bbff;
 }
 
 /* ---- RIGHT: SCAN ZONE ---- */

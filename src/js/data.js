@@ -52,6 +52,9 @@ POS.PARAMS = {
   midAddSatBoost: 3,
   midCancelSatDrain: 5,
   blackoutCheckoutBlock: true,
+  /* promo params */
+  promoScanRecovery: 8,
+  timePerPromo: 2.0,
   /* time-budget balance constants */
   timePerNormal: 1.3,
   timePerSale:   2.2,
