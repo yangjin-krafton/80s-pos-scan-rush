@@ -23,6 +23,13 @@ function UI() {
   this._checkoutFailTimer = 0;
 }
 
+/* ---- NPC bubble + TTS helper ---- */
+UI.prototype._bubble = function (text) {
+  if (!text || !this.els.pxBubble) return;
+  this.els.pxBubble.textContent = text;
+  if (POS.audio) POS.audio.speakNpc(text);
+};
+
 /* ---- init ---- */
 UI.prototype.init = function () {
   this._cache();
@@ -379,8 +386,8 @@ UI.prototype._onCustomerArrive = function () {
   if (dept) dept.remove();
   // Show NPC greeting
   var npc = State.currentNpc;
-  if (npc && this.els.pxBubble) {
-    this.els.pxBubble.textContent = POS.pickDialogue(npc.dialogue.greeting);
+  if (npc) {
+    this._bubble(POS.pickDialogue(npc.dialogue.greeting));
   }
 };
 
@@ -398,9 +405,9 @@ UI.prototype._onCustomerFeedback = function (type) {
         '<span class="fb-heart" style="left:16px;animation-delay:0.3s">♥</span>';
       fb.classList.add('active');
     }
-    if (npc && this.els.pxBubble) {
-      this.els.pxBubble.textContent = POS.pickDialogue(npc.dialogue.checkoutSuccess);
-      this.els.pxBubble.classList.remove('feedback-error');
+    if (npc) {
+      this._bubble(POS.pickDialogue(npc.dialogue.checkoutSuccess));
+      if (this.els.pxBubble) this.els.pxBubble.classList.remove('feedback-error');
     }
     if (this.els.pxHead) this.els.pxHead.textContent = '😄';
   } else {
@@ -409,10 +416,10 @@ UI.prototype._onCustomerFeedback = function (type) {
       fb.innerHTML = '<span class="fb-angry">!!</span>';
       fb.classList.add('active');
     }
-    if (npc && this.els.pxBubble) {
+    if (npc) {
       var msg = POS.pickDialogue(npc.dialogue.checkoutFail) || POS.pickDialogue(npc.dialogue.timeout);
-      this.els.pxBubble.textContent = msg;
-      this.els.pxBubble.classList.add('feedback-error');
+      this._bubble(msg);
+      if (this.els.pxBubble) this.els.pxBubble.classList.add('feedback-error');
     }
     if (this.els.pxHead) this.els.pxHead.textContent = '🤬';
   }
@@ -433,10 +440,10 @@ UI.prototype._onCustomerLeave = function (type) {
 
 UI.prototype._onMoodChange = function (mood) {
   var npc = State.currentNpc;
-  if (npc && this.els.pxBubble) {
+  if (npc) {
     var lines = npc.dialogue.moodChange[mood];
     if (lines && lines.length) {
-      this.els.pxBubble.textContent = POS.pickDialogue(lines);
+      this._bubble(POS.pickDialogue(lines));
     }
   }
   this._showMoodFx(mood);
@@ -963,13 +970,9 @@ UI.prototype._onMidAdd = function (newItems) {
 
   /* Show NPC dialogue */
   var npc = State.currentNpc;
-  if (npc && this.els.pxBubble) {
+  if (npc) {
     var lines = npc.dialogue.addRequest;
-    if (lines && lines.length) {
-      this.els.pxBubble.textContent = POS.pickDialogue(lines);
-    } else {
-      this.els.pxBubble.textContent = 'あ、これも追加で！';
-    }
+    this._bubble((lines && lines.length) ? POS.pickDialogue(lines) : 'あ、これも追加で！');
   }
 
   /* Create new cart cards */
@@ -1028,13 +1031,9 @@ UI.prototype._onMidCancel = function (cancelledItems) {
 
   /* Show NPC dialogue */
   var npc = State.currentNpc;
-  if (npc && this.els.pxBubble) {
+  if (npc) {
     var lines = npc.dialogue.cancelRequest;
-    if (lines && lines.length) {
-      this.els.pxBubble.textContent = POS.pickDialogue(lines);
-    } else {
-      this.els.pxBubble.textContent = 'やっぱりこれ、いらない。';
-    }
+    this._bubble((lines && lines.length) ? POS.pickDialogue(lines) : 'やっぱりこれ、いらない。');
   }
 
   /* Mark cancelled cart cards */
@@ -1239,7 +1238,7 @@ UI.prototype._onScanComplete = function (data) {
   }
   if (data.combo >= 2) this._showCombo(data.combo);
 
-  // 30% chance to show NPC scanSuccess dialogue
+  // 30% chance to show NPC scanSuccess dialogue (text only — product name TTS is already playing)
   if (State.currentNpc && this.els.pxBubble) {
     var roll = Math.random();
     if (roll < 0.3) {
@@ -1262,8 +1261,8 @@ UI.prototype._showCombo = function (n) {
 /* ---- feedback ---- */
 
 UI.prototype._showFeedback = function (message, type) {
+  this._bubble(message);
   if (this.els.pxBubble) {
-    this.els.pxBubble.textContent = message;
     this.els.pxBubble.classList.add('feedback-' + type);
   }
   this._feedbackTimer = 3.5;
@@ -1364,6 +1363,8 @@ UI.prototype._showGameOver = function () {
   if (served.length > 0 && enc.length > 0) {
     var speaker = served[Math.floor(Math.random() * served.length)];
     var msg = enc[Math.floor(Math.random() * enc.length)];
+    /* Read the encouragement aloud */
+    if (POS.audio) POS.audio.speakNpc(msg.ja);
     bubbleHtml =
       '<div class="go-bubble-wrap">' +
         '<div class="go-bubble">' +

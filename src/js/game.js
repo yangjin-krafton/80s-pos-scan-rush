@@ -393,7 +393,7 @@ Game.prototype._completeScan = function (barcode) {
   if (State.combo >= 3) this.audio.play('combo_up', 0.5);
 
   var scannedItem = ITEMS[State.selectedItemId];
-  if (scannedItem) this.audio.speakJa(scannedItem.name);
+  if (scannedItem) this.audio.speakProduct(scannedItem.name);
 
   Bus.emit('scanComplete', { itemId: State.selectedItemId, barcode: barcode, combo: State.combo });
   Bus.emit('posUpdated');

@@ -30,6 +30,13 @@ function AudioManager() {
   this.bgmVolume = 0.5;
   this.ttsVolume = 0.8;
 
+  /* TTS state — two channels: product (scan) & npc (dialogue) */
+  this._ttsProductTimer = 0;
+  this._ttsProductUtter = null;
+  this._ttsNpcTimer     = 0;
+  this._ttsNpcUtter     = null;
+  this._ttsNpcLastTime  = 0;
+
   /* BGM state */
   this._bgmBuffers  = {};
   this._bgmSources  = {};
@@ -242,21 +249,96 @@ AudioManager.prototype.bgmSetRegister = function (register) {
    TTS — Japanese product name readout (Web Speech API)
    ================================================================ */
 
-AudioManager.prototype.speakJa = function (text) {
+/* Auto-detect language from text content */
+AudioManager.prototype._detectLang = function (text) {
+  if (/[\uAC00-\uD7AF\u3130-\u318F]/.test(text)) return 'ko-KR';
+  if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(text)) return 'ja-JP';
+  return 'en-US';
+};
+
+/* ---- shared enqueue helper ---- */
+AudioManager.prototype._ttsEnqueue = function (text, opts) {
+  var synth = window.speechSynthesis;
+  if (!synth) return;
+  var self = this;
+  var lang = this._detectLang(text);
+
+  clearTimeout(this[opts.timerKey]);
+  this[opts.timerKey] = setTimeout(function () {
+    if (synth.paused) synth.resume();
+
+    var utter = new SpeechSynthesisUtterance(text);
+    utter.lang  = lang;
+    utter.rate  = opts.rate  || 1.1;
+    utter.pitch = opts.pitch || 1.05;
+    utter.volume = self.ttsVolume;
+
+    /* Keep a reference so iOS Safari won't GC the utterance mid-speech */
+    self[opts.utterKey] = utter;
+
+    synth.speak(utter);
+  }, opts.delay || 50);
+};
+
+/**
+ * Product channel — short product names during scanning.
+ * Cancels previous product utterance only; NPC speech keeps playing.
+ */
+AudioManager.prototype.speakProduct = function (text) {
   if (this.muted || !text) return;
   var synth = window.speechSynthesis;
   if (!synth) return;
 
-  /* Cancel any ongoing speech so they don't stack */
+  /* Cancel ONLY the previous product utterance if still speaking */
+  var prev = this._ttsProductUtter;
+  if (prev) {
+    /* Remove just this utterance by ending it early */
+    prev.onend = null;
+    prev.onerror = null;
+  }
+  /* Unfortunately speechSynthesis has no per-utterance cancel,
+     so we cancel all and re-queue the pending NPC utterance */
+  var pendingNpc = this._ttsNpcUtter;
+  var npcStillSpeaking = pendingNpc && synth.speaking;
   synth.cancel();
 
-  var utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'ja-JP';
-  utter.rate = 1.1;
-  utter.pitch = 1.05;
-  utter.volume = this.ttsVolume;
-  synth.speak(utter);
+  this._ttsEnqueue(text, {
+    timerKey: '_ttsProductTimer',
+    utterKey: '_ttsProductUtter',
+    rate: 1.2,
+    delay: 50
+  });
+
+  /* Re-queue NPC utterance if it was interrupted */
+  if (npcStillSpeaking && pendingNpc) {
+    this._ttsEnqueue(pendingNpc.text, {
+      timerKey: '_ttsNpcTimer',
+      utterKey: '_ttsNpcUtter',
+      rate: 1.0,
+      delay: 120
+    });
+  }
 };
+
+/**
+ * NPC channel — dialogue lines.
+ * Queues after any ongoing product speech (no cancel).
+ */
+AudioManager.prototype.speakNpc = function (text) {
+  if (this.muted || !text) return;
+  var now = Date.now();
+  if (now - this._ttsNpcLastTime < 30000) return;
+  this._ttsNpcLastTime = now;
+  this._ttsEnqueue(text, {
+    timerKey: '_ttsNpcTimer',
+    utterKey: '_ttsNpcUtter',
+    rate: 1.0,
+    delay: 80
+  });
+};
+
+/** Backward-compat alias */
+AudioManager.prototype.speakJa = AudioManager.prototype.speakNpc;
 
 /** Live-update BGM gain nodes when volume slider changes */
 AudioManager.prototype.setBgmVolume = function (v) {
