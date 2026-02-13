@@ -289,17 +289,16 @@ AudioManager.prototype.speakProduct = function (text) {
   var synth = window.speechSynthesis;
   if (!synth) return;
 
+  /* NPC TTS 재생 중이면 상품 TTS 스킵 */
+  var pendingNpc = this._ttsNpcUtter;
+  if (pendingNpc && synth.speaking) return;
+
   /* Cancel ONLY the previous product utterance if still speaking */
   var prev = this._ttsProductUtter;
   if (prev) {
-    /* Remove just this utterance by ending it early */
     prev.onend = null;
     prev.onerror = null;
   }
-  /* Unfortunately speechSynthesis has no per-utterance cancel,
-     so we cancel all and re-queue the pending NPC utterance */
-  var pendingNpc = this._ttsNpcUtter;
-  var npcStillSpeaking = pendingNpc && synth.speaking;
   synth.cancel();
 
   this._ttsEnqueue(text, {
@@ -308,16 +307,6 @@ AudioManager.prototype.speakProduct = function (text) {
     rate: 1.2,
     delay: 50
   });
-
-  /* Re-queue NPC utterance if it was interrupted */
-  if (npcStillSpeaking && pendingNpc) {
-    this._ttsEnqueue(pendingNpc.text, {
-      timerKey: '_ttsNpcTimer',
-      utterKey: '_ttsNpcUtter',
-      rate: 1.0,
-      delay: 120
-    });
-  }
 };
 
 /**
