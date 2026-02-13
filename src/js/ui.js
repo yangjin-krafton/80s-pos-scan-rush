@@ -1440,6 +1440,25 @@ UI.prototype.showTitle = function () {
     '</div>' +
     '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
     '<div class="title-start">' +
+      '<span class="title-blink">▶ 화면을 클릭하여 다음</span>' +
+    '</div>' +
+    '<div class="title-footer">' +
+      '🇰🇷 유학생 아르바이트 서바이벌 🇯🇵' +
+    '</div>';
+
+  var howto2Body =
+    '<div class="title-tutorial">' +
+      '<img class="title-tutorial-gif" src="assets/images/g_02.gif" alt="할인 상품 가이드">' +
+    '</div>' +
+    '<div class="title-howto">' +
+      '<div class="title-howto-title">💸 할인 상품 가이드</div>' +
+      '<div class="title-step">🏷️ <em>할인 상품</em>은 전용 표시를 확인!</div>' +
+      '<div class="title-step">🔻 할인 버튼으로 <em>정확한 할인율</em> 적용!</div>' +
+      '<div class="title-step">✅ 할인 후 <em>가격</em>을 다시 체크!</div>' +
+      '<div class="title-challenge">⚡ 실수 없이 적용하면 보너스 점수!</div>' +
+    '</div>' +
+    '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
+    '<div class="title-start">' +
       '<span class="title-blink">▶ 화면을 클릭하여 시작</span>' +
     '</div>' +
     '<div class="title-footer">' +
@@ -1457,8 +1476,14 @@ UI.prototype.showTitle = function () {
   var renderHowto = function () {
     inner.innerHTML =
       '<div class="title-screen">' +
-        baseHeader +
         howtoBody +
+      '</div>';
+  };
+
+  var renderHowto2 = function () {
+    inner.innerHTML =
+      '<div class="title-screen">' +
+        howto2Body +
       '</div>';
   };
 
@@ -1471,11 +1496,17 @@ UI.prototype.showTitle = function () {
     ov.removeEventListener('click', handler);
     renderHowto();
 
-    var startHandler = function () {
-      ov.removeEventListener('click', startHandler);
-      Bus.emit('startClick');
+    var howtoHandler = function () {
+      ov.removeEventListener('click', howtoHandler);
+      renderHowto2();
+
+      var startHandler = function () {
+        ov.removeEventListener('click', startHandler);
+        Bus.emit('startClick');
+      };
+      ov.addEventListener('click', startHandler);
     };
-    ov.addEventListener('click', startHandler);
+    ov.addEventListener('click', howtoHandler);
   };
   ov.addEventListener('click', handler);
 };
