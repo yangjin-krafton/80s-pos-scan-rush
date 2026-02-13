@@ -1424,9 +1424,9 @@ UI.prototype.showTitle = function () {
 
       '<div class="title-howto">' +
         '<div class="title-howto-title">🎮 HOW TO PLAY</div>' +
-        '<div class="title-step">📦 손님의 상품을 바코드로 <em>스캔</em>!</div>' +
-        '<div class="title-step">💻 POS에 정확한 상품을 <em>입력</em>!</div>' +
-        '<div class="title-step">💴 틀리지 않게 <em>계산 완료</em>!</div>' +
+        '<div class="title-step">📦 아래 화면에는 손님의 구메한 상품 장바구니<em></em>!</div>' +
+        '<div class="title-step">💻 상품 하나씩 바코드 스캔 하고 <em>가격 확인</em>!</div>' +
+        '<div class="title-step">💴 POS 기에 모든상품 등록 후 <em>계산 버튼 클릭</em>!</div>' +
         '<div class="title-challenge">⚡ 빠르고 정확하게, 손님을 웃게 하세요!</div>' +
       '</div>' +
 
