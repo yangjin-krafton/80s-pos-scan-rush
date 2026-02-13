@@ -186,7 +186,8 @@ Game.prototype.update = function (dt) {
     if (State.autoBagTimer <= 0) {
       State.scanPhase = 'idle';
       State.selectedItemId = null;
-      State.dragActive = false;
+      /* Only clear dragActive if no card is currently being dragged */
+      if (!State.cardDragActive) State.dragActive = false;
       Bus.emit('itemBagged');
     }
   }

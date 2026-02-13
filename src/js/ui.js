@@ -649,6 +649,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
   var moved = false;
   var inGame = false;
   var activePointerId = null;
+  var reparenting = false;
   var DRAG_THRESHOLD = 6;
 
   /* Cached during drag — avoids repeated layout reflow on PC */
@@ -714,12 +715,18 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     var cw = card.offsetWidth || 64;
     var ch = card.offsetHeight || 64;
     inGame = true;
+    reparenting = true;
     card.remove();
     card.classList.add('in-game');
     card.style.left = (gc.x - cw / 2) + 'px';
     card.style.top  = (gc.y - ch / 2) + 'px';
     card.style.zIndex = '500';
     gameEl.appendChild(card);
+    /* Re-capture pointer — DOM removal releases capture and fires pointercancel */
+    if (activePointerId !== null) {
+      try { card.setPointerCapture(activePointerId); } catch (ex) { /* ok */ }
+    }
+    reparenting = false;
   }
 
   function reparentToCart(dropEvt) {
@@ -821,6 +828,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     if (scanner.activeDragEl !== card) return;
     /* scan succeeded — fly card to wait area */
     dragging = false;
+    State.cardDragActive = false;
     State.dragActive = false;
     cleanupDragState();
     card.style.willChange = '';
@@ -838,6 +846,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
     if (State.phase !== 'playing') return;
     e.preventDefault();
     dragging = true;
+    State.cardDragActive = true;
     moved = false;
     activePointerId = e.pointerId;
     card.setPointerCapture(e.pointerId);
@@ -863,6 +872,7 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
 
   function onMove(e) {
     if (!dragging) return;
+    e.preventDefault();
 
     if (!inGame) {
       var dx = e.clientX - startX;
@@ -900,7 +910,10 @@ UI.prototype._initCardDrag = function (card, desktop, item) {
 
   function onUp(e) {
     if (!dragging) return;
+    /* Ignore pointercancel fired during DOM reparenting */
+    if (reparenting && e.type === 'pointercancel') return;
     dragging = false;
+    State.cardDragActive = false;
     activePointerId = null;
     State.dragActive = false;
     cleanupDragState();

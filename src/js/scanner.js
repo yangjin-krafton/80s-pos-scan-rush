@@ -72,6 +72,8 @@ Scanner.prototype._onMove = function (e) {
 
 Scanner.prototype._onUp = function () {
   if (!State.dragActive) return;
+  /* Don't clear dragActive if a card drag is in progress */
+  if (State.cardDragActive) return;
   State.dragActive = false;
 
   var dragItem = this.scanContent ? this.scanContent.querySelector('.drag-item') : null;
