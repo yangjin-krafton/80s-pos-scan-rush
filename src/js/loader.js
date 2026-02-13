@@ -533,30 +533,6 @@ POS.Loader = {
       }
     }
 
-    /* ---- Step 3.5: Promo products (max 1 per round, v1) ---- */
-    var promoMeta = metas.promo;
-    var promoApplied = false;
-    if (promoMeta && Math.random() < promoMeta.chance && POS.Loader.promos && POS.Loader.promos.length) {
-      var dr = (POS.State && POS.State.diffRating) || 0;
-      var eligible = POS.Loader.promos.filter(function (p) { return dr >= p.unlockDR; });
-      if (eligible.length > 0) {
-        var chosenPromo = eligible[Math.floor(Math.random() * eligible.length)];
-        /* Pick a normal (non-sale) item from result to promote */
-        var promoTargets = [];
-        for (var pt = 0; pt < result.length; pt++) {
-          if (!result[pt]._isSale) promoTargets.push(pt);
-        }
-        if (promoTargets.length > 0) {
-          var promoIdx = promoTargets[Math.floor(Math.random() * promoTargets.length)];
-          result[promoIdx]._isPromo = true;
-          result[promoIdx]._promoType = chosenPromo.label;
-          result[promoIdx]._promoFreeQty = chosenPromo.freeQty;
-          result[promoIdx].qty += chosenPromo.freeQty;
-          promoApplied = true;
-        }
-      }
-    }
-
     /* ---- Step 4: Remaining normal products ---- */
     var normalCount = Math.max(0, needed);
     for (var nc = 0; nc < normalCount; nc++) {
@@ -573,6 +549,40 @@ POS.Loader = {
       if (!found && pool.length > 0) {
         var fb = pool.splice(0, 1)[0];
         result.push({ product: fb, _isSale: false, qty: 1 });
+      }
+    }
+
+    /* ---- Step 4.5: Promo products (max 1 per round, after normal picks) ---- */
+    var promoMeta = metas.promo;
+    var promoApplied = false;
+    if (promoMeta && Math.random() < promoMeta.chance) {
+      var forced = promoMeta.chance >= 1;
+      var promoList = (POS.Loader.promos && POS.Loader.promos.length) ? POS.Loader.promos : [];
+      var eligible;
+      if (forced) {
+        /* Forced promo (tutorials): bypass DR gate, use all promos */
+        eligible = promoList.length
+          ? promoList.slice()
+          : [{ id:'bogo', label:'1+1', buyQty:1, freeQty:1 }];
+      } else {
+        var dr = (POS.State && POS.State.diffRating) || 0;
+        eligible = promoList.filter(function (p) { return dr >= p.unlockDR; });
+      }
+      if (eligible.length > 0) {
+        var chosenPromo = eligible[Math.floor(Math.random() * eligible.length)];
+        /* Pick a normal (non-sale) item from result to promote */
+        var promoTargets = [];
+        for (var pt = 0; pt < result.length; pt++) {
+          if (!result[pt]._isSale) promoTargets.push(pt);
+        }
+        if (promoTargets.length > 0) {
+          var promoIdx = promoTargets[Math.floor(Math.random() * promoTargets.length)];
+          result[promoIdx]._isPromo = true;
+          result[promoIdx]._promoType = chosenPromo.label;
+          result[promoIdx]._promoFreeQty = chosenPromo.freeQty;
+          result[promoIdx].qty += chosenPromo.freeQty;
+          promoApplied = true;
+        }
       }
     }
 

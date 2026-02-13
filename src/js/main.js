@@ -363,6 +363,12 @@ POS.debug = {
       return;
     }
 
+    /* Ensure DR is at least the unlock threshold for this tutorial */
+    if (State.diffRating < def.unlockDR) {
+      console.log('%c[debug] Bumping DR from ' + State.diffRating.toFixed(1) + ' to ' + def.unlockDR, 'color:#ff0');
+      State.diffRating = def.unlockDR;
+    }
+
     /* Build tutorial + practice rounds */
     var tutRound  = game._buildTutorialRound(def.tutorial, id, 'tutorial');
     var pracRound = game._buildTutorialRound(def.practice, id, 'practice');
