@@ -316,7 +316,7 @@ AudioManager.prototype.speakProduct = function (text) {
 AudioManager.prototype.speakNpc = function (text) {
   if (this.muted || !text) return;
   var now = Date.now();
-  if (now - this._ttsNpcLastTime < 30000) return;
+  if (now - this._ttsNpcLastTime < 10000) return;
   this._ttsNpcLastTime = now;
   this._ttsEnqueue(text, {
     timerKey: '_ttsNpcTimer',
