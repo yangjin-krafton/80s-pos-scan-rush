@@ -70,6 +70,11 @@ Game.prototype.startRound = function () {
   var margin = PARAMS.marginHard + (PARAMS.marginEasy - PARAMS.marginHard) * Math.pow(1 - t, 1.5);
   State.currentNpc.drainRate = effectiveSat / (rawTime * margin);
 
+  /* ---- Tutorial leniency: much slower drain ---- */
+  if (round.isTutorial) {
+    State.currentNpc.drainRate *= (round.tutorialPhase === 'tutorial' ? 0.35 : 0.55);
+  }
+
   /* ---- Schedule meta events from round.metas ---- */
   var metas = round.metas || {};
   this._scheduleMetaEvents(metas);
@@ -522,7 +527,15 @@ Game.prototype._checkoutFail = function (reason, message) {
   var npc = State.currentNpc;
   var penalty = npc.mistakePenalty + PARAMS.mistakeEscalation * (State.mistakeCount - 1);
 
-  State.satisfaction -= penalty;
+  /* Tutorial leniency: reduced penalty + satisfaction floor (no game over) */
+  var round = ROUNDS[State.round];
+  if (round && round.isTutorial) {
+    penalty = Math.floor(penalty * 0.4);
+    State.satisfaction = Math.max(20, State.satisfaction - penalty);
+  } else {
+    State.satisfaction -= penalty;
+  }
+
   State.score += PARAMS.scoreMistake;
   State.combo = 0;
 

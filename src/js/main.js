@@ -301,6 +301,14 @@ POS.debug = {
       var timeBudget = (POS.PARAMS.maxSatisfaction / dr).toFixed(1);
       console.log('  drainRate:   ', dr.toFixed(3), '(' + timeBudget + 's budget)');
     }
+    console.log('%c── Tutorial State ──', 'color:#ff0');
+    console.log('  phase:     ', State.tutorialPhase || '(none)');
+    console.log('  currentId: ', State.tutorialCurrentId || '(none)');
+    var completedKeys = Object.keys(State.tutorialCompleted);
+    console.log('  completed: ', completedKeys.length ? completedKeys.join(', ') : '(none)');
+    if (round && round.isTutorial) {
+      console.log('  ⚡ THIS IS A TUTORIAL ROUND:', round.tutorialId, '(' + round.tutorialPhase + ')');
+    }
     console.log('%c── Round Metas ──', 'color:#ff0');
     var keys = Object.keys(metas || {});
     if (keys.length) {
@@ -327,11 +335,59 @@ POS.debug = {
     }
   },
 
+  /** POS.debug.tutorial('sale') — immediately enter a tutorial round */
+  tutorial: function (id) {
+    var State = POS.State;
+    var order = POS.TUTORIAL_ORDER;
+    var defs  = POS.TUTORIAL_DEFS;
+
+    if (!id) {
+      console.log('%c[debug] Available tutorial IDs:', 'color:#0ff');
+      for (var i = 0; i < order.length; i++) {
+        var d = defs[order[i]];
+        var done = State.tutorialCompleted[order[i]] ? ' ✅' : '';
+        console.log('  ' + order[i] + '  (DR≥' + d.unlockDR + ')  ' + d.label + done);
+      }
+      return;
+    }
+
+    var def = defs[id];
+    if (!def) {
+      console.warn('[debug] Unknown tutorial ID: ' + id);
+      console.log('[debug] Available: ' + order.join(', '));
+      return;
+    }
+
+    if (State.phase !== 'playing' && State.phase !== 'roundIntro' && State.phase !== 'customerEntering') {
+      console.warn('[debug] Start a game first (need at least round 0 running)');
+      return;
+    }
+
+    /* Build tutorial + practice rounds */
+    var tutRound  = game._buildTutorialRound(def.tutorial, id, 'tutorial');
+    var pracRound = game._buildTutorialRound(def.practice, id, 'practice');
+
+    /* Splice as the very next round */
+    var insertAt = State.round + 1;
+    POS.ROUNDS.splice(insertAt, 0, tutRound, pracRound);
+
+    /* Jump to it immediately */
+    State.round = insertAt;
+    game.startRound();
+
+    console.log(
+      '%c[debug] 🎓 Tutorial started: ' + def.label + ' (' + id + ')',
+      'color:#0f0;font-weight:bold;font-size:14px'
+    );
+    console.log('[debug] Tutorial round at index ' + insertAt + ', practice at ' + (insertAt + 1));
+  },
+
   /** POS.debug.help() — list available commands */
   help: function () {
     console.log('%c══════ POS DEBUG COMMANDS ══════', 'color:#0f0;font-weight:bold');
     console.log('  POS.debug.setDifficulty(n)     Set diffRating (metas unlock: 4,5,6,7,8,9)');
     console.log('  POS.debug.trigger(name)        Force-fire runtime meta (posBlackout/midAdd/midCancel)');
+    console.log('  POS.debug.tutorial(id)         Jump to tutorial round (sale/damagedBarcode/promo/midAdd/midCancel)');
     console.log('  POS.debug.god()                Toggle god mode (no satisfaction drain)');
     console.log('  POS.debug.status()             Show current game state & active metas');
     console.log('  POS.debug.help()               This help');
