@@ -92,9 +92,9 @@ POS.TUTORIAL_DEFS = {
   promo: {
     unlockDR: 6,
     label: '1+1 \uBB34\uB8CC',
-    tutorial: { products:2, qtyMin:3, qtyMax:4, saleCount:0, discPair:null, npcType:'kind',
+    tutorial: { products:10, qtyMin:1, qtyMax:2, saleCount:0, discPair:null, npcType:'kind',
                 metas:{ promo:{ chance:1.0 } } },
-    practice: { products:3, qtyMin:4, qtyMax:6, saleCount:0, discPair:null, npcType:'kind',
+    practice: { products:10, qtyMin:1, qtyMax:2, saleCount:0, discPair:null, npcType:'kind',
                 metas:{ promo:{ chance:1.0 } } },
   },
   midAdd: {
