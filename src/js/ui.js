@@ -1127,7 +1127,9 @@ UI.prototype._onPromoFreeUnlocked = function (data) {
 
 UI.prototype._onMidCancel = function (cancelledItems) {
   var desktop = this.els.cartDesktop;
-  if (!desktop) return;
+  var gameEl = document.querySelector('.game');
+  if (!desktop || !gameEl) return;
+  var self = this;
 
   /* Show NPC dialogue */
   var npc = State.currentNpc;
@@ -1136,20 +1138,56 @@ UI.prototype._onMidCancel = function (cancelledItems) {
     this._bubble((lines && lines.length) ? POS.pickDialogue(lines) : 'やっぱりこれ、いらない。');
   }
 
-  /* Mark cancelled cart cards */
+  var areaW = desktop.clientWidth || 340;
+  var areaH = desktop.clientHeight || 120;
+
   for (var i = 0; i < cancelledItems.length; i++) {
     var ci = cancelledItems[i];
-    var matchCards = desktop.querySelectorAll('.cart-card[data-item-id="' + ci.id + '"]');
-    var marked = 0;
-    for (var j = 0; j < matchCards.length; j++) {
-      if (marked >= ci.cancelQty) break;
-      if (!matchCards[j].classList.contains('is-cancelled')) {
-        matchCards[j].classList.add('is-cancelled');
-        marked++;
+    var moved = 0;
+
+    /* 1) Find scanned cards in .game (scan-wait area) and fly back to cart */
+    var gameCards = gameEl.querySelectorAll('.cart-card[data-item-id="' + ci.id + '"]');
+    for (var j = 0; j < gameCards.length; j++) {
+      if (moved >= ci.cancelQty) break;
+      var gc = gameCards[j];
+      if (gc.classList.contains('is-cancelled')) continue;
+
+      /* Reparent from .game to cart desktop */
+      gc.classList.remove('in-game');
+      gc.classList.add('is-cancelled');
+      gc.remove();
+      desktop.appendChild(gc);
+
+      /* Animate to random cart position */
+      var bx = Math.random() * (areaW - 64);
+      var by = Math.random() * (areaH - 64);
+      var rot = (Math.random() - 0.5) * 20;
+      gc.style.zIndex = String((self._cartTopZ || 100) + 1);
+      self._cartTopZ = parseInt(gc.style.zIndex);
+      gc.style.transition = 'left 0.4s ease-out, top 0.4s ease-out, transform 0.4s ease-out';
+      gc.style.left = bx + 'px';
+      gc.style.top  = by + 'px';
+      gc.style.transform = 'rotate(' + rot + 'deg) scale(1)';
+      gc.style.boxShadow = '';
+      (function (c) {
+        setTimeout(function () { c.style.transition = ''; }, 420);
+      })(gc);
+      moved++;
+    }
+
+    /* 2) Fallback: mark any unscanned cards still in desktop */
+    if (moved < ci.cancelQty) {
+      var deskCards = desktop.querySelectorAll('.cart-card[data-item-id="' + ci.id + '"]');
+      for (var k = 0; k < deskCards.length; k++) {
+        if (moved >= ci.cancelQty) break;
+        if (!deskCards[k].classList.contains('is-cancelled')) {
+          deskCards[k].classList.add('is-cancelled');
+          moved++;
+        }
       }
     }
 
-    /* Flash POS row if item already scanned */
+    /* 3) Flash POS row if item already scanned */
     var posScroll = this.els.posScroll;
     if (posScroll) {
       var rows = posScroll.querySelectorAll('.pos-row');
