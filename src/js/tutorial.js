@@ -31,6 +31,12 @@ var STEPS = [
    Each meta shows a brief tooltip the FIRST time it appears in a session.
    ================================================================ */
 var META_INTROS = {
+  sale: {
+    text: '\uD83C\uDFF7\uFE0F \uD560\uC778 \uC0C1\uD488\uC774\uC5D0\uC694!\n\uD560\uC778\uC728\uC744 \uC124\uC815\uD558\uACE0 \uD560\uC778 \uBC14\uCF54\uB4DC\uB97C \uC2A4\uCE94\uD558\uC138\uC694.',
+    target: '.discount-ctrl',
+    pos: 'bottom',
+    duration: 5000,
+  },
   damagedBarcode: {
     text: '\u26A0\uFE0F \uBC14\uCF54\uB4DC \uD6FC\uC190! \u00D7 \uD45C\uC2DC \uCE74\uB4DC\uB294 \uC2A4\uCE94 \uBD88\uAC00!\n\uAC19\uC740 \uC0C1\uD488\uC758 \uC815\uC0C1 \uBCF5\uC0AC\uBCF8\uC744 \uCC3E\uC73C\uC138\uC694.',
     target: '.cart-desktop',
@@ -168,6 +174,18 @@ Tutorial.prototype._listen = function () {
   Bus.on('roundStart', function () {
     var round = POS.ROUNDS[State.round];
     if (!round || !round.metas) return;
+
+    /* Tutorial round: force-show the mechanic's meta intro (ignore seenMetas) */
+    if (round.isTutorial && round.tutorialPhase === 'tutorial') {
+      var metaId = round.tutorialId;
+      var intro = META_INTROS[metaId];
+      if (intro) {
+        /* Delay slightly so UI is ready */
+        setTimeout(function () { self._displayMetaTip(intro); }, 600);
+      }
+      return; /* skip normal meta checks for tutorial rounds */
+    }
+
     var metas = round.metas;
 
     /* damagedBarcode: check if any item has damagedCopies */

@@ -71,4 +71,48 @@ POS.getCorrectDiscount = function (itemId) {
   return discounts.reduce(function (min, b) { return b.discountRate < min.discountRate ? b : min; }, discounts[0]);
 };
 
+/* ---- Tutorial round definitions ---- */
+POS.TUTORIAL_ORDER = ['sale','damagedBarcode','promo','midAdd','midCancel'];
+
+POS.TUTORIAL_DEFS = {
+  sale: {
+    unlockDR: 2,
+    label: '\uD560\uC778 \uC2A4\uCE94',
+    tutorial: { products:2, qtyMin:3, qtyMax:4, saleCount:1, discPair:[10,30], npcType:'kind', metas:{} },
+    practice: { products:3, qtyMin:4, qtyMax:6, saleCount:3, discPair:[10,30], npcType:'kind', metas:{} },
+  },
+  damagedBarcode: {
+    unlockDR: 5,
+    label: '\uD6FC\uC190 \uBC14\uCF54\uB4DC',
+    tutorial: { products:2, qtyMin:4, qtyMax:5, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ damagedBarcode:{ chance:1.0, ratio:0.5 } } },
+    practice: { products:3, qtyMin:5, qtyMax:7, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ damagedBarcode:{ chance:1.0, ratio:0.5 } } },
+  },
+  promo: {
+    unlockDR: 6,
+    label: '1+1 \uBB34\uB8CC',
+    tutorial: { products:2, qtyMin:3, qtyMax:4, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ promo:{ chance:1.0 } } },
+    practice: { products:3, qtyMin:4, qtyMax:6, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ promo:{ chance:1.0 } } },
+  },
+  midAdd: {
+    unlockDR: 6,
+    label: '\uCD94\uAC00 \uC0C1\uD488',
+    tutorial: { products:2, qtyMin:3, qtyMax:4, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ midAdd:{ chance:1.0, count:1, delay:[5,8] } } },
+    practice: { products:3, qtyMin:4, qtyMax:5, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ midAdd:{ chance:1.0, count:2, delay:[4,6] } } },
+  },
+  midCancel: {
+    unlockDR: 9,
+    label: '\uCDE8\uC18C \uC694\uCCAD',
+    tutorial: { products:3, qtyMin:5, qtyMax:6, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ midCancel:{ chance:1.0, count:1, delay:[5,8] } } },
+    practice: { products:4, qtyMin:6, qtyMax:8, saleCount:0, discPair:null, npcType:'kind',
+                metas:{ midCancel:{ chance:1.0, count:2, delay:[4,6] } } },
+  },
+};
+
 })();

@@ -39,6 +39,16 @@ Game.prototype.startRound = function () {
   State.resetRound();
   if (POS.Loader && POS.Loader.ensureRounds) POS.Loader.ensureRounds(State.round + 1);
   var round = ROUNDS[State.round];
+
+  /* Mark tutorial phase if this is a tutorial/practice round */
+  if (round.isTutorial) {
+    State.tutorialPhase = round.tutorialPhase;
+    State.tutorialCurrentId = round.tutorialId;
+  } else {
+    State.tutorialPhase = null;
+    State.tutorialCurrentId = null;
+  }
+
   State.currentNpc = round.npc;
   State.currentMood = 'calm';
   State.prevMood = 'calm';
@@ -526,12 +536,30 @@ Game.prototype._checkoutSuccess = function () {
   var timeBonus = Math.floor(State.satisfaction * PARAMS.scoreTimeBonusMult);
   State.score += PARAMS.scoreCheckout + timeBonus;
 
-  /* ---- Adaptive difficulty: update rating based on performance ---- */
-  if (State.round >= 1) {
+  var round = ROUNDS[State.round];
+
+  /* ---- Adaptive difficulty: update rating (freeze during tutorial) ---- */
+  if (State.round >= 1 && !(round && round.isTutorial)) {
     var satFactor = State.satisfaction / PARAMS.maxSatisfaction;
     var mistakeFactor = Math.max(0, 1 - State.mistakeCount * 0.3);
     var perf = satFactor * 0.6 + mistakeFactor * 0.4;
     State.diffRating += 0.5 + perf * 1.2;
+  }
+
+  /* ---- Tutorial round completion handling ---- */
+  if (round && round.isTutorial) {
+    if (round.tutorialPhase === 'practice') {
+      /* Practice complete → mark mechanic as done */
+      State.tutorialCompleted[round.tutorialId] = true;
+      State.tutorialPhase = null;
+      State.tutorialCurrentId = null;
+    } else {
+      /* Tutorial round complete → next is practice */
+      State.tutorialPhase = 'practice';
+    }
+  } else {
+    /* Normal round: check for new tutorial unlocks */
+    this._checkTutorialUnlocks();
   }
 
   var npc = State.currentNpc;
@@ -630,6 +658,49 @@ Game.prototype._buildCheckoutReport = function (reason, message) {
     message: message,
     lines: lines,
   };
+};
+
+/* ---- Tutorial unlock check (called after normal round checkout) ---- */
+
+Game.prototype._checkTutorialUnlocks = function () {
+  var order = POS.TUTORIAL_ORDER;
+  var defs  = POS.TUTORIAL_DEFS;
+  var done  = State.tutorialCompleted;
+
+  for (var i = 0; i < order.length; i++) {
+    var id = order[i];
+    if (done[id]) continue;                       // already completed
+    var def = defs[id];
+    if (State.diffRating < def.unlockDR) continue; // DR not reached
+
+    // Unlock! Build tutorial + practice rounds and splice into ROUNDS
+    var tutRound  = this._buildTutorialRound(def.tutorial, id, 'tutorial');
+    var pracRound = this._buildTutorialRound(def.practice, id, 'practice');
+
+    var insertAt = State.round + 1;
+    ROUNDS.splice(insertAt, 0, tutRound, pracRound);
+
+    // One mechanic at a time
+    return;
+  }
+};
+
+Game.prototype._buildTutorialRound = function (config, tutId, phase) {
+  var tier = {
+    npcType:   config.npcType,
+    products:  config.products,
+    qtyMin:    config.qtyMin,
+    qtyMax:    config.qtyMax,
+    saleCount: config.saleCount,
+    discPair:  config.discPair,
+    metas:     config.metas || {},
+  };
+
+  var round = POS.Loader.buildSingleRound(tier);
+  round.isTutorial     = true;
+  round.tutorialId     = tutId;
+  round.tutorialPhase  = phase; // 'tutorial' | 'practice'
+  return round;
 };
 
 POS.Game = Game;

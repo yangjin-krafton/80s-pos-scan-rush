@@ -55,31 +55,32 @@ function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 
 /* ---- Dynamic meta computation based on diffRating ---- */
 
-function computeMetas(dr) {
+function computeMetas(dr, completed) {
+  var done = completed || {};
   var metas = {};
 
-  /* highQty: unlocks at dr >= 4 */
+  /* highQty: unlocks at dr >= 4 (no tutorial gating) */
   if (dr >= 4) {
     metas.highQty = { qtyMax: clamp(4 + Math.floor((dr - 4) * 0.5), 4, 8) };
   }
 
-  /* damagedBarcode: unlocks at dr >= 5 */
-  if (dr >= 5) {
+  /* damagedBarcode: unlocks at dr >= 5 AND tutorial completed */
+  if (dr >= 5 && done.damagedBarcode) {
     metas.damagedBarcode = {
       chance: clamp(0.2 + (dr - 5) * 0.06, 0.2, 0.8),
       ratio:  clamp(0.4 + (dr - 5) * 0.03, 0.4, 0.7),
     };
   }
 
-  /* promo: unlocks at dr >= 6 */
-  if (dr >= 6) {
+  /* promo: unlocks at dr >= 6 AND tutorial completed */
+  if (dr >= 6 && done.promo) {
     metas.promo = {
       chance: clamp(0.35 + (dr - 6) * 0.05, 0.35, 0.8),
     };
   }
 
-  /* midAdd: unlocks at dr >= 6 */
-  if (dr >= 6) {
+  /* midAdd: unlocks at dr >= 6 AND tutorial completed */
+  if (dr >= 6 && done.midAdd) {
     metas.midAdd = {
       chance: clamp(0.3 + (dr - 6) * 0.05, 0.3, 0.8),
       count:  clamp(1 + Math.floor((dr - 6) * 0.5), 1, 5),
@@ -87,7 +88,7 @@ function computeMetas(dr) {
     };
   }
 
-  /* mixedSale: unlocks at dr >= 7 */
+  /* mixedSale: unlocks at dr >= 7 (no tutorial gating) */
   if (dr >= 7) {
     metas.mixedSale = {
       chance: clamp(0.3 + (dr - 7) * 0.06, 0.3, 0.8),
@@ -95,7 +96,7 @@ function computeMetas(dr) {
     };
   }
 
-  /* posBlackout: unlocks at dr >= 8 */
+  /* posBlackout: unlocks at dr >= 8 (no tutorial gating) */
   if (dr >= 8) {
     metas.posBlackout = {
       chance:   clamp(0.2 + (dr - 8) * 0.04, 0.2, 0.6),
@@ -104,7 +105,7 @@ function computeMetas(dr) {
     };
   }
 
-  /* multiDiscount: unlocks at dr >= 9 */
+  /* multiDiscount: unlocks at dr >= 9 (no tutorial gating) */
   if (dr >= 9) {
     var mdCount = clamp(1 + Math.floor((dr - 9) * 0.7), 1, 8);
     metas.multiDiscount = {
@@ -114,8 +115,8 @@ function computeMetas(dr) {
     };
   }
 
-  /* midCancel: unlocks at dr >= 9 */
-  if (dr >= 9) {
+  /* midCancel: unlocks at dr >= 9 AND tutorial completed */
+  if (dr >= 9 && done.midCancel) {
     metas.midCancel = {
       chance: clamp(0.25 + (dr - 9) * 0.05, 0.25, 0.7),
       count:  clamp(1 + Math.floor((dr - 9) * 0.3), 1, 3),
@@ -251,6 +252,64 @@ POS.Loader = {
     this._lastBaseId = null;
   },
 
+  /* Build a single round from an explicit tier config (used by tutorial system) */
+  buildSingleRound: function (tier) {
+    /* Pick NPC */
+    var byType = this._npcByType[tier.npcType] || this._npcByType.kind;
+    var candidates = byType.filter(function (c) { return c.base_id !== this._lastBaseId; }, this);
+    if (!candidates.length) candidates = byType;
+    var chosenNpc = pick(candidates);
+
+    var npcInstance = JSON.parse(JSON.stringify(chosenNpc));
+    var palette = BODY_COLORS[tier.npcType] || BODY_COLORS.kind;
+    npcInstance.bodyColor = pick(palette);
+    this._lastBaseId = npcInstance.base_id;
+
+    /* Pick products */
+    var picked = this._pickProducts(this._productPool, tier);
+
+    /* Build items */
+    var metas = tier.metas || {};
+    var roundIndex = this._nextRoundIndex;
+    var roundItems = [];
+    for (var p = 0; p < picked.length; p++) {
+      var prod = picked[p];
+      var isSale = prod._isSale;
+      var dp = prod._discPairOverride || tier.discPair;
+      var item = this._buildItem(prod.product, isSale, dp, roundIndex, prod._isPromo, prod._promoType);
+      POS.ITEMS[item.id] = item;
+      var ri = { id: item.id, qty: prod.qty };
+      if (prod._isPromo) {
+        ri.promoFreeQty = prod._promoFreeQty || 0;
+        ri.promoType = prod._promoType;
+      }
+      roundItems.push(ri);
+    }
+
+    /* Apply damagedBarcode meta */
+    var dmgMeta = metas.damagedBarcode;
+    if (dmgMeta) {
+      for (var d = 0; d < roundItems.length; d++) {
+        var entry = roundItems[d];
+        if (entry.qty > 1 && Math.random() < dmgMeta.chance) {
+          var dmgCount = Math.floor(entry.qty * (dmgMeta.ratio || 0.5));
+          dmgCount = Math.max(0, Math.min(dmgCount, entry.qty - 1));
+          var dmgArr = [];
+          for (var dd = 0; dd < entry.qty; dd++) {
+            dmgArr.push(dd < dmgCount);
+          }
+          shuffle(dmgArr);
+          entry.damagedCopies = dmgArr;
+        }
+      }
+    }
+
+    POS.NPCS.push(npcInstance);
+    this._nextRoundIndex++;
+
+    return { npc: npcInstance, items: roundItems, roundIndex: roundIndex, metas: metas };
+  },
+
   _appendRounds: function (count) {
     for (var i = 0; i < count; i++) {
       var roundIndex = this._nextRoundIndex;
@@ -362,8 +421,14 @@ POS.Loader = {
       };
     }
 
-    /* Compute metas dynamically from diffRating */
-    tier.metas = computeMetas(dr);
+    /* Sale gating: block sale items until sale tutorial completed */
+    if (!State.tutorialCompleted.sale) {
+      tier.saleCount = 0;
+      tier.discPair = null;
+    }
+
+    /* Compute metas dynamically from diffRating (with tutorial gating) */
+    tier.metas = computeMetas(dr, State.tutorialCompleted);
     return tier;
   },
 

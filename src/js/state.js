@@ -76,6 +76,11 @@ POS.State = {
   midCancelTimer: 0,
   midCancelFired: false,
 
+  /* ---- Tutorial tracking ---- */
+  tutorialCompleted: {},    // { sale: true, damagedBarcode: true, ... }
+  tutorialPhase: null,      // null | 'tutorial' | 'practice'
+  tutorialCurrentId: null,  // 'sale' | 'damagedBarcode' | ...
+
   /* ---- Served NPC history ---- */
   servedNpcs: [],
 
@@ -96,6 +101,9 @@ POS.State = {
     this.midCancelScheduled = false;
     this.midCancelTimer = 0;
     this.midCancelFired = false;
+    this.tutorialCompleted = {};
+    this.tutorialPhase = null;
+    this.tutorialCurrentId = null;
     this.servedNpcs = [];
     this.customerPhase = 'none';
     this.customerFeedback = null;

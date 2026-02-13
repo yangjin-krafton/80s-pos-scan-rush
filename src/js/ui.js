@@ -290,8 +290,14 @@ UI.prototype._updateInfoBar = function () {
   var rd = this.els.infoRound;
   var sc = this.els.infoScore;
   if (rd) {
-    var total = PARAMS.endlessRounds ? '∞' : pad2(ROUNDS.length);
-    rd.textContent = pad2(State.round + 1) + '/' + total;
+    var total = PARAMS.endlessRounds ? '\u221E' : pad2(ROUNDS.length);
+    if (State.tutorialPhase === 'tutorial') {
+      rd.textContent = 'TUT/' + total;
+    } else if (State.tutorialPhase === 'practice') {
+      rd.textContent = 'PRC/' + total;
+    } else {
+      rd.textContent = pad2(State.round + 1) + '/' + total;
+    }
   }
   if (sc) sc.textContent = String(State.score).padStart(6, '0');
 };
@@ -313,8 +319,14 @@ UI.prototype._updateCustomer = function () {
   // HUD name & round
   if (this.els.hudName)  this.els.hudName.textContent = npc.name + ' #' + pad2(State.round + 1);
   if (this.els.hudRight) {
-    var total = PARAMS.endlessRounds ? '∞' : ROUNDS.length;
-    this.els.hudRight.textContent = 'ROUND ' + pad2(State.round + 1) + '/' + total;
+    var total = PARAMS.endlessRounds ? '\u221E' : ROUNDS.length;
+    if (State.tutorialPhase === 'tutorial') {
+      this.els.hudRight.textContent = 'TUTORIAL/' + total;
+    } else if (State.tutorialPhase === 'practice') {
+      this.els.hudRight.textContent = 'PRACTICE/' + total;
+    } else {
+      this.els.hudRight.textContent = 'ROUND ' + pad2(State.round + 1) + '/' + total;
+    }
   }
 };
 
@@ -516,11 +528,24 @@ UI.prototype._onRoundStart = function () {
     px.style.setProperty('--npc-legs', leg);
   }
 
-  this._showOverlay(
-    'ROUND ' + (State.round + 1),
-    npc.name + ' 등장!',
-    'intro'
-  );
+  /* Tutorial/practice round: show mechanic label instead of round number */
+  var overlayTitle, overlaySub;
+  if (round.isTutorial) {
+    var tutDef = POS.TUTORIAL_DEFS[round.tutorialId];
+    var tutLabel = tutDef ? tutDef.label : '';
+    if (round.tutorialPhase === 'tutorial') {
+      overlayTitle = 'TUTORIAL: ' + tutLabel;
+      overlaySub = npc.name + ' \uB4F1\uC7A5!';
+    } else {
+      overlayTitle = 'PRACTICE: ' + tutLabel;
+      overlaySub = npc.name + ' \uB4F1\uC7A5!';
+    }
+  } else {
+    overlayTitle = 'ROUND ' + (State.round + 1);
+    overlaySub = npc.name + ' \uB4F1\uC7A5!';
+  }
+
+  this._showOverlay(overlayTitle, overlaySub, 'intro');
 
   // Queue preview with future NPC emojis
   var remaining = PARAMS.endlessRounds ? 5 : (ROUNDS.length - State.round - 1);
