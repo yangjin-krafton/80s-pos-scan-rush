@@ -1401,52 +1401,81 @@ UI.prototype.showTitle = function () {
   var inner = this.els.overlayInner;
   if (!ov || !inner) return;
 
-  inner.innerHTML =
-    '<div class="title-screen">' +
-      '<div class="title-logo">' +
-        '<span class="title-icon">🏪</span> POS SCAN RUSH <span class="title-icon">🏪</span>' +
+  var baseHeader =
+    '<div class="title-logo">' +
+      '<span class="title-icon">🏪</span> POS SCAN RUSH <span class="title-icon">🏪</span>' +
+    '</div>' +
+    '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>';
+
+  var storyBody =
+    '<div class="title-story">' +
+      '<div class="title-setting">🌸 1995年、東京 ── 어느 봄날 🗼</div>' +
+      '<div class="title-narrative">' +
+        '한국에서 온 유학생,<br>' +
+        '낯선 편의점 계산대 앞에 서다.' +
       '</div>' +
-      '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
-
-      '<div class="title-story">' +
-        '<div class="title-setting">🌸 1995年、東京 ── 어느 봄날 🗼</div>' +
-        '<div class="title-narrative">' +
-          '한국에서 온 유학생,<br>' +
-          '낯선 편의점 계산대 앞에 서다.' +
-        '</div>' +
-        '<div class="title-quote">' +
-          '알바 첫날, 긴장되는 마음을 안고...<br>' +
-          '<span class="title-japanese">"いらっしゃいませ！"</span>' +
-        '</div>' +
+      '<div class="title-quote">' +
+        '알바 첫날, 긴장되는 마음을 안고...<br>' +
+        '<span class="title-japanese">"いらっしゃいませ！"</span>' +
       '</div>' +
-
-      '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
-
-      '<div class="title-howto">' +
-        '<div class="title-howto-title">🎮 HOW TO PLAY</div>' +
-        '<div class="title-step">📦 아래 화면에는 손님의 구메한 상품 장바구니<em></em>!</div>' +
-        '<div class="title-step">💻 상품 하나씩 바코드 스캔 하고 <em>가격 확인</em>!</div>' +
-        '<div class="title-step">💴 POS 기에 모든상품 등록 후 <em>계산 버튼 클릭</em>!</div>' +
-        '<div class="title-challenge">⚡ 빠르고 정확하게, 손님을 웃게 하세요!</div>' +
-      '</div>' +
-
-      '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
-
-      '<div class="title-start">' +
-        '<span class="title-blink">▶ 화면을 클릭하여 시작</span>' +
-      '</div>' +
-
-      '<div class="title-footer">' +
-        '🇰🇷 유학생 아르바이트 서바이벌 🇯🇵' +
-      '</div>' +
+    '</div>' +
+    '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
+    '<div class="title-start">' +
+      '<span class="title-blink">▶ 화면을 클릭하여 다음</span>' +
+    '</div>' +
+    '<div class="title-footer">' +
+      '🇰🇷 유학생 아르바이트 서바이벌 🇯🇵' +
     '</div>';
+
+  var howtoBody =
+    '<div class="title-tutorial">' +
+      '<img class="title-tutorial-gif" src="assets/images/g_01.gif" alt="튜토리얼 영상">' +
+    '</div>' +
+    '<div class="title-howto">' +
+      '<div class="title-howto-title">🎮 HOW TO PLAY</div>' +
+      '<div class="title-step">📦 <em>화면 하단</em>에서 손님이 담은 <em>장바구니 상품</em>을 확인!</div>' +
+      '<div class="title-step">💻 상품을 하나씩 <em>바코드 스캔</em>하고 <em>가격</em>을 확인!</div>' +
+      '<div class="title-step">💴 <em>모든 상품</em> 등록 후 <em>계산 버튼</em> 클릭!</div>' +
+      '<div class="title-challenge">⚡ 빠르고 정확하게, 손님을 웃게 하세요!</div>' +
+    '</div>' +
+    '<div class="title-divider">━━━━━━━━━━━━━━━━━━━━━━</div>' +
+    '<div class="title-start">' +
+      '<span class="title-blink">▶ 화면을 클릭하여 시작</span>' +
+    '</div>' +
+    '<div class="title-footer">' +
+      '🇰🇷 유학생 아르바이트 서바이벌 🇯🇵' +
+    '</div>';
+
+  var renderStory = function () {
+    inner.innerHTML =
+      '<div class="title-screen">' +
+        baseHeader +
+        storyBody +
+      '</div>';
+  };
+
+  var renderHowto = function () {
+    inner.innerHTML =
+      '<div class="title-screen">' +
+        baseHeader +
+        howtoBody +
+      '</div>';
+  };
+
+  renderStory();
 
   ov.classList.remove('hidden');
   ov.className = 'overlay title';
 
   var handler = function () {
     ov.removeEventListener('click', handler);
-    Bus.emit('startClick');
+    renderHowto();
+
+    var startHandler = function () {
+      ov.removeEventListener('click', startHandler);
+      Bus.emit('startClick');
+    };
+    ov.addEventListener('click', startHandler);
   };
   ov.addEventListener('click', handler);
 };

@@ -241,6 +241,17 @@
   opacity:0.6;
 }
 
+.title-tutorial{
+  margin:6px 0 8px;
+}
+.title-tutorial-gif{
+  width:120px;
+  height:auto;
+  border:2px solid #203030;
+  box-shadow:2px 2px 0 #000;
+  image-rendering:pixelated;
+}
+
 .title-story{
   margin:6px 0 10px;
 }
