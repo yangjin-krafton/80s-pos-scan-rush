@@ -100,17 +100,17 @@ POS.TUTORIAL_DEFS = {
   midAdd: {
     unlockDR: 6,
     label: '\uCD94\uAC00 \uC0C1\uD488',
-    tutorial: { products:2, qtyMin:3, qtyMax:4, saleCount:0, discPair:null, npcType:'kind',
+    tutorial: { products:10, qtyMin:1, qtyMax:2, saleCount:0, discPair:null, npcType:'kind',
                 metas:{ midAdd:{ chance:1.0, count:1, delay:[5,8] } } },
-    practice: { products:3, qtyMin:4, qtyMax:5, saleCount:0, discPair:null, npcType:'kind',
+    practice: { products:10, qtyMin:1, qtyMax:2, saleCount:0, discPair:null, npcType:'kind',
                 metas:{ midAdd:{ chance:1.0, count:2, delay:[4,6] } } },
   },
   midCancel: {
     unlockDR: 9,
     label: '\uCDE8\uC18C \uC694\uCCAD',
-    tutorial: { products:3, qtyMin:5, qtyMax:6, saleCount:0, discPair:null, npcType:'kind',
+    tutorial: { products:10, qtyMin:1, qtyMax:2, saleCount:0, discPair:null, npcType:'kind',
                 metas:{ midCancel:{ chance:1.0, count:1, delay:[5,8] } } },
-    practice: { products:4, qtyMin:6, qtyMax:8, saleCount:0, discPair:null, npcType:'kind',
+    practice: { products:10, qtyMin:1, qtyMax:2, saleCount:0, discPair:null, npcType:'kind',
                 metas:{ midCancel:{ chance:1.0, count:2, delay:[4,6] } } },
   },
 };

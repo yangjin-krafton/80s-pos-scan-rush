@@ -1337,6 +1337,7 @@ UI.prototype._changeDiscount = function (delta) {
     State.scanFreeMode = false;
     this._updateFreeDisplay();
   }
+  Bus.emit('discountChange', State.scanDiscountRate);
   this._updateDiscountDisplay();
 };
 
@@ -1349,6 +1350,7 @@ UI.prototype._updateDiscountDisplay = function () {
 
 UI.prototype._toggleFreeMode = function () {
   State.scanFreeMode = !State.scanFreeMode;
+  Bus.emit('freeToggle', State.scanFreeMode);
   if (State.scanFreeMode) {
     State.scanDiscountRate = 0;
     this._updateDiscountDisplay();

@@ -363,10 +363,15 @@ POS.debug = {
       return;
     }
 
-    /* Ensure DR is at least the unlock threshold for this tutorial */
-    if (State.diffRating < def.unlockDR) {
-      console.log('%c[debug] Bumping DR from ' + State.diffRating.toFixed(1) + ' to ' + def.unlockDR, 'color:#ff0');
-      State.diffRating = def.unlockDR;
+    /* Set DR to the unlock threshold for this tutorial */
+    State.diffRating = def.unlockDR;
+    console.log('%c[debug] DR set to ' + def.unlockDR, 'color:#ff0');
+
+    /* Mark all preceding tutorials as completed (so metas/sales aren't gated) */
+    for (var j = 0; j < order.length; j++) {
+      if (order[j] === id) break;
+      State.tutorialCompleted[order[j]] = true;
+      console.log('%c[debug] Auto-completed prerequisite: ' + order[j], 'color:#888');
     }
 
     /* Build tutorial + practice rounds */

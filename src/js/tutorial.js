@@ -32,35 +32,35 @@ var STEPS = [
    ================================================================ */
 var TUTORIAL_ROUND_STEPS = {
   sale: [
-    { target: '.discount-ctrl', text: '\uD83C\uDFF7\uFE0F \uD560\uC778 \uC0C1\uD488\uC774 \uC788\uC5B4\uC694!\n\uC544\uB798 \uBC84\uD2BC\uC73C\uB85C \uD560\uC778\uC728\uC744 \uBA3C\uC800 \uC124\uC815!', pos: 'bottom', auto: 5000 },
+    { target: '.discount-ctrl', text: '\uD83C\uDFF7\uFE0F \uD560\uC778 \uC0C1\uD488\uC774 \uC788\uC5B4\uC694!\n\uC544\uB798 \uBC84\uD2BC\uC73C\uB85C \uD560\uC778\uC728\uC744 \uBA3C\uC800 \uC124\uC815!', pos: 'bottom', auto: 5000, event: 'discountChange' },
     { target: '.cart-desktop',  text: '\uD83D\uDED2 \uD560\uC778 \uC2A4\uD2F0\uCEE4 \uC0C1\uD488\uC744 \uC7A1\uC544 \uB4DC\uB798\uADF8!', pos: 'top', event: 'cardPickup' },
     { target: null,             text: '\uD83D\uDCE6 \uD560\uC778 \uBC14\uCF54\uB4DC\uC5D0 \uB9DE\uCDB0 \uC2A4\uCE94!', pos: 'center', event: 'scanComplete' },
-    { target: null,             text: '\u2705 \uC88B\uC544\uC694! \uB098\uBA38\uC9C0 \uC0C1\uD488\uB3C4 \uC2A4\uCE94\uD558\uC138\uC694', pos: 'center', auto: 3000 },
+    { target: null,             text: '\u2705 \uC88B\uC544\uC694! \uB098\uBA38\uC9C0 \uC0C1\uD488\uB3C4 \uC2A4\uCE94\uD558\uC138\uC694', pos: 'center', auto: 3000, event: 'cardPickup' },
     { target: '.pos-foot .checkout', text: '\uD83D\uDCB0 \uC804\uBD80 \uC2A4\uCE94\uD588\uC73C\uBA74 \uACC4\uC0B0!', pos: 'top', event: 'checkoutClick' },
   ],
   damagedBarcode: [
-    { target: '.cart-desktop',  text: '\u26A0\uFE0F \u274C \uD45C\uC2DC = \uBC14\uCF54\uB4DC \uD6FC\uC190!\n\uC774 \uCE74\uB4DC\uB294 \uC2A4\uCE94\uC774 \uBD88\uAC00\uB2A5\uD574\uC694!', pos: 'top', auto: 5000 },
+    { target: '.cart-desktop',  text: '\u26A0\uFE0F \u274C \uD45C\uC2DC = \uBC14\uCF54\uB4DC \uD6FC\uC190!\n\uC774 \uCE74\uB4DC\uB294 \uC2A4\uCE94\uC774 \uBD88\uAC00\uB2A5\uD574\uC694!', pos: 'top', auto: 5000, event: 'cardPickup' },
     { target: '.cart-desktop',  text: '\uD83D\uDD0D \uAC19\uC740 \uC0C1\uD488\uC758 \uC815\uC0C1 \uCE74\uB4DC\uB97C \uCC3E\uC544\n\uB4DC\uB798\uADF8\uD574\uC11C \uC2A4\uCE94\uD558\uC138\uC694!', pos: 'top', event: 'cardPickup' },
     { target: null,             text: '\uD83D\uDCE6 \uC2A4\uCE90\uB108\uC5D0 \uC62C\uB824 \uC2A4\uCE94!', pos: 'center', event: 'scanComplete' },
-    { target: '.pos-scroll',   text: '\uD83D\uDCCB \uD6FC\uC190\uB41C \uC218\uB7C9\uB9CC\uD07C POS\uC758\n\u002B \uBC84\uD2BC\uC73C\uB85C \uC218\uB7C9\uC744 \uB9DE\uCDB0\uC8FC\uC138\uC694!', pos: 'center', auto: 6000 },
-    { target: null,             text: '\u2705 \uB098\uBA38\uC9C0 \uC0C1\uD488\uB3C4 \uAC19\uC740 \uBC29\uBC95\uC73C\uB85C!', pos: 'center', auto: 3000 },
+    { target: '.pos-scroll',   text: '\uD83D\uDCCB \uD6FC\uC190\uB41C \uC218\uB7C9\uB9CC\uD07C POS\uC758\n\u002B \uBC84\uD2BC\uC73C\uB85C \uC218\uB7C9\uC744 \uB9DE\uCDB0\uC8FC\uC138\uC694!', pos: 'center', auto: 6000, event: 'qtyPlus' },
+    { target: null,             text: '\u2705 \uB098\uBA38\uC9C0 \uC0C1\uD488\uB3C4 \uAC19\uC740 \uBC29\uBC95\uC73C\uB85C!', pos: 'center', auto: 3000, event: 'cardPickup' },
     { target: '.pos-foot .checkout', text: '\uD83D\uDCB0 \uC804\uBD80 \uC218\uB7C9 \uB9DE\uCDB4 \uD6C4 \uACC4\uC0B0!', pos: 'top', event: 'checkoutClick' },
   ],
   promo: [
-    { target: '.cart-desktop',  text: '\uD83C\uDF81 1+1 \uC0C1\uD488! \uC720\uB8CC\uBD84 + \uBB34\uB8CC\uBD84 \uBAA8\uB450 \uC2A4\uCE94!', pos: 'top', auto: 5000 },
+    { target: '.cart-desktop',  text: '\uD83C\uDF81 1+1 \uC0C1\uD488! \uC720\uB8CC\uBD84 + \uBB34\uB8CC\uBD84 \uBAA8\uB450 \uC2A4\uCE94!', pos: 'top', auto: 5000, event: 'cardPickup' },
     { target: '.cart-desktop',  text: '\uD83D\uDCE6 \uBA3C\uC800 \uC77C\uBC18 \uC2A4\uCE94\uC73C\uB85C \uC720\uB8CC\uBD84!', pos: 'top', event: 'scanComplete' },
-    { target: '#free-toggle',   text: '\uD83C\uDD93 \uC774\uC81C \uBB34\uB8CC \uD1A0\uAE00 ON!\n\uBB34\uB8CC\uBD84\uB3C4 \uC2A4\uCE94\uD558\uC138\uC694', pos: 'bottom', auto: 5000 },
-    { target: null,             text: '\u2705 \uC798\uD588\uC5B4\uC694! \uB098\uBA38\uC9C0\uB3C4 \uD655\uC778!', pos: 'center', auto: 3000 },
+    { target: '#free-toggle',   text: '\uD83C\uDD93 \uC774\uC81C \uBB34\uB8CC \uD1A0\uAE00 ON!\n\uBB34\uB8CC\uBD84\uB3C4 \uC2A4\uCE94\uD558\uC138\uC694', pos: 'bottom', auto: 5000, event: 'freeToggle' },
+    { target: null,             text: '\u2705 \uC798\uD588\uC5B4\uC694! \uB098\uBA38\uC9C0\uB3C4 \uD655\uC778!', pos: 'center', auto: 3000, event: 'cardPickup' },
     { target: '.pos-foot .checkout', text: '\uD83D\uDCB0 \uC804\uBD80 \uC2A4\uCE94 \uD6C4 \uACC4\uC0B0!', pos: 'top', event: 'checkoutClick' },
   ],
   midAdd: [
-    { target: '.cart-desktop',  text: '\uD83D\uDCE6 \uBA3C\uC800 \uC0C1\uD488\uC744 \uC2A4\uCE94\uD558\uC138\uC694!\n\uC7A0\uC2DC \uD6C4 \uC190\uB2D8\uC774 \uCD94\uAC00 \uC694\uCCAD!', pos: 'top', auto: 6000 },
-    { target: null,             text: '\uD83D\uDED2 ADD \uC0C1\uD488\uC774 \uCD94\uAC00\uB418\uBA74\n\uADF8\uAC83\uB3C4 \uAF2D \uC2A4\uCE94\uD558\uC138\uC694!', pos: 'center', auto: 4000 },
+    { target: '.cart-desktop',  text: '\uD83D\uDCE6 \uBA3C\uC800 \uC0C1\uD488\uC744 \uC2A4\uCE94\uD558\uC138\uC694!\n\uC7A0\uC2DC \uD6C4 \uC190\uB2D8\uC774 \uCD94\uAC00 \uC694\uCCAD!', pos: 'top', auto: 6000, event: 'cardPickup' },
+    { target: null,             text: '\uD83D\uDED2 ADD \uC0C1\uD488\uC774 \uCD94\uAC00\uB418\uBA74\n\uADF8\uAC83\uB3C4 \uAF2D \uC2A4\uCE94\uD558\uC138\uC694!', pos: 'center', auto: 4000, event: 'cardPickup' },
     { target: '.pos-foot .checkout', text: '\uD83D\uDCB0 \uCD94\uAC00 \uC0C1\uD488 \uD3EC\uD568 \uC804\uBD80 \uC2A4\uCE94 \uD6C4 \uACC4\uC0B0!', pos: 'top', event: 'checkoutClick' },
   ],
   midCancel: [
-    { target: '.cart-desktop',  text: '\uD83D\uDCE6 \uBA3C\uC800 \uC0C1\uD488\uC744 \uC2A4\uCE94\uD558\uC138\uC694!\n\uC7A0\uC2DC \uD6C4 \uC190\uB2D8\uC774 \uCDE8\uC18C \uC694\uCCAD!', pos: 'top', auto: 6000 },
-    { target: '.pos-scroll',   text: '\u274C \uCDE8\uC18C \uC694\uCCAD\uC774 \uC624\uBA74\nPOS\uC5D0\uC11C \u2212\uB85C \uC218\uB7C9\uC744 \uBE7C\uC138\uC694!', pos: 'center', auto: 4000 },
+    { target: '.cart-desktop',  text: '\uD83D\uDCE6 \uBA3C\uC800 \uC0C1\uD488\uC744 \uC2A4\uCE94\uD558\uC138\uC694!\n\uC7A0\uC2DC \uD6C4 \uC190\uB2D8\uC774 \uCDE8\uC18C \uC694\uCCAD!', pos: 'top', auto: 6000, event: 'cardPickup' },
+    { target: '.pos-scroll',   text: '\u274C \uCDE8\uC18C \uC694\uCCAD\uC774 \uC624\uBA74\nPOS\uC5D0\uC11C \u2212\uB85C \uC218\uB7C9\uC744 \uBE7C\uC138\uC694!', pos: 'center', auto: 4000, event: 'qtyMinus' },
     { target: '.pos-foot .checkout', text: '\uD83D\uDCB0 \uC870\uC815 \uD6C4 \uACC4\uC0B0!', pos: 'top', event: 'checkoutClick' },
   ],
 };
@@ -203,11 +203,15 @@ Tutorial.prototype._listen = function () {
   });
 
   /* Step dismiss events — generic event-based advancement */
-  Bus.on('cardPickup',    function () { self._advanceOnEvent('cardPickup'); });
-  Bus.on('scanComplete',  function () { self._advanceOnEvent('scanComplete'); });
-  Bus.on('checkoutClick', function () { self._advanceOnEvent('checkoutClick'); });
-  Bus.on('midAdd',        function () { self._advanceOnEvent('midAdd'); });
-  Bus.on('midCancel',     function () { self._advanceOnEvent('midCancel'); });
+  Bus.on('cardPickup',      function () { self._advanceOnEvent('cardPickup'); });
+  Bus.on('scanComplete',    function () { self._advanceOnEvent('scanComplete'); });
+  Bus.on('checkoutClick',   function () { self._advanceOnEvent('checkoutClick'); });
+  Bus.on('midAdd',          function () { self._advanceOnEvent('midAdd'); });
+  Bus.on('midCancel',       function () { self._advanceOnEvent('midCancel'); });
+  Bus.on('discountChange',  function () { self._advanceOnEvent('discountChange'); });
+  Bus.on('freeToggle',      function () { self._advanceOnEvent('freeToggle'); });
+  Bus.on('qtyPlus',         function () { self._advanceOnEvent('qtyPlus'); });
+  Bus.on('qtyMinus',        function () { self._advanceOnEvent('qtyMinus'); });
 
   /* Full reset on every new game (round 0) — basic tutorial + all meta intros */
   Bus.on('roundStart', function (idx) {
